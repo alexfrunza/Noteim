@@ -4,6 +4,6 @@ using namespace std;
 
 int main()
 {
-    cout << "Hello world!" << endl;
+    // Proiect editat si salvat pe branch-ul meu.
     return 0;
 }
