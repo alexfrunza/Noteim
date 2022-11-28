@@ -9,5 +9,6 @@ struct Color
 };
 
 int convertToBGIColor(Color c);
+bool colorIsEqual(Color c1, Color c2);
 
 #endif // NOTEIM_COLOR_H

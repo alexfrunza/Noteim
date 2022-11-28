@@ -32,7 +32,11 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="color.cpp" />
+		<Unit filename="color.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="piecetable.cpp" />
+		<Unit filename="piecetable.h" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>
