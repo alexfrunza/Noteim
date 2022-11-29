@@ -28,7 +28,7 @@ struct BuffersList
 
 BuffersList* initBuffersList();
 void addBuffer(BuffersList *bl, Buffer *b);
-// void removeLastBuffer(BuffersList *bl);
+void removeLastBuffer(BuffersList *bl);
 
 
 struct PieceTableNode
@@ -53,7 +53,7 @@ struct PieceTableNodesList
 };
 
 PieceTableNodesList* initPieceTableNodesList();
-// void addPieceTableNode(PieceTableNodesList *nl, PieceTableNode *n);
+void addPieceTableNode(PieceTableNodesList *nl, PieceTableNode *n);
 // void removeLastPieceTableNode(PieceTableNodeList *nl);
 
 
