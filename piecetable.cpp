@@ -2,29 +2,17 @@
 #include "color.h"
 #include <cstddef>
 
-bool textAttributeIsEqual(TextAttribute *ta1, TextAttribute *ta2)
-{
-    if(!colorIsEqual(ta1->bg, ta2->bg)) return false;
-    if(!colorIsEqual(ta1->fontColor, ta2->fontColor)) return false;
-    return true;
-}
-
 bool bufferIsFull(Buffer *b)
 {
     if (b->length >= MAX_LENGTH_BUFFER) return true;
     return false;
 }
 
-bool addElementToBuffer(char e, TextAttribute *ta, Buffer *b)
+bool addElementToBuffer(char e, Buffer *b)
 {
     if(bufferIsFull(b))
     {
         return false;
-    }
-
-    if(!textAttributeIsEqual(b->textAttributesList->last, ta))
-    {
-        // Add text attribute to list
     }
 
     b->text[b->length] = e;
@@ -35,7 +23,6 @@ bool addElementToBuffer(char e, TextAttribute *ta, Buffer *b)
 Buffer* initBuffer()
 {
     Buffer *b = new Buffer;
-    b->textAttributesList = NULL; // TODO: implement textAttributes
     b->length = 0;
     b->prev = NULL;
     b->next = NULL;

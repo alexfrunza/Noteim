@@ -5,30 +5,9 @@
 
 #define MAX_LENGTH_BUFFER 2047
 
-struct TextAttribute
-{
-    Color bg;
-    Color fontColor;
-
-    TextAttribute *prev;
-    TextAttribute *next;
-};
-
-// TextAttributeList* initTextAttribute();
-bool textAttributeIsEqual(TextAttribute *ta1, TextAttribute *ta2);
-
-struct TextAttributesList
-{
-    unsigned int length;
-    TextAttribute *first;
-    TextAttribute *last;
-};
-
-// TextAtrributesList* initTextAttributesList();
 
 struct Buffer
 {
-    TextAttributesList *textAttributesList;
     char text[MAX_LENGTH_BUFFER+1];
     // Maximum length will be 2047, last element is reserved for '\0'
     unsigned int length:10;
@@ -38,7 +17,7 @@ struct Buffer
 
 Buffer* initBuffer();
 bool bufferIsFull(Buffer *b);
-bool addElementToBuffer(char e, TextAttribute *ta, Buffer *b);
+bool addElementToBuffer(char e, Buffer *b);
 
 struct BuffersList
 {
