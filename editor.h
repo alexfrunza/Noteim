@@ -45,6 +45,8 @@ struct TextArea
     Point topLeft;
     Point bottomRight;
     PieceTable *pieceTable;
+    ScrollBarsArea *scrollBarsArea;
+    // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 };
 
 TextArea* initTextArea(Point topLeft, Point bottomRight);
@@ -55,7 +57,6 @@ struct Editor
 {
     bool running;
     MenuArea *menuArea;
-    ScrollBarsArea *scrollBarsArea;
     TextArea *textArea;
 };
 

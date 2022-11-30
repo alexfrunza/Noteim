@@ -1,7 +1,7 @@
 #include "color.h"
 
-#ifndef NOTEIM_PIECETABLE_H_
-#define NOTEIM_PIECETABLE_H_
+#ifndef NOTEIM_PIECETABLE_H
+#define NOTEIM_PIECETABLE_H
 
 #define MAX_LENGTH_BUFFER 2047
 
@@ -64,4 +64,4 @@ struct PieceTable
 
 PieceTable* initPieceTable();
 
-#endif // NOTEIM_PIECETABLE_H_
+#endif // NOTEIM_PIECETABLE_H

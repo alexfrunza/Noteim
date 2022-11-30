@@ -53,7 +53,7 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
-    settextstyle(0, HORIZ_DIR, 2);
+    settextstyle(0, HORIZ_DIR, 1);
 
     setbkcolor(WHITE);
     setcolor(BLACK);
@@ -74,7 +74,8 @@ Editor* initEditor()
     topLeft.y = 0;
     bottomRight.x = MAX_WIDTH;
     bottomRight.y = MAX_HEIGHT;
-    e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
+    //e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
+    // De mutat in initTextArea
 
     topLeft.x = 0;
     topLeft.y = 0;
@@ -88,15 +89,29 @@ Editor* initEditor()
 void drawArea(TextArea *ta)
 {
     if(ta->changes == false)
-    {
         return;
+
+    int current_x = 0, current_y = 0, i;
+    char aux;
+    Buffer *lastBuffer = ta->pieceTable->buffersList->last;
+    for(i=0; i<lastBuffer->length; i++, current_x+=9)
+    {
+        if(lastBuffer->text[i] == '\n')
+        {
+            current_y += 14;
+            current_x= -9;
+        }
+        aux = lastBuffer->text[i+1];
+        lastBuffer->text[i+1] = '\0';
+        outtextxy(current_x, current_y, lastBuffer->text+i);
+        lastBuffer->text[i+1] = aux;
     }
 }
 
 void drawEditor(Editor *e)
 {
-    drawArea(e->menuArea);
-    drawArea(e->scrollBarsArea);
+    //drawArea(e->menuArea);
+    //drawArea(e->scrollBarsArea);
     drawArea(e->textArea);
 }
 
