@@ -46,7 +46,6 @@ bool buffersListIsEmpty(BuffersList *bl)
 
 void addBuffer(BuffersList *bl, Buffer *b)
 {
-    bl->length++;
     if(buffersListIsEmpty(bl))
     {
         b->next = NULL;
@@ -60,6 +59,24 @@ void addBuffer(BuffersList *bl, Buffer *b)
     b->prev = bl->last;
     b->next = NULL;
     bl->last = b;
+    bl->length++;
+}
+
+void removeLastBuffer(BuffersList *bl)
+{
+    if(bl->length==0)
+        return;
+    if(bl->length==1)
+    {
+        delete bl->first;
+        bl->first = bl->last = NULL;
+        bl->length--;
+        return;
+    }
+    bl->last = bl->last->prev;
+    delete bl->last->next;
+    bl->last->next = NULL;
+    bl->length--;
 }
 
 PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start, unsigned int length, unsigned int numberNewLines)
@@ -72,6 +89,7 @@ PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start,
 
     n->prev = NULL;
     n->next = NULL;
+    return n;
 }
 
 PieceTableNodesList* initPieceTableNodesList()
@@ -89,4 +107,34 @@ PieceTable* initPieceTable()
     pt->buffersList = initBuffersList();
     pt->nodesList = initPieceTableNodesList();
     return pt;
+}
+
+void addPieceTableNode(PieceTableNodesList *nl, PieceTableNode *n)
+{
+    if(nl->length==0)
+        nl->first = nl->last = n;
+    else
+    {
+        n->prev = nl->last;
+        nl->last->next = n;
+        nl->last = n;
+    }
+    nl->length++;
+}
+
+void removeLastPieceTableNode(PieceTableNodesList *nl)
+{
+    if(nl->length==0)
+        return;
+    if(nl->length==1)
+    {
+        delete nl->first;
+        nl->first = nl->last = NULL;
+        nl->length--;
+        return;
+    }
+    nl->last = nl->last->prev;
+    delete nl->last->next;
+    nl->last->next = NULL;
+    nl->length--;
 }
