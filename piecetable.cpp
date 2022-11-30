@@ -89,6 +89,7 @@ PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start,
 
     n->prev = NULL;
     n->next = NULL;
+    return n;
 }
 
 PieceTableNodesList* initPieceTableNodesList()
