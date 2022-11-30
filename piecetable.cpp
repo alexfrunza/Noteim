@@ -50,6 +50,7 @@ void addBuffer(BuffersList *bl, Buffer *b)
         b->prev = NULL;
         bl->first = b;
         bl->last = b;
+        bl->length++;
         return;
     }
 
