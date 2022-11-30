@@ -11,9 +11,7 @@ bool bufferIsFull(Buffer *b)
 bool addElementToBuffer(char e, Buffer *b)
 {
     if(bufferIsFull(b))
-    {
         return false;
-    }
 
     b->text[b->length] = e;
     b->length++;

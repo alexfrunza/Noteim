@@ -54,8 +54,12 @@ struct PieceTableNodesList
 
 PieceTableNodesList* initPieceTableNodesList();
 void addPieceTableNode(PieceTableNodesList *nl, PieceTableNode *n);
+<<<<<<< HEAD
+void removeLastPieceTableNode(PieceTableNodesList *nl);
+=======
 void removeLastPieceTableNode(PieceTableNodeList *nl);
 
+>>>>>>> 8828aad98c490d82ddda827b4b6bb0705347b9de
 
 struct PieceTable
 {
