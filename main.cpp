@@ -8,11 +8,17 @@ int main()
 {
     Editor* e = initEditor();
     Buffer *lastBuffer = e->textArea->pieceTable->buffersList->last;
+    char a;
+    int x, y;
     while(e->running)
     {
+        if(ismouseclick(WM_LBUTTONDOWN))
+        {
+            getmouseclick(WM_LBUTTONDOWN,x,y);
+            e->textArea->cursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+        }
         if(kbhit())
         {
-            char a;
             a = getch();
             if(a == 27) // Daca apesi ESC se inchide editorul
             {
@@ -20,7 +26,7 @@ int main()
                 // Maybe pop-up do you want to save the file, if the file isn't saved.
                 continue;
             }
-            else if(a == '\r')
+            if(a == '\r')
             {
                 addElementToBuffer('\n',lastBuffer);
                 e->textArea->changes = true;

@@ -8,6 +8,9 @@
 #define MAX_WIDTH getmaxwidth()
 #define MAX_HEIGHT getmaxheight()
 
+#define CHAR_WIDTH 9
+#define CHAR_HEIGHT 14
+
 struct MenuArea
 {
     bool changes;
@@ -44,6 +47,7 @@ struct TextArea
     unsigned short int maxCharLine;
     Point topLeft;
     Point bottomRight;
+    Point cursorPosition;
     PieceTable *pieceTable;
     ScrollBarsArea *scrollBarsArea;
     // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.

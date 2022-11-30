@@ -44,10 +44,12 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
     ta->bottomRight = bottomRight;
     ta->changes = true;
     ta->pieceTable = initPieceTable();
+    ta->cursorPosition={0,0};
 
-    ta->maxLines = abs(bottomRight.y - topLeft.y) / textheight("|");
-    ta->maxCharLine = abs(bottomRight.x - topLeft.x) / textwidth("m");
+    ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
+    ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
     // De facut
+    return ta;
 }
 
 Editor* initEditor()
@@ -64,23 +66,17 @@ Editor* initEditor()
 
     Point topLeft, bottomRight;
 
-    topLeft.x = 0;
-    topLeft.y = 0;
-    bottomRight.x = MAX_WIDTH;
-    bottomRight.y = MAX_HEIGHT;
+    topLeft= {0,0};
+    bottomRight = {MAX_WIDTH,MAX_HEIGHT};
     e->menuArea = initMenuArea(topLeft, bottomRight);
 
-    topLeft.x = 0;
-    topLeft.y = 0;
-    bottomRight.x = MAX_WIDTH;
-    bottomRight.y = MAX_HEIGHT;
+    topLeft= {0,0};
+    bottomRight = {MAX_WIDTH,MAX_HEIGHT};
     //e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     // De mutat in initTextArea
 
-    topLeft.x = 0;
-    topLeft.y = 0;
-    bottomRight.x = MAX_WIDTH;
-    bottomRight.y = MAX_HEIGHT;
+    topLeft= {0,0};
+    bottomRight = {MAX_WIDTH,MAX_HEIGHT};
     e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
@@ -94,12 +90,12 @@ void drawArea(TextArea *ta)
     int current_x = 0, current_y = 0, i;
     char aux;
     Buffer *lastBuffer = ta->pieceTable->buffersList->last;
-    for(i=0; i<lastBuffer->length; i++, current_x+=9)
+    for(i=0; i<lastBuffer->length; i++, current_x+=CHAR_WIDTH)
     {
         if(lastBuffer->text[i] == '\n')
         {
-            current_y += 14;
-            current_x= -9;
+            current_y += CHAR_HEIGHT;
+            current_x = -CHAR_WIDTH;
         }
         aux = lastBuffer->text[i+1];
         lastBuffer->text[i+1] = '\0';
