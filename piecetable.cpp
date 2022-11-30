@@ -11,9 +11,7 @@ bool bufferIsFull(Buffer *b)
 bool addElementToBuffer(char e, Buffer *b)
 {
     if(bufferIsFull(b))
-    {
         return false;
-    }
 
     b->text[b->length] = e;
     b->length++;
@@ -52,6 +50,7 @@ void addBuffer(BuffersList *bl, Buffer *b)
         b->prev = NULL;
         bl->first = b;
         bl->last = b;
+        bl->length++;
         return;
     }
 

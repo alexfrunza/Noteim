@@ -34,6 +34,10 @@
 		</Compiler>
 		<Unit filename="color.cpp" />
 		<Unit filename="color.h" />
+		<Unit filename="editor.cpp" />
+		<Unit filename="editor.h" />
+		<Unit filename="helpers.cpp" />
+		<Unit filename="helpers.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="piecetable.cpp" />
 		<Unit filename="piecetable.h" />
