@@ -11,9 +11,7 @@ bool bufferIsFull(Buffer *b)
 bool addElementToBuffer(char e, Buffer *b)
 {
     if(bufferIsFull(b))
-    {
         return false;
-    }
 
     b->text[b->length] = e;
     b->length++;
@@ -89,6 +87,7 @@ PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start,
 
     n->prev = NULL;
     n->next = NULL;
+    return n;
 }
 
 PieceTableNodesList* initPieceTableNodesList()
