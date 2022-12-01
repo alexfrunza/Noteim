@@ -11,7 +11,7 @@ struct Buffer
 {
     char text[MAX_LENGTH_BUFFER+1];
     // Maximum length will be 2047, last element is reserved for '\0'
-    unsigned int length:10;
+    unsigned int length:12;
     Buffer *prev;
     Buffer *next;
 };
@@ -66,6 +66,6 @@ struct PieceTable
 };
 
 PieceTable* initPieceTable();
-void addElementToPieceTable(PieceTable* pt, Point position, char newLetter);
+void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter);
 
 #endif // NOTEIM_PIECETABLE_H

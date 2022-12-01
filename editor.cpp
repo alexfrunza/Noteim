@@ -82,28 +82,6 @@ Editor* initEditor()
     return e;
 }
 
-/*void drawArea(TextArea *ta)
-{
-    if(ta->changes == false)
-        return;
-
-    int current_x = 0, current_y = 0, i;
-    char aux;
-    Buffer *lastBuffer = ta->pieceTable->buffersList->last;
-    for(i=0; i<lastBuffer->length; i++, current_x+=CHAR_WIDTH)
-    {
-        if(lastBuffer->text[i] == '\n')
-        {
-            current_y += CHAR_HEIGHT;
-            current_x = -CHAR_WIDTH;
-        }
-        aux = lastBuffer->text[i+1];
-        lastBuffer->text[i+1] = '\0';
-        outtextxy(current_x, current_y, lastBuffer->text+i);
-        lastBuffer->text[i+1] = aux;
-    }
-}*/
-
 void drawArea(TextArea *ta)
 {
     if(ta->changes==false)

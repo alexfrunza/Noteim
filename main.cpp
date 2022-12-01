@@ -1,6 +1,4 @@
 #include <iostream>
-#include "helpers.h"
-#include "piecetable.h"
 #include "editor.h"
 
 using namespace std;

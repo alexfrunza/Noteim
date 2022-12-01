@@ -9,7 +9,7 @@
 #define MAX_HEIGHT getmaxheight()
 
 #define CHAR_WIDTH 9
-#define CHAR_HEIGHT 14
+#define CHAR_HEIGHT 15
 
 struct MenuArea
 {
