@@ -1,5 +1,6 @@
 #include <iostream>
 #include "helpers.h"
+#include "piecetable.h"
 #include "editor.h"
 
 using namespace std;
@@ -20,22 +21,28 @@ int main()
         if(kbhit())
         {
             a = getch();
-            if(a == 27) // Daca apesi ESC se inchide editorul
+            if(a == 27) // Daca apesi ESC se inchide editorul.
             {
                 stopEditor(e);
                 // Maybe pop-up do you want to save the file, if the file isn't saved.
                 continue;
             }
+            if(a == 8)
+            {
+                // Backspace deletion.
+            }
             if(a == '\r')
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,'\n');
+            if(a == '\t')
             {
-                addElementToBuffer('\n',lastBuffer);
-                e->textArea->changes = true;
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
             }
-            else if(isDisplayedChar(a))
-            {
-                addElementToBuffer(a,lastBuffer);
-                e->textArea->changes = true;
-            }
+            if(isDisplayedChar(a))
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,a);
+            e->textArea->changes = true;
         }
         drawEditor(e);
         delay(10);

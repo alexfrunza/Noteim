@@ -82,7 +82,7 @@ Editor* initEditor()
     return e;
 }
 
-void drawArea(TextArea *ta)
+/*void drawArea(TextArea *ta)
 {
     if(ta->changes == false)
         return;
@@ -101,6 +101,38 @@ void drawArea(TextArea *ta)
         lastBuffer->text[i+1] = '\0';
         outtextxy(current_x, current_y, lastBuffer->text+i);
         lastBuffer->text[i+1] = aux;
+    }
+}*/
+
+void drawArea(TextArea *ta)
+{
+    if(ta->changes==false)
+        return;
+
+    int current_x=0, current_y=0;
+    char *posInBuffer, *newLinePosInBuffer, aux;
+    unsigned int newLinesRemaining;
+    PieceTableNode *currentPTN = ta->pieceTable->nodesList->first;
+    while(currentPTN!=NULL)
+    {
+        newLinesRemaining = currentPTN->numberNewLines;
+        posInBuffer = currentPTN->buffer->text;
+        while(newLinesRemaining)
+        {
+            newLinePosInBuffer = strchr(posInBuffer+currentPTN->start,'\n');
+            newLinePosInBuffer[0]='\0';
+            outtextxy(current_x,current_y,posInBuffer);
+            newLinePosInBuffer[0]='\n';
+            current_x = 0;
+            current_y += CHAR_HEIGHT;
+            posInBuffer = newLinePosInBuffer+1;
+            newLinesRemaining--;
+        }
+        aux = currentPTN->buffer->text[currentPTN->start+currentPTN->length];
+        currentPTN->buffer->text[currentPTN->start+currentPTN->length] = '\0';
+        outtextxy(current_x,current_y,posInBuffer);
+        currentPTN->buffer->text[currentPTN->start+currentPTN->length] = aux;
+        currentPTN = currentPTN->next;
     }
 }
 

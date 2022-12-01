@@ -1,4 +1,5 @@
 #include "color.h"
+#include "helpers.h"
 
 #ifndef NOTEIM_PIECETABLE_H
 #define NOTEIM_PIECETABLE_H
@@ -33,7 +34,8 @@ void removeLastBuffer(BuffersList *bl);
 
 struct PieceTableNode
 {
-    unsigned int bufferIndex;
+    Buffer *buffer;
+    //unsigned int bufferIndex;
     unsigned int start;
     unsigned int length;
     unsigned int numberNewLines;
@@ -42,7 +44,8 @@ struct PieceTableNode
     PieceTableNode *next;
 };
 
-PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start, unsigned int length, unsigned int numberNewLines);
+PieceTableNode* initPieceTableNode(Buffer* buffer, unsigned int start, unsigned int length, unsigned int numberNewLines);
+//PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start, unsigned int length, unsigned int numberNewLines);
 // PieceTableNode* modifyNode();
 
 struct PieceTableNodesList
@@ -63,5 +66,6 @@ struct PieceTable
 };
 
 PieceTable* initPieceTable();
+void addElementToPieceTable(PieceTable* pt, Point position, char newLetter);
 
 #endif // NOTEIM_PIECETABLE_H
