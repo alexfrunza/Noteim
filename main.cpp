@@ -20,6 +20,8 @@ int main()
         if(kbhit())
         {
             a = getch();
+            if(a==0)
+                moveCursorByArrow(e->textArea,getch());
             if(a == 27) // Daca apesi ESC se inchide editorul.
             {
                 stopEditor(e);

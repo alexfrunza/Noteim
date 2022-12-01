@@ -60,6 +60,10 @@ void drawCursorLine(Point p, bool white)
 
 void moveCursor(TextArea *ta, Point dest)
 {
+    if(dest.x<0 || dest.y <0)
+        return;
+    if(dest.x>=ta->maxCharLine || dest.y>=ta->maxLines)
+        return;
     drawCursorLine(ta->cursorPosition,true);
     PieceTableNode *ptn = ta->pieceTable->nodesList->first;
     unsigned int remainingNewLines = dest.y, i=ptn->start, currentXInLine=0;
@@ -115,6 +119,24 @@ void moveCursor(TextArea *ta, Point dest)
     drawCursorLine(ta->cursorPosition);
 }
 
+void moveCursorByArrow(TextArea *ta, char a)
+{
+    switch(a)
+    {
+    case 72: // Sus
+        moveCursor(ta,{ta->cursorPosition.x,ta->cursorPosition.y-1});
+    break;
+    case 80: // Jos
+        moveCursor(ta,{ta->cursorPosition.x,ta->cursorPosition.y+1});
+    break;
+    case 75: // Stanga
+        moveCursor(ta,{ta->cursorPosition.x-1,ta->cursorPosition.y});
+    break;
+    case 77: // Dreapta
+        moveCursor(ta,{ta->cursorPosition.x+1,ta->cursorPosition.y});
+    }
+}
+
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
@@ -157,7 +179,7 @@ void drawArea(TextArea *ta)
     while(currentPTN!=NULL)
     {
         newLinesRemaining = currentPTN->numberNewLines;
-        posInBuffer = currentPTN->buffer->text;
+        posInBuffer = currentPTN->buffer->text+currentPTN->start;
         while(newLinesRemaining)
         {
             newLinePosInBuffer = strchr(posInBuffer+currentPTN->start,'\n');

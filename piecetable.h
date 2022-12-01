@@ -4,14 +4,14 @@
 #ifndef NOTEIM_PIECETABLE_H
 #define NOTEIM_PIECETABLE_H
 
-#define MAX_LENGTH_BUFFER 2047
+#define MAX_LENGTH_BUFFER 511
 
 
 struct Buffer
 {
     char text[MAX_LENGTH_BUFFER+1];
-    // Maximum length will be 2047, last element is reserved for '\0'
-    unsigned int length:12;
+    // Maximum length will be 511, last element is reserved for '\0'
+    unsigned int length:10;
     Buffer *prev;
     Buffer *next;
 };
@@ -35,7 +35,6 @@ void removeLastBuffer(BuffersList *bl);
 struct PieceTableNode
 {
     Buffer *buffer;
-    //unsigned int bufferIndex;
     unsigned int start;
     unsigned int length;
     unsigned int numberNewLines;
@@ -45,7 +44,6 @@ struct PieceTableNode
 };
 
 PieceTableNode* initPieceTableNode(Buffer* buffer, unsigned int start, unsigned int length, unsigned int numberNewLines);
-//PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start, unsigned int length, unsigned int numberNewLines);
 // PieceTableNode* modifyNode();
 
 struct PieceTableNodesList
