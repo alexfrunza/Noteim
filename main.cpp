@@ -42,7 +42,7 @@ int main()
             }
             if(ENTER_PRESSED)
             {
-                //drawCursorLine(e->textArea->cursorPosition,true);
+                drawCursorLine(e->textArea->cursorPosition,true);
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,'\n');
             }
             if(TAB_PRESSED)
