@@ -1,15 +1,16 @@
 #include "color.h"
+#include "helpers.h"
 
-#ifndef NOTEIM_PIECETABLE_H_
-#define NOTEIM_PIECETABLE_H_
+#ifndef NOTEIM_PIECETABLE_H
+#define NOTEIM_PIECETABLE_H
 
-#define MAX_LENGTH_BUFFER 2047
+#define MAX_LENGTH_BUFFER 511
 
 
 struct Buffer
 {
     char text[MAX_LENGTH_BUFFER+1];
-    // Maximum length will be 2047, last element is reserved for '\0'
+    // Maximum length will be 511, last element is reserved for '\0'
     unsigned int length:10;
     Buffer *prev;
     Buffer *next;
@@ -33,7 +34,7 @@ void removeLastBuffer(BuffersList *bl);
 
 struct PieceTableNode
 {
-    unsigned int bufferIndex;
+    Buffer *buffer;
     unsigned int start;
     unsigned int length;
     unsigned int numberNewLines;
@@ -42,7 +43,7 @@ struct PieceTableNode
     PieceTableNode *next;
 };
 
-PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start, unsigned int length, unsigned int numberNewLines);
+PieceTableNode* initPieceTableNode(Buffer* buffer, unsigned int start, unsigned int length, unsigned int numberNewLines);
 // PieceTableNode* modifyNode();
 
 struct PieceTableNodesList
@@ -63,5 +64,6 @@ struct PieceTable
 };
 
 PieceTable* initPieceTable();
+void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter);
 
-#endif // NOTEIM_PIECETABLE_H_
+#endif // NOTEIM_PIECETABLE_H

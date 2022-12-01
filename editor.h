@@ -8,6 +8,9 @@
 #define MAX_WIDTH getmaxwidth()
 #define MAX_HEIGHT getmaxheight()
 
+#define CHAR_WIDTH textwidth("m")
+#define CHAR_HEIGHT textheight("|")
+
 struct MenuArea
 {
     bool changes;
@@ -44,18 +47,23 @@ struct TextArea
     unsigned short int maxCharLine;
     Point topLeft;
     Point bottomRight;
+    Point cursorPosition;
     PieceTable *pieceTable;
+    ScrollBarsArea *scrollBarsArea;
+    // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 };
 
 TextArea* initTextArea(Point topLeft, Point bottomRight);
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName);
 void drawArea(TextArea *ta);
+void drawCursorLine(Point p, bool white=false);
+void moveCursor(TextArea *ta, Point dest);
+void moveCursorByArrow(TextArea *ta, char a);
 
 struct Editor
 {
     bool running;
     MenuArea *menuArea;
-    ScrollBarsArea *scrollBarsArea;
     TextArea *textArea;
 };
 

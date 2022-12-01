@@ -78,10 +78,10 @@ void removeLastBuffer(BuffersList *bl)
     bl->length--;
 }
 
-PieceTableNode* initPieceTableNode(unsigned int bufferIndex, unsigned int start, unsigned int length, unsigned int numberNewLines)
+PieceTableNode* initPieceTableNode(Buffer* buffer, unsigned int start, unsigned int length, unsigned int numberNewLines)
 {
     PieceTableNode *n = new PieceTableNode;
-    n->bufferIndex = bufferIndex;
+    n->buffer = buffer;
     n->start = start;
     n->length = length;
     n->numberNewLines = numberNewLines;
@@ -136,4 +136,31 @@ void removeLastPieceTableNode(PieceTableNodesList *nl)
     delete nl->last->next;
     nl->last->next = NULL;
     nl->length--;
+}
+
+void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter)
+{
+    if(buffersListIsEmpty(pt->buffersList) || bufferIsFull(pt->buffersList->last))
+        addBuffer(pt->buffersList,initBuffer());
+    addElementToBuffer(newLetter, pt->buffersList->last);
+
+    PieceTableNode* currentPTN = pt->nodesList->first;
+    while(currentPTN!=NULL)
+    {
+        if(currentPTN->buffer==pt->buffersList->last && currentPTN->start+currentPTN->length==currentPTN->buffer->length-1)
+        {
+            currentPTN->length++;
+            if(newLetter=='\n')
+                currentPTN->numberNewLines++;
+            break;
+        }
+        currentPTN = currentPTN->next;
+    }
+    if(currentPTN==NULL)
+        addPieceTableNode(pt->nodesList,initPieceTableNode(pt->buffersList->last,0,1,newLetter=='\n'?1:0));
+
+    if(newLetter=='\n')
+        position = {0,position.y+1};
+    else
+        position.x++;
 }

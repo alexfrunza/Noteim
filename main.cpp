@@ -1,56 +1,62 @@
 #include <iostream>
-#include "helpers.h"
 #include "editor.h"
+
+#define ARROW_PRESSED a==0
+#define ESC_PRESSED a==27
+#define ENTER_PRESSED a=='\r'
+#define TAB_PRESSED a=='\t'
 
 using namespace std;
 
 int main()
 {
     Editor* e = initEditor();
-    Buffer *lastBuffer = e->textArea->pieceTable->buffersList->last;
-
+    char a;
+    int x, y;
     while(e->running)
     {
+        if(ismouseclick(WM_LBUTTONDOWN))
+        {
+            getmouseclick(WM_LBUTTONDOWN,x,y);
+            Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+            moveCursor(e->textArea,newCursorPosition);
+            continue;
+        }
         if(kbhit())
         {
-            char a;
             a = getch();
-            if(a == 27) // Daca apesi ESC se inchide editorul
+            if(ARROW_PRESSED)
             {
-                stopEditor(e);
-                // Maybe pop-up do you want to save the file, if the file isn't save.
+                moveCursorByArrow(e->textArea,getch());
                 continue;
             }
-            else if(a == '\r')
+            if(ESC_PRESSED)
             {
-                addElementToBuffer('\n',lastBuffer);
-                e->textArea->changes = true;
+                stopEditor(e);
+                // Maybe pop-up do you want to save the file, if the file isn't saved.
+                continue;
             }
-            else if(isDisplayedChar(a))
+            if(a == 8)
             {
-                addElementToBuffer(a,lastBuffer);
-                e->textArea->changes = true;
+                // Backspace deletion.
             }
+            if(ENTER_PRESSED)
+            {
+                drawCursorLine(e->textArea->cursorPosition,true);
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,'\n');
+            }
+            if(TAB_PRESSED)
+            {
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
+            }
+            if(isDisplayedChar(a))
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,a);
+            e->textArea->changes = true;
         }
-        if(e->textArea->changes)
-        {
-            int current_y = 0;
-            int current_x = 0;
-            for(int i=0; i<lastBuffer->length; i++, current_x+=16)
-            {
-                if(lastBuffer->text[i] == '\n')
-                {
-                    current_y += 16;
-                    current_x= -16;
-                }
-                char aux = lastBuffer->text[i+1];
-                lastBuffer->text[i+1] = '\0';
-                outtextxy(current_x, current_y, lastBuffer->text+i);
-                lastBuffer->text[i+1] = aux;
-            }
-        }
-
-        //drawEditor(e); // Trebuie mutat tot de mai sus in drawArea(TextArea *ta);
+        drawEditor(e);
         delay(10);
     }
     return 0;

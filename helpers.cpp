@@ -1,7 +1,6 @@
-#include <cctype>
-
 #include "helpers.h"
 
-bool isDisplayedChar(char x) {
-    return isalnum(x) || x == ' ';
+bool isDisplayedChar(char x)
+{
+    return x>=32 && x<=126;
 }
