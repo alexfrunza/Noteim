@@ -6,7 +6,6 @@ using namespace std;
 int main()
 {
     Editor* e = initEditor();
-    Buffer *lastBuffer = e->textArea->pieceTable->buffersList->last;
     char a;
     int x, y;
     while(e->running)
@@ -14,7 +13,9 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
-            e->textArea->cursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+            Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+            moveCursor(e->textArea,newCursorPosition);
+            continue;
         }
         if(kbhit())
         {

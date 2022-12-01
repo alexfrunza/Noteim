@@ -56,6 +56,8 @@ struct TextArea
 TextArea* initTextArea(Point topLeft, Point bottomRight);
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName);
 void drawArea(TextArea *ta);
+void drawCursorLine(Point p, bool white=false);
+void moveCursor(TextArea *ta, Point dest);
 
 struct Editor
 {

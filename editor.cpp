@@ -23,33 +23,96 @@ void drawArea(ScrollBarsArea *sba)
 TextArea* initTextArea(Point topLeft, Point bottomRight)
 {
     TextArea* ta = new TextArea;
-    ta->topLeft = topLeft;
+    ta->topLeft = ta->cursorPosition = topLeft;
     ta->bottomRight = bottomRight;
+    drawCursorLine(ta->cursorPosition);
     ta->changes = true;
-
     ta->pieceTable = initPieceTable();
-
     Buffer *newBuffer = initBuffer();
     addBuffer(ta->pieceTable->buffersList, newBuffer);
-
-    ta->maxLines = abs(bottomRight.y - topLeft.y) / textheight("|");
-    ta->maxCharLine = abs(bottomRight.x - topLeft.x) / textwidth("m");
+    ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
+    ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
     return ta;
 }
 
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 {
     TextArea* ta = new TextArea;
-    ta->topLeft = topLeft;
+    ta->topLeft = ta->cursorPosition = topLeft;
     ta->bottomRight = bottomRight;
+    drawCursorLine(ta->cursorPosition);
     ta->changes = true;
     ta->pieceTable = initPieceTable();
     ta->cursorPosition={0,0};
-
     ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
     // De facut
     return ta;
+}
+
+void drawCursorLine(Point p, bool white)
+{
+    if(white==true)
+        setcolor(WHITE);
+    line(p.x*CHAR_WIDTH,p.y*CHAR_HEIGHT,p.x*CHAR_WIDTH,p.y*CHAR_HEIGHT+CHAR_HEIGHT-1);
+    setcolor(BLACK);
+}
+
+void moveCursor(TextArea *ta, Point dest)
+{
+    drawCursorLine(ta->cursorPosition,true);
+    PieceTableNode *ptn = ta->pieceTable->nodesList->first;
+    unsigned int remainingNewLines = dest.y, i=ptn->start, currentXInLine=0;
+    while(ptn!=NULL)
+    {
+        if(remainingNewLines-ptn->numberNewLines<=0)
+            break;
+        remainingNewLines -= ptn->numberNewLines;
+        ptn = ptn->next;
+    }
+    if(ptn==NULL)
+    {
+        ptn = ta->pieceTable->nodesList->last;
+        i = ptn->start+ptn->length-1;
+        currentXInLine = 0;
+        while(ptn!=NULL && ptn->buffer->text[i]!='\n')
+        {
+            if(i==ptn->start-1)
+            {
+                ptn = ptn->prev;
+                if(ptn!=NULL)
+                    i = ptn->start+ptn->length+1;
+            }
+            else
+                currentXInLine++;
+            i--;
+        }
+        drawCursorLine(ta->cursorPosition);
+        return;
+    }
+    while(remainingNewLines!=0)
+    {
+        if(ptn->buffer->text[i]=='\n')
+            remainingNewLines--;
+        i++;
+    }
+    while(ptn!=NULL && currentXInLine!=dest.y && ptn->buffer->text[i]!='\n')
+    {
+        if(i==ptn->start+ptn->length)
+        {
+            ptn = ptn->next;
+            if(ptn!=NULL)
+                i = ptn->start-1;
+        }
+        else
+            currentXInLine++;
+        i++;
+    }
+    if(ptn==NULL || ptn->buffer->text[i]=='\n')
+        ta->cursorPosition = {currentXInLine,dest.y};
+    else
+        ta->cursorPosition = dest;
+    drawCursorLine(ta->cursorPosition);
 }
 
 Editor* initEditor()
@@ -112,6 +175,7 @@ void drawArea(TextArea *ta)
         currentPTN->buffer->text[currentPTN->start+currentPTN->length] = aux;
         currentPTN = currentPTN->next;
     }
+    drawCursorLine(ta->cursorPosition);
 }
 
 void drawEditor(Editor *e)
@@ -119,6 +183,7 @@ void drawEditor(Editor *e)
     //drawArea(e->menuArea);
     //drawArea(e->scrollBarsArea);
     drawArea(e->textArea);
+    e->textArea->changes = false;
 }
 
 void stopEditor(Editor *e)
