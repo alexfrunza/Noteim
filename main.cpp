@@ -1,6 +1,11 @@
 #include <iostream>
 #include "editor.h"
 
+#define ARROW_PRESSED a==0
+#define ESC_PRESSED a==27
+#define ENTER_PRESSED a=='\r'
+#define TAB_PRESSED a=='\t'
+
 using namespace std;
 
 int main()
@@ -20,9 +25,9 @@ int main()
         if(kbhit())
         {
             a = getch();
-            if(a==0)
+            if(ARROW_PRESSED)
                 moveCursorByArrow(e->textArea,getch());
-            if(a == 27) // Daca apesi ESC se inchide editorul.
+            if(ESC_PRESSED)
             {
                 stopEditor(e);
                 // Maybe pop-up do you want to save the file, if the file isn't saved.
@@ -32,9 +37,9 @@ int main()
             {
                 // Backspace deletion.
             }
-            if(a == '\r')
+            if(ENTER_PRESSED)
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,'\n');
-            if(a == '\t')
+            if(TAB_PRESSED)
             {
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');

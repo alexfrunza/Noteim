@@ -64,9 +64,10 @@ void moveCursor(TextArea *ta, Point dest)
         return;
     if(dest.x>=ta->maxCharLine || dest.y>=ta->maxLines)
         return;
+    ta->changes = true;
     drawCursorLine(ta->cursorPosition,true);
     PieceTableNode *ptn = ta->pieceTable->nodesList->first;
-    unsigned int remainingNewLines = dest.y, i=ptn->start, currentXInLine=0;
+    int remainingNewLines = dest.y, i=ptn->start, currentXInLine=0;
     while(ptn!=NULL)
     {
         if(remainingNewLines-ptn->numberNewLines<=0)
@@ -91,6 +92,7 @@ void moveCursor(TextArea *ta, Point dest)
                 currentXInLine++;
             i--;
         }
+        ta->cursorPosition = {currentXInLine,dest.y-remainingNewLines};
         drawCursorLine(ta->cursorPosition);
         return;
     }
@@ -121,20 +123,22 @@ void moveCursor(TextArea *ta, Point dest)
 
 void moveCursorByArrow(TextArea *ta, char a)
 {
+    Point dest = ta->cursorPosition;
     switch(a)
     {
     case 72: // Sus
-        moveCursor(ta,{ta->cursorPosition.x,ta->cursorPosition.y-1});
+        dest.y--;
     break;
     case 80: // Jos
-        moveCursor(ta,{ta->cursorPosition.x,ta->cursorPosition.y+1});
+        dest.y++;
     break;
     case 75: // Stanga
-        moveCursor(ta,{ta->cursorPosition.x-1,ta->cursorPosition.y});
+        dest.x--;
     break;
     case 77: // Dreapta
-        moveCursor(ta,{ta->cursorPosition.x+1,ta->cursorPosition.y});
+        dest.x++;
     }
+    moveCursor(ta,dest);
 }
 
 Editor* initEditor()
