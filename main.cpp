@@ -26,7 +26,10 @@ int main()
         {
             a = getch();
             if(ARROW_PRESSED)
+            {
                 moveCursorByArrow(e->textArea,getch());
+                continue;
+            }
             if(ESC_PRESSED)
             {
                 stopEditor(e);

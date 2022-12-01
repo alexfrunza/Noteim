@@ -67,7 +67,7 @@ void moveCursor(TextArea *ta, Point dest)
     ta->changes = true;
     drawCursorLine(ta->cursorPosition,true);
     PieceTableNode *ptn = ta->pieceTable->nodesList->first;
-    int remainingNewLines = dest.y, i=ptn->start, currentXInLine=0;
+    int remainingNewLines = dest.y, i, currentXInLine=0;
     while(ptn!=NULL)
     {
         if(remainingNewLines-(int)ptn->numberNewLines<=0)
@@ -96,13 +96,14 @@ void moveCursor(TextArea *ta, Point dest)
         drawCursorLine(ta->cursorPosition);
         return;
     }
+    i = ptn->start;
     while(remainingNewLines!=0)
     {
         if(ptn->buffer->text[i]=='\n')
             remainingNewLines--;
         i++;
     }
-    while(ptn!=NULL && currentXInLine!=dest.y && ptn->buffer->text[i]!='\n')
+    while(ptn!=NULL && currentXInLine!=dest.x && ptn->buffer->text[i]!='\n')
     {
         if(i==ptn->start+ptn->length)
         {
