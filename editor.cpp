@@ -70,7 +70,7 @@ void moveCursor(TextArea *ta, Point dest)
     int remainingNewLines = dest.y, i=ptn->start, currentXInLine=0;
     while(ptn!=NULL)
     {
-        if(remainingNewLines-ptn->numberNewLines<=0)
+        if(remainingNewLines-(int)ptn->numberNewLines<=0)
             break;
         remainingNewLines -= ptn->numberNewLines;
         ptn = ptn->next;
