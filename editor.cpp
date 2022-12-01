@@ -43,7 +43,6 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
     drawCursorLine(ta->cursorPosition);
     ta->changes = true;
     ta->pieceTable = initPieceTable();
-    ta->cursorPosition={0,0};
     ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
     // De facut
@@ -64,7 +63,8 @@ void moveCursor(TextArea *ta, Point dest)
         return;
     if(dest.x>=ta->maxCharLine || dest.y>=ta->maxLines)
         return;
-    ta->changes = true;
+    if(ta->pieceTable->nodesList->length==0)
+        return;
     drawCursorLine(ta->cursorPosition,true);
     PieceTableNode *ptn = ta->pieceTable->nodesList->first;
     int remainingNewLines = dest.y, i, currentXInLine=0;
@@ -193,6 +193,7 @@ void drawArea(TextArea *ta)
             newLinePosInBuffer[0]='\n';
             current_x = 0;
             current_y += CHAR_HEIGHT;
+            drawCursorLine({current_x,current_y},true);
             posInBuffer = newLinePosInBuffer+1;
             newLinesRemaining--;
         }
@@ -207,9 +208,9 @@ void drawArea(TextArea *ta)
 
 void drawEditor(Editor *e)
 {
+    drawArea(e->textArea);
     //drawArea(e->menuArea);
     //drawArea(e->scrollBarsArea);
-    drawArea(e->textArea);
     e->textArea->changes = false;
 }
 

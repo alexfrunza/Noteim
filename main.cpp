@@ -41,7 +41,10 @@ int main()
                 // Backspace deletion.
             }
             if(ENTER_PRESSED)
+            {
+                //drawCursorLine(e->textArea->cursorPosition,true);
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,'\n');
+            }
             if(TAB_PRESSED)
             {
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
