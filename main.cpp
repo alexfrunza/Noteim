@@ -42,18 +42,19 @@ int main()
             }
             if(ENTER_PRESSED)
             {
-                drawCursorLine(e->textArea->cursorPosition,true);
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,'\n');
+                drawCursorLine(e->textArea->cursor->position,true);
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,'\n');
+                e->textArea->pieceTable->numberOfLines++;
             }
             if(TAB_PRESSED)
             {
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
             }
             if(isDisplayedChar(a))
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursorPosition,a);
+                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,a);
             e->textArea->changes = true;
         }
         drawEditor(e);

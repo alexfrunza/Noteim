@@ -105,6 +105,7 @@ PieceTable* initPieceTable()
     PieceTable* pt = new PieceTable;
     pt->buffersList = initBuffersList();
     pt->nodesList = initPieceTableNodesList();
+    pt->numberOfLines = 0;
     return pt;
 }
 
@@ -163,4 +164,28 @@ void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter)
         position = {0,position.y+1};
     else
         position.x++;
+}
+
+void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode* &startPtn, unsigned int &linesUntil)
+{
+    startPtn = pt->nodesList->first;
+    unsigned int linesCounter = startPtn->numberNewLines;
+
+    if(((long)line - 1) <= (long)linesCounter)
+    {
+        linesUntil = 0;
+        return;
+    }
+
+    unsigned int prevLinesCounter;
+
+    do
+    {
+        startPtn  = startPtn->next;
+        prevLinesCounter = linesCounter;
+        linesCounter += startPtn->numberNewLines;
+    }
+    while((long)linesCounter < (long)(line - 1));
+
+    linesUntil = prevLinesCounter;
 }
