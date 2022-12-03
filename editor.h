@@ -40,14 +40,28 @@ struct ScrollBarsArea
 ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight);
 void drawArea(ScrollBarsArea *sba);
 
+struct Cursor {
+    Point position;
+
+    unsigned int positionInPieceTable;
+
+    PieceTableNode* pieceTableNode;
+};
+
+
+Cursor* initCursor();
 struct TextArea
 {
     bool changes;
+
     unsigned int maxLines;
     unsigned short int maxCharLine;
     Point topLeft;
     Point bottomRight;
-    Point cursorPosition;
+
+    Cursor *cursor;
+    unsigned int firstLine;
+
     PieceTable *pieceTable;
     ScrollBarsArea *scrollBarsArea;
     // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.

@@ -65,5 +65,6 @@ struct PieceTable
 
 PieceTable* initPieceTable();
 void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter);
+void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode &*startPtn, unsigned int &linesUntil);
 
 #endif // NOTEIM_PIECETABLE_H

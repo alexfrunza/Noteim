@@ -4,6 +4,9 @@
 #include "editor.h"
 #include "helpers.h"
 
+#include <iostream>
+using namespace std;
+
 MenuArea* initMenuArea(Point topLeft, Point bottomRight)
 {
 }
@@ -20,12 +23,23 @@ void drawArea(ScrollBarsArea *sba)
 {
 }
 
+// De facut
+Cursor *initCursor(Point position)
+{
+    Cursor* c = new Cursor;
+    c->position = position;
+
+    return c;
+}
+
 TextArea* initTextArea(Point topLeft, Point bottomRight)
 {
     TextArea* ta = new TextArea;
-    ta->topLeft = ta->cursorPosition = topLeft;
+    ta->topLeft = topLeft;
+    ta->cursor = initCursor(topLeft);
+
     ta->bottomRight = bottomRight;
-    drawCursorLine(ta->cursorPosition);
+    drawCursorLine(ta->cursor->position);
     ta->changes = true;
     ta->pieceTable = initPieceTable();
     Buffer *newBuffer = initBuffer();
@@ -38,9 +52,9 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 {
     TextArea* ta = new TextArea;
-    ta->topLeft = ta->cursorPosition = topLeft;
+    ta->topLeft = ta->cursor->position = topLeft;
     ta->bottomRight = bottomRight;
-    drawCursorLine(ta->cursorPosition);
+    drawCursorLine(ta->cursor->position);
     ta->changes = true;
     ta->pieceTable = initPieceTable();
     ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
@@ -65,7 +79,8 @@ void moveCursor(TextArea *ta, Point dest)
         return;
     if(ta->pieceTable->nodesList->length==0)
         return;
-    drawCursorLine(ta->cursorPosition,true);
+
+    drawCursorLine(ta->cursor->position,true);
     PieceTableNode *ptn = ta->pieceTable->nodesList->first;
     int remainingNewLines = dest.y, i, currentXInLine=0;
     while(ptn!=NULL)
@@ -92,8 +107,8 @@ void moveCursor(TextArea *ta, Point dest)
                 currentXInLine++;
             i--;
         }
-        ta->cursorPosition = {currentXInLine,dest.y-remainingNewLines};
-        drawCursorLine(ta->cursorPosition);
+        ta->cursor->position = {currentXInLine,dest.y-remainingNewLines};
+        drawCursorLine(ta->cursor->position);
         return;
     }
     i = ptn->start;
@@ -116,26 +131,26 @@ void moveCursor(TextArea *ta, Point dest)
         i++;
     }
     if(ptn==NULL || ptn->buffer->text[i]=='\n')
-        ta->cursorPosition = {currentXInLine,dest.y};
+        ta->cursor->position = {currentXInLine,dest.y};
     else
-        ta->cursorPosition = dest;
-    drawCursorLine(ta->cursorPosition);
+        ta->cursor->position = dest;
+    drawCursorLine(ta->cursor->position);
 }
 
 void moveCursorByArrow(TextArea *ta, char a)
 {
-    Point dest = ta->cursorPosition;
+    Point dest = ta->cursor->position;
     switch(a)
     {
     case 72: // Sus
         dest.y--;
-    break;
+        break;
     case 80: // Jos
         dest.y++;
-    break;
+        break;
     case 75: // Stanga
         dest.x--;
-    break;
+        break;
     case 77: // Dreapta
         dest.x++;
     }
@@ -145,7 +160,7 @@ void moveCursorByArrow(TextArea *ta, char a)
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
-    settextstyle(0, HORIZ_DIR, 1);
+    settextstyle(0, HORIZ_DIR, 2);
 
     setbkcolor(WHITE);
     setcolor(BLACK);
@@ -177,33 +192,70 @@ void drawArea(TextArea *ta)
     if(ta->changes==false)
         return;
 
-    int current_x=0, current_y=0;
-    char *posInBuffer, *newLinePosInBuffer, aux;
+    int current_x=ta->topLeft.x;
+    int current_y=ta->topLeft.y;
+
+    char *posInBuffer;
+    char *newLinePosInBuffer;
+    char aux;
+
     unsigned int newLinesRemaining;
+
+
+    //
+    PieceTableNode *endPtn;
+
+    // Get the node where the first line displayed is
+    // ce e intre comentariile astea e in lucru
+    PieceTableNode *startPtn;
+    unsigned int linesUntilStartPtn;
+    getFirstNodeWhereAbsoluteLineIs(ta->pieceTable, ta->firstLine, startPtn, linesUntilStartPtn);
+
+    int startIndex = startPtn->start;
+
+    if(startLineCounter != ta->firstLine)
+    {
+        while(startLineCounter != ta->firstLine)
+        {
+            if(startPtn->buffer->text[startIndex] == '\n') startLineCounter++;
+            startIndex++;
+        }
+        startIndex++;
+    }
+
+    linesCounter = 1;
+    while(linesCounter <= ta->maxLines) {}
+
+    //////////////////////////////////////
     PieceTableNode *currentPTN = ta->pieceTable->nodesList->first;
+
     while(currentPTN!=NULL)
     {
         newLinesRemaining = currentPTN->numberNewLines;
         posInBuffer = currentPTN->buffer->text+currentPTN->start;
+
         while(newLinesRemaining)
         {
             newLinePosInBuffer = strchr(posInBuffer+currentPTN->start,'\n');
+
             newLinePosInBuffer[0]='\0';
             outtextxy(current_x,current_y,posInBuffer);
             newLinePosInBuffer[0]='\n';
+
             current_x = 0;
             current_y += CHAR_HEIGHT;
+
             drawCursorLine({current_x,current_y},true);
             posInBuffer = newLinePosInBuffer+1;
             newLinesRemaining--;
         }
-        aux = currentPTN->buffer->text[currentPTN->start+currentPTN->length];
-        currentPTN->buffer->text[currentPTN->start+currentPTN->length] = '\0';
+        aux = currentPTN->buffer->text[currentPTN->start + currentPTN->length];
+        currentPTN->buffer->text[currentPTN->start + currentPTN->length] = '\0';
         outtextxy(current_x,current_y,posInBuffer);
         currentPTN->buffer->text[currentPTN->start+currentPTN->length] = aux;
         currentPTN = currentPTN->next;
     }
-    drawCursorLine(ta->cursorPosition);
+    drawCursorLine(ta->cursor->position);
 }
 
 void drawEditor(Editor *e)
