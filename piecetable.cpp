@@ -105,6 +105,7 @@ PieceTable* initPieceTable()
     PieceTable* pt = new PieceTable;
     pt->buffersList = initBuffersList();
     pt->nodesList = initPieceTableNodesList();
+    pt->numberOfLines = 0;
     return pt;
 }
 
@@ -170,7 +171,7 @@ void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTab
     startPtn = pt->nodesList->first;
     unsigned int linesCounter = startPtn->numberNewLines;
 
-    if((line - 1) <= linesCounter)
+    if(((long)line - 1) <= (long)linesCounter)
     {
         linesUntil = 0;
         return;
@@ -184,7 +185,7 @@ void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTab
         prevLinesCounter = linesCounter;
         linesCounter += startPtn->numberNewLines;
     }
-    while(linesCounter < (line - 1));
+    while((long)linesCounter < (long)(line - 1));
 
     linesUntil = prevLinesCounter;
 }

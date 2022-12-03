@@ -61,6 +61,7 @@ struct PieceTable
 {
     BuffersList *buffersList;
     PieceTableNodesList *nodesList;
+    unsigned int numberOfLines;
 };
 
 PieceTable* initPieceTable();
