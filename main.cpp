@@ -44,6 +44,7 @@ int main()
             {
                 drawCursorLine(e->textArea->cursor->position,true);
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,'\n');
+                e->textArea->pieceTable->numberOfLines++;
             }
             if(TAB_PRESSED)
             {
