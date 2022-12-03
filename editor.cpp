@@ -202,6 +202,7 @@ void drawArea(TextArea *ta)
     unsigned int newLinesRemaining;
 
 
+    /*
     //
     PieceTableNode *endPtn;
 
@@ -211,22 +212,22 @@ void drawArea(TextArea *ta)
     unsigned int linesUntilStartPtn;
     getFirstNodeWhereAbsoluteLineIs(ta->pieceTable, ta->firstLine, startPtn, linesUntilStartPtn);
 
-    int startIndex = startPtn->start;
+    unsigned int startIndex = startPtn->start;
+    unsigned int newLinesCounter = linesUntilStartPtn;
 
-    if(startLineCounter != ta->firstLine)
+    if(newLinesCounter != ta->firstLine)
     {
-        while(startLineCounter != ta->firstLine)
+        while(newLinesCounter != ta->firstLine)
         {
-            if(startPtn->buffer->text[startIndex] == '\n') startLineCounter++;
+            if(startPtn->buffer->text[startIndex] == '\n') newLinesCounter++;
             startIndex++;
         }
-        startIndex++;
     }
 
-    linesCounter = 1;
-    while(linesCounter <= ta->maxLines) {}
+
 
     //////////////////////////////////////
+    */
     PieceTableNode *currentPTN = ta->pieceTable->nodesList->first;
 
     while(currentPTN!=NULL)
