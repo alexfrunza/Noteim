@@ -165,7 +165,7 @@ void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter)
         position.x++;
 }
 
-void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode &*startPtn, unsigned int &linesUntil)
+void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode* &startPtn, unsigned int &linesUntil)
 {
     startPtn = pt->nodesList->first;
     unsigned int linesCounter = startPtn->numberNewLines;
@@ -182,7 +182,7 @@ void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTab
     {
         startPtn  = startPtn->next;
         prevLinesCounter = linesCounter;
-        linesCounter += startPtn;
+        linesCounter += startPtn->numberNewLines;
     }
     while(linesCounter < (line - 1));
 
