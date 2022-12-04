@@ -1,5 +1,6 @@
-#include "color.h"
+//#include "color.h"
 #include "helpers.h"
+#include <cstddef>
 
 #ifndef NOTEIM_PIECETABLE_H
 #define NOTEIM_PIECETABLE_H
@@ -65,7 +66,7 @@ struct PieceTable
 };
 
 PieceTable* initPieceTable();
-void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter);
+void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInBuffer, char newLetter);
 void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode* &startPtn, unsigned int &linesUntil);
 
 #endif // NOTEIM_PIECETABLE_H

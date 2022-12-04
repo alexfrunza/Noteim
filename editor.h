@@ -1,6 +1,5 @@
-#include <graphics.h>
 #include "piecetable.h"
-#include "helpers.h"
+#include <graphics.h>
 
 #ifndef NOTEIM_EDITOR_H
 #define NOTEIM_EDITOR_H
@@ -46,10 +45,12 @@ struct Cursor {
     unsigned int positionInPieceTable;
 
     PieceTableNode* pieceTableNode;
+    unsigned int positionInBuffer;
 };
 
-
 Cursor* initCursor();
+void getCursorPositionInPiecetable(PieceTable *pt, Cursor &c, int firstLine, Point dest);
+
 struct TextArea
 {
     bool changes;

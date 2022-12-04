@@ -1,6 +1,5 @@
 #include "piecetable.h"
-#include "color.h"
-#include <cstddef>
+#include <cstdio>
 
 bool bufferIsFull(Buffer *b)
 {
@@ -139,31 +138,120 @@ void removeLastPieceTableNode(PieceTableNodesList *nl)
     nl->length--;
 }
 
-void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter)
+// WIP
+void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInBuffer, char newLetter)
 {
-    if(buffersListIsEmpty(pt->buffersList) || bufferIsFull(pt->buffersList->last))
-        addBuffer(pt->buffersList,initBuffer());
+    if(bufferIsFull(pt->buffersList->last))
+        addBuffer(pt->buffersList,initBuffer()); // Ce fac cu cursorul?
     addElementToBuffer(newLetter, pt->buffersList->last);
 
-    PieceTableNode* currentPTN = pt->nodesList->first;
-    while(currentPTN!=NULL)
-    {
-        if(currentPTN->buffer==pt->buffersList->last && currentPTN->start+currentPTN->length==currentPTN->buffer->length-1)
-        {
-            currentPTN->length++;
-            if(newLetter=='\n')
-                currentPTN->numberNewLines++;
-            break;
-        }
-        currentPTN = currentPTN->next;
-    }
-    if(currentPTN==NULL)
-        addPieceTableNode(pt->nodesList,initPieceTableNode(pt->buffersList->last,0,1,newLetter=='\n'?1:0));
 
-    if(newLetter=='\n')
-        position = {0,position.y+1};
-    else
-        position.x++;
+    if(destNode->buffer==pt->buffersList->last && positionInBuffer==destNode->start+destNode->length-1)
+    { // Add at the end of node
+
+        printf("%s ","case 1");
+        destNode->length++;
+        positionInBuffer = pt->buffersList->last->length-1;
+        if(newLetter=='\n')
+        {
+            position = {0,position.y+1};
+            destNode->numberNewLines++;
+            pt->numberOfLines++;
+        }
+        else
+            position.x++;
+        return;
+    }
+
+    PieceTableNode *newNode = initPieceTableNode(pt->buffersList->last,pt->buffersList->last->length-1,1,newLetter=='\n'?1:0);
+
+    if(positionInBuffer==destNode->start+destNode->length)
+    { // Add Node after
+        printf("%s ","case 2");
+        if(destNode->next!=NULL)
+        {
+            newNode->next = destNode->next;
+            destNode->next->prev = newNode;
+        }
+        else
+            pt->nodesList->last = newNode;
+        newNode->prev = destNode;
+        destNode->next = newNode;
+        pt->nodesList->length++;
+
+        if(newLetter=='\n')
+        {
+            position = {0,position.y+1};
+            pt->numberOfLines++;
+        }
+        else
+            position.x++;
+        destNode = newNode;
+        positionInBuffer++;
+        return;
+    }
+
+    if(positionInBuffer==destNode->start)
+    {   printf("%s","case 3");
+        if(destNode->prev!=NULL)
+        {
+            newNode->prev = destNode->prev;
+            destNode->prev->next = newNode;
+        }
+        else
+            pt->nodesList->first = newNode;
+        newNode->next = destNode;
+        destNode->prev = newNode;
+        pt->nodesList->length++;
+
+        if(newLetter=='\n')
+        {
+            position = {0,position.y+1};
+            pt->numberOfLines++;
+        }
+        else
+            position.x++;
+        destNode = newNode;
+        positionInBuffer++;
+
+        return;
+    }
+
+    {   printf("%s","case 4");
+        PieceTableNode *rightSide = initPieceTableNode(destNode->buffer,positionInBuffer,destNode->start+destNode->length-positionInBuffer+1,0);
+        for(int i=rightSide->start+rightSide->length-1; i>=(int)rightSide->start; i--)
+            if(rightSide->buffer->text[i]=='\n')
+                rightSide->numberNewLines++;
+
+        destNode->numberNewLines -= rightSide->numberNewLines;
+        destNode->length = positionInBuffer-destNode->start;
+
+
+        if(destNode->next!=NULL)
+        {
+            destNode->next->prev = rightSide;
+            rightSide->next = destNode->next;
+        }
+        else
+            pt->nodesList->last = rightSide;
+        rightSide->prev = newNode;
+        newNode->next = rightSide;
+        destNode->next = newNode;
+        newNode->prev = destNode;
+
+        if(newLetter=='\n')
+        {
+            position = {0,position.y++};
+            pt->numberOfLines++;
+        }
+        else
+            position.x++;
+        destNode = newNode;
+        positionInBuffer = pt->buffersList->last->length-1;
+        pt->nodesList->length+=2;
+
+        return;
+    }
 }
 
 void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode* &startPtn, unsigned int &linesUntil)
