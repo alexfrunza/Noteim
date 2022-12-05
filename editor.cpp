@@ -280,8 +280,8 @@ void drawArea(TextArea *ta)
                     positionInText = maxIndexInNode+1;
                 }
             }
-            positionInText = 0;
             currentPtn = currentPtn->next;
+            if(currentPtn != NULL) positionInText = currentPtn->start;
         }
     }
     drawCursorLine(ta->cursor->position);
