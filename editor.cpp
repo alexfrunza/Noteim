@@ -1,8 +1,12 @@
 #include <graphics.h>
 #include <cmath>
+#include <stdio.h>
 
 #include "editor.h"
 #include "helpers.h"
+
+#include <iostream>
+using namespace std;
 
 MenuArea* initMenuArea(Point topLeft, Point bottomRight)
 {
@@ -32,6 +36,7 @@ Cursor *initCursor(Point position)
 TextArea* initTextArea(Point topLeft, Point bottomRight)
 {
     TextArea* ta = new TextArea;
+    ta->unixFile = false;
     ta->topLeft = topLeft;
     ta->cursor = initCursor(topLeft);
     ta->firstLine = 0;
@@ -40,8 +45,10 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
     drawCursorLine(ta->cursor->position);
     ta->changes = true;
     ta->pieceTable = initPieceTable();
+
     Buffer *newBuffer = initBuffer();
     addBuffer(ta->pieceTable->buffersList, newBuffer);
+
     ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
     return ta;
@@ -50,17 +57,23 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 {
     TextArea* ta = new TextArea;
-    ta->topLeft = ta->cursor->position = topLeft;
-    ta->cursor = initCursor(topLeft);
+    ta->unixFile = false;
+    ta->changes = true;
     ta->firstLine = 0;
 
+    ta->topLeft = topLeft;
     ta->bottomRight = bottomRight;
-    drawCursorLine(ta->cursor->position);
-    ta->changes = true;
+
     ta->pieceTable = initPieceTable();
+
     ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
-    // De facut
+
+    openFile(ta, fileName);
+
+    ta->cursor = initCursor(topLeft);
+    drawCursorLine(ta->cursor->position);
+
     return ta;
 }
 
@@ -183,7 +196,7 @@ Editor* initEditor()
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
-    e->textArea = initTextArea(topLeft, bottomRight);
+    e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
 
     return e;
 }
@@ -267,11 +280,69 @@ void drawArea(TextArea *ta)
                     positionInText = maxIndexInNode+1;
                 }
             }
-
+            positionInText = 0;
             currentPtn = currentPtn->next;
         }
     }
     drawCursorLine(ta->cursor->position);
+}
+
+void openFile(TextArea *ta, char *fileName)
+{
+    FILE *file = fopen(fileName, "rb");
+
+    if(file == NULL)
+    {
+        fclose(file);
+        printf("Eroare la citirea fisierului!\n");
+        return;
+    }
+
+    emptyPieceTable(ta->pieceTable);
+
+    bool unixFile = false;
+    unsigned int readSize;
+    do{
+        Buffer *newBuffer = initBuffer();
+        addBuffer(ta->pieceTable->buffersList, newBuffer);
+        newBuffer->length = 0;
+
+        unsigned int numberNewLines = 0;
+        char x, last_x;
+
+        fread(&last_x, sizeof(char), 1, file);
+        newBuffer->text[newBuffer->length] = last_x;
+        if(last_x == '\n') {
+            numberNewLines++;
+            unixFile = true;
+        }
+        newBuffer->length++;
+
+        while((newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file)) {
+            newBuffer->text[newBuffer->length] = x;
+            if(x == '\n') numberNewLines++;
+            if(x == '\n' && last_x != '\r') unixFile = true;
+            if(x == '\n' && last_x == '\r') {
+                newBuffer->length--;
+                newBuffer->text[newBuffer->length] = x;
+            }
+            newBuffer->length++;
+            last_x = x;
+        }
+        PieceTableNode *newNode = initPieceTableNode(newBuffer, 0, newBuffer->length, numberNewLines);
+        addPieceTableNode(ta->pieceTable->nodesList, newNode);
+        readSize = newBuffer->length;
+    }while(readSize == MAX_LENGTH_BUFFER);
+
+    if(unixFile) ta->unixFile = true;
+    Buffer *newBuffer = initBuffer();
+    addBuffer(ta->pieceTable->buffersList, newBuffer);
+
+    fclose(file);
+}
+
+void saveFile(TextArea *ta, char *fileName)
+{
 }
 
 void drawEditor(Editor *e)

@@ -78,6 +78,14 @@ void removeLastBuffer(BuffersList *bl)
     bl->length--;
 }
 
+void emptyBuffersList(BuffersList *bl)
+{
+    while(bl->length > 0)
+    {
+        removeLastBuffer(bl);
+    }
+}
+
 PieceTableNode* initPieceTableNode(Buffer* buffer, unsigned int start, unsigned int length, unsigned int numberNewLines)
 {
     PieceTableNode *n = new PieceTableNode;
@@ -98,15 +106,6 @@ PieceTableNodesList* initPieceTableNodesList()
     ptnl->first = NULL;
     ptnl->last = NULL;
     return ptnl;
-}
-
-PieceTable* initPieceTable()
-{
-    PieceTable* pt = new PieceTable;
-    pt->buffersList = initBuffersList();
-    pt->nodesList = initPieceTableNodesList();
-    pt->numberOfLines = 0;
-    return pt;
 }
 
 void addPieceTableNode(PieceTableNodesList *nl, PieceTableNode *n)
@@ -137,6 +136,23 @@ void removeLastPieceTableNode(PieceTableNodesList *nl)
     delete nl->last->next;
     nl->last->next = NULL;
     nl->length--;
+}
+
+void emptyPieceTableNodesList(PieceTableNodesList *nl)
+{
+    while(nl->length > 0)
+    {
+        removeLastPieceTableNode(nl);
+    }
+}
+
+PieceTable* initPieceTable()
+{
+    PieceTable* pt = new PieceTable;
+    pt->buffersList = initBuffersList();
+    pt->nodesList = initPieceTableNodesList();
+    pt->numberOfLines = 0;
+    return pt;
 }
 
 void addElementToPieceTable(PieceTable* pt, Point &position, char newLetter)
@@ -188,4 +204,10 @@ void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTab
     while((long)linesCounter < (long)(line - 1));
 
     linesUntil = prevLinesCounter;
+}
+
+void emptyPieceTable(PieceTable *pt)
+{
+    emptyBuffersList(pt->buffersList);
+    emptyPieceTableNodesList(pt->nodesList);
 }

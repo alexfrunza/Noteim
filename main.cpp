@@ -13,6 +13,7 @@ int main()
     Editor* e = initEditor();
     char a;
     int x, y;
+   // openFile(e->textArea, "textText.txt");
     while(e->running)
     {
         if(ismouseclick(WM_LBUTTONDOWN))

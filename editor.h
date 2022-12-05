@@ -48,11 +48,13 @@ struct Cursor {
     PieceTableNode* pieceTableNode;
 };
 
-
 Cursor* initCursor();
+
 struct TextArea
 {
     bool changes;
+    // De implementat la salvare, corespunzator pentru Windows file si unixFile (asaugare '\r' pentru windows file)
+    bool unixFile;
 
     unsigned int maxLines;
     unsigned short int maxCharLine;
@@ -60,6 +62,7 @@ struct TextArea
     Point bottomRight;
 
     Cursor *cursor;
+    // Absolute number of the first line to be displayed on screen
     unsigned int firstLine;
 
     PieceTable *pieceTable;
@@ -73,6 +76,8 @@ void drawArea(TextArea *ta);
 void drawCursorLine(Point p, bool white=false);
 void moveCursor(TextArea *ta, Point dest);
 void moveCursorByArrow(TextArea *ta, char a);
+void openFile(TextArea *ta, char *fileName);
+void saveFile(TextArea *ta, char *fileName);
 
 struct Editor
 {
