@@ -209,6 +209,9 @@ void drawArea(TextArea *ta)
     int current_x=ta->topLeft.x;
     int current_y=ta->topLeft.y;
 
+    setfillstyle(1, COLOR(255, 255, 255));
+    bar(ta->topLeft.x, ta->topLeft.y, ta->bottomRight.x, ta->bottomRight.y);
+
     char *posInBuffer;
     char *newLinePosInBuffer;
     char aux;
@@ -331,6 +334,7 @@ void openFile(TextArea *ta, char *fileName)
         }
         PieceTableNode *newNode = initPieceTableNode(newBuffer, 0, newBuffer->length, numberNewLines);
         addPieceTableNode(ta->pieceTable->nodesList, newNode);
+        ta->pieceTable->numberOfLines += numberNewLines;
         readSize = newBuffer->length;
     }while(readSize == MAX_LENGTH_BUFFER);
 

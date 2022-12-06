@@ -13,7 +13,7 @@ int main()
     Editor* e = initEditor();
     char a;
     int x, y;
-   // openFile(e->textArea, "textText.txt");
+    // openFile(e->textArea, "textText.txt");
     while(e->running)
     {
         if(ismouseclick(WM_LBUTTONDOWN))
@@ -46,6 +46,7 @@ int main()
                 drawCursorLine(e->textArea->cursor->position,true);
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,'\n');
                 e->textArea->pieceTable->numberOfLines++;
+                e->textArea->changes = true;
             }
             if(TAB_PRESSED)
             {
@@ -53,10 +54,30 @@ int main()
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
+                e->textArea->changes = true;
             }
+            // Test scroll
+            /*
+            if(a == 'j')
+            {
+                if(e->textArea->firstLine > 0)
+                {
+                    e->textArea->firstLine--;
+                    e->textArea->changes = true;
+                }
+            }
+            else if(a=='k')
+            {
+                e->textArea->firstLine++;
+                e->textArea->changes = true;
+            }
+            else
+            */
             if(isDisplayedChar(a))
+            {
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,a);
-            e->textArea->changes = true;
+                e->textArea->changes = true;
+            }
         }
         drawEditor(e);
         delay(10);
