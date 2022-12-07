@@ -138,20 +138,23 @@ void removeLastPieceTableNode(PieceTableNodesList *nl)
     nl->length--;
 }
 
-// WIP
-void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInBuffer, char newLetter)
+void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInNode, char newLetter)
 {
     if(bufferIsFull(pt->buffersList->last))
         addBuffer(pt->buffersList,initBuffer()); // Ce fac cu cursorul?
     addElementToBuffer(newLetter, pt->buffersList->last);
 
 
-    if(destNode->buffer==pt->buffersList->last && positionInBuffer==destNode->start+destNode->length-1)
-    { // Add at the end of node
+    if(positionInNode==0 && destNode->prev!=NULL)
+    {
+        destNode = destNode->prev;
+        positionInNode = destNode->length;
+    }
 
-        printf("%s ","case 1");
+    if(destNode->buffer==pt->buffersList->last && positionInNode==destNode->length && destNode->start+destNode->length==pt->buffersList->last->length-1)
+    { // Add at the end of node
         destNode->length++;
-        positionInBuffer = pt->buffersList->last->length-1;
+        positionInNode++;
         if(newLetter=='\n')
         {
             position = {0,position.y+1};
@@ -165,9 +168,8 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
 
     PieceTableNode *newNode = initPieceTableNode(pt->buffersList->last,pt->buffersList->last->length-1,1,newLetter=='\n'?1:0);
 
-    if(positionInBuffer==destNode->start+destNode->length)
+    if(positionInNode==destNode->length)
     { // Add Node after
-        printf("%s ","case 2");
         if(destNode->next!=NULL)
         {
             newNode->next = destNode->next;
@@ -187,12 +189,12 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
         else
             position.x++;
         destNode = newNode;
-        positionInBuffer++;
+        positionInNode = 1;
         return;
     }
 
-    if(positionInBuffer==destNode->start)
-    {   printf("%s","case 3");
+    if(positionInNode==0)
+    {
         if(destNode->prev!=NULL)
         {
             newNode->prev = destNode->prev;
@@ -212,19 +214,18 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
         else
             position.x++;
         destNode = newNode;
-        positionInBuffer++;
-
+        positionInNode = 1;
         return;
     }
 
-    {   printf("%s","case 4");
-        PieceTableNode *rightSide = initPieceTableNode(destNode->buffer,positionInBuffer,destNode->start+destNode->length-positionInBuffer+1,0);
+    {
+        PieceTableNode *rightSide = initPieceTableNode(destNode->buffer,destNode->start+positionInNode,destNode->length-positionInNode-1,0);
         for(int i=rightSide->start+rightSide->length-1; i>=(int)rightSide->start; i--)
             if(rightSide->buffer->text[i]=='\n')
                 rightSide->numberNewLines++;
 
         destNode->numberNewLines -= rightSide->numberNewLines;
-        destNode->length = positionInBuffer-destNode->start;
+        destNode->length = positionInNode+1;
 
 
         if(destNode->next!=NULL)
@@ -247,7 +248,7 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
         else
             position.x++;
         destNode = newNode;
-        positionInBuffer = pt->buffersList->last->length-1;
+        positionInNode = 1;
         pt->nodesList->length+=2;
 
         return;

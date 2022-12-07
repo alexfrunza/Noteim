@@ -20,6 +20,8 @@ int main()
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
             Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+            if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
+                newCursorPosition.x++;
             moveCursor(e->textArea,newCursorPosition);
             continue;
         }
@@ -45,21 +47,21 @@ int main()
             if(ENTER_PRESSED)
             {
                 drawCursorLine(c->position,true);
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInBuffer,'\n');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,'\n');
                 e->textArea->pieceTable->numberOfLines++;
             }
             if(TAB_PRESSED)
             {
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInBuffer,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInBuffer,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInBuffer,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInBuffer,' ');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
             }
             if(isDisplayedChar(a))
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInBuffer,a);
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
             e->textArea->changes = true;
 
-            /*int i;
+            int i;
             printf("\n");
         PieceTableNode *ptn = e->textArea->pieceTable->nodesList->first;
         while(ptn!=NULL)
@@ -67,11 +69,12 @@ int main()
             i = 0;
             while(i<ptn->length)
             {
-                printf("%c ",ptn->buffer->text[i+ptn->start]);
+                printf("%c",ptn->buffer->text[i+ptn->start]);
                 i++;
             }
             ptn = ptn->next;
-        }*/
+        }
+
 
         }
         drawEditor(e);

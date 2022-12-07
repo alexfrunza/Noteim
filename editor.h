@@ -45,7 +45,7 @@ struct Cursor {
     unsigned int positionInPieceTable;
 
     PieceTableNode* pieceTableNode;
-    unsigned int positionInBuffer;
+    unsigned int positionInNode;
 };
 
 Cursor* initCursor();

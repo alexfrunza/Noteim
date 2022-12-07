@@ -24,7 +24,7 @@ Cursor *initCursor(Point position)
 {
     Cursor* c = new Cursor;
     c->position = position;
-    c->positionInBuffer = 0;
+    c->positionInNode = 0;
 
     return c;
 }
@@ -73,8 +73,6 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
-    // De facut
-    // readFromFile
 
     return ta;
 }
@@ -117,7 +115,7 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Poi
         }
         c->position = {currentXInLine,dest.y-remainingNewLines};
         c->pieceTableNode = pt->nodesList->last;
-        c->positionInBuffer = pt->nodesList->last->start+pt->nodesList->last->length;
+        c->positionInNode = pt->nodesList->last->length-1;
         return;
     }
     i = ptn->start;
@@ -143,7 +141,7 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Poi
     {
         c->position = dest;
         c->pieceTableNode = ptn;
-        c->positionInBuffer = i;
+        c->positionInNode = i-ptn->start;
     }
     else
     {
@@ -151,12 +149,12 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Poi
         if(ptn==NULL)
         {
             c->pieceTableNode = pt->nodesList->last;
-            c->positionInBuffer = pt->nodesList->last->start + pt->nodesList->last->length;
+            c->positionInNode = i-pt->nodesList->last->start-1;
         }
         else
         {
             c->pieceTableNode = ptn;
-            c->positionInBuffer = i;
+            c->positionInNode = i-ptn->start;
         }
     }
 }
