@@ -2,6 +2,9 @@
 #include "color.h"
 #include <cstddef>
 
+#include <iostream>
+using namespace std;
+
 bool bufferIsFull(Buffer *b)
 {
     if (b->length >= MAX_LENGTH_BUFFER) return true;
@@ -187,7 +190,7 @@ void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTab
     startPtn = pt->nodesList->first;
     unsigned int linesCounter = startPtn->numberNewLines;
 
-    if(((long)line - 1) <= (long)linesCounter)
+    if(((long)line - 1) < (long)linesCounter)
     {
         linesUntil = 0;
         return;
@@ -201,7 +204,7 @@ void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTab
         prevLinesCounter = linesCounter;
         linesCounter += startPtn->numberNewLines;
     }
-    while((long)linesCounter < (long)(line - 1));
+    while((long)linesCounter <= (long)(line - 1));
 
     linesUntil = prevLinesCounter;
 }

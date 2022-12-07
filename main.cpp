@@ -1,5 +1,6 @@
 #include <iostream>
 #include "editor.h"
+#include "piecetable.h"
 
 #define ARROW_PRESSED a==0
 #define ESC_PRESSED a==27
@@ -13,7 +14,6 @@ int main()
     Editor* e = initEditor();
     char a;
     int x, y;
-    // openFile(e->textArea, "textText.txt");
     while(e->running)
     {
         if(ismouseclick(WM_LBUTTONDOWN))
@@ -57,7 +57,7 @@ int main()
                 e->textArea->changes = true;
             }
             // Test scroll
-            /*
+
             if(a == 'j')
             {
                 if(e->textArea->firstLine > 0)
@@ -72,7 +72,7 @@ int main()
                 e->textArea->changes = true;
             }
             else
-            */
+
             if(isDisplayedChar(a))
             {
                 addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,a);

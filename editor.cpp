@@ -241,10 +241,12 @@ void drawArea(TextArea *ta)
         unsigned int linesRemainedToDisplay = ta->maxLines;
         unsigned int positionInText = startIndex;
         bool linesDisplayed = false;
+        bool skipUntilNextLine = false;
 
         while(currentPtn!=NULL && !linesDisplayed)
         {
             long maxIndexInNode = currentPtn->start + currentPtn->length - 1;
+
             while((long)positionInText <= maxIndexInNode && !linesDisplayed)
             {
                 char *newLineInNode = strchr(currentPtn->buffer->text + positionInText, '\n');
@@ -253,31 +255,63 @@ void drawArea(TextArea *ta)
                     unsigned int positionNewline = newLineInNode - currentPtn->buffer->text;
 
                     unsigned int maxPosition = positionInText + ta->maxCharLine;
-                    for(unsigned int i = positionInText; i < positionNewline && i < maxPosition; i++, current_x += CHAR_WIDTH)
+
+                    unsigned int position;
+                    if(positionNewline > maxPosition)
                     {
-                        char aux = currentPtn->buffer->text[i+1];
-                        currentPtn->buffer->text[i+1] = '\0';
-                        outtextxy(current_x,current_y,currentPtn->buffer->text + i);
-                        currentPtn->buffer->text[i+1] = aux;
+                        position = maxPosition-1;
+                    }
+                    else position = positionNewline;
+
+                    if(skipUntilNextLine == false)
+                    {
+                        char aux = currentPtn->buffer->text[position+1];
+                        currentPtn->buffer->text[position+1] = '\0';
+                        outtextxy(current_x,current_y,currentPtn->buffer->text + positionInText);
+                        currentPtn->buffer->text[position+1] = aux;
+                        current_x = ta->topLeft.x;
+                        current_y += CHAR_HEIGHT;
+                        linesRemainedToDisplay--;
+                        if(linesRemainedToDisplay == 0) linesDisplayed = true;
+                    }
+                    if(skipUntilNextLine == true)
+                    {
+                        skipUntilNextLine = false;
                     }
 
-                    current_x = ta->topLeft.x;
-                    current_y += CHAR_HEIGHT;
                     drawCursorLine({current_x,current_y},true);
 
-                    positionInText = newLineInNode - currentPtn->buffer->text + 1;
-                    linesRemainedToDisplay--;
-                    if(linesRemainedToDisplay == 0) linesDisplayed = true;
+                    positionInText = positionNewline + 1;
                 }
                 else
                 {
                     unsigned int maxPosition = positionInText + ta->maxCharLine;
-                    for(unsigned int i = positionInText; i <= maxIndexInNode && i < maxPosition; i++, current_x += CHAR_WIDTH)
+
+                    unsigned int position;
+                    if(maxIndexInNode > maxPosition)
                     {
-                        char aux = currentPtn->buffer->text[i+1];
-                        currentPtn->buffer->text[i+1] = '\0';
-                        outtextxy(current_x,current_y,currentPtn->buffer->text + i);
-                        currentPtn->buffer->text[i+1] = aux;
+                        position = maxPosition-1;
+                    }
+                    else position = maxIndexInNode;
+
+                    if(skipUntilNextLine == false)
+                    {
+                        char aux = currentPtn->buffer->text[position+1];
+                        currentPtn->buffer->text[position+1] = '\0';
+                        outtextxy(current_x,current_y,currentPtn->buffer->text + positionInText);
+                        currentPtn->buffer->text[position+1] = aux;
+
+                        current_x = CHAR_WIDTH*(position - positionInText + 1);
+                    }
+
+                    if(maxPosition-1 == position)
+                    {
+                        skipUntilNextLine = true;
+
+                        current_y += CHAR_HEIGHT;
+                        current_x = ta->topLeft.x;
+                        linesRemainedToDisplay--;
+                        if(linesRemainedToDisplay == 0) linesDisplayed = true;
                     }
 
                     positionInText = maxIndexInNode+1;
@@ -305,7 +339,8 @@ void openFile(TextArea *ta, char *fileName)
 
     bool unixFile = false;
     unsigned int readSize;
-    do{
+    do
+    {
         Buffer *newBuffer = initBuffer();
         addBuffer(ta->pieceTable->buffersList, newBuffer);
         newBuffer->length = 0;
@@ -315,17 +350,20 @@ void openFile(TextArea *ta, char *fileName)
 
         fread(&last_x, sizeof(char), 1, file);
         newBuffer->text[newBuffer->length] = last_x;
-        if(last_x == '\n') {
+        if(last_x == '\n')
+        {
             numberNewLines++;
             unixFile = true;
         }
         newBuffer->length++;
 
-        while((newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file)) {
+        while((newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file))
+        {
             newBuffer->text[newBuffer->length] = x;
             if(x == '\n') numberNewLines++;
             if(x == '\n' && last_x != '\r') unixFile = true;
-            if(x == '\n' && last_x == '\r') {
+            if(x == '\n' && last_x == '\r')
+            {
                 newBuffer->length--;
                 newBuffer->text[newBuffer->length] = x;
             }
@@ -336,7 +374,8 @@ void openFile(TextArea *ta, char *fileName)
         addPieceTableNode(ta->pieceTable->nodesList, newNode);
         ta->pieceTable->numberOfLines += numberNewLines;
         readSize = newBuffer->length;
-    }while(readSize == MAX_LENGTH_BUFFER);
+    }
+    while(readSize == MAX_LENGTH_BUFFER);
 
     if(unixFile) ta->unixFile = true;
     Buffer *newBuffer = initBuffer();
