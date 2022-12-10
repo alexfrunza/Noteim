@@ -245,7 +245,7 @@ Editor* initEditor()
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
-    e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
+    e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
 }
@@ -317,6 +317,7 @@ void drawArea(TextArea *ta)
                     {
                         char aux = currentPtn->buffer->text[position+1];
                         currentPtn->buffer->text[position+1] = '\0';
+                        //cout<<currentPtn->buffer->text + positionInText<<'\n';
                         outtextxy(current_x,current_y,currentPtn->buffer->text + positionInText);
                         currentPtn->buffer->text[position+1] = aux;
                         current_x = ta->topLeft.x;
@@ -355,6 +356,7 @@ void drawArea(TextArea *ta)
                     {
                         char aux = currentPtn->buffer->text[position+1];
                         currentPtn->buffer->text[position+1] = '\0';
+                         //cout<<currentPtn->buffer->text + positionInText;
                         outtextxy(current_x,current_y,currentPtn->buffer->text + positionInText);
                         currentPtn->buffer->text[position+1] = aux;
 
@@ -379,6 +381,7 @@ void drawArea(TextArea *ta)
             currentPtn = currentPtn->next;
             if(currentPtn != NULL) positionInText = currentPtn->start;
         }
+        //cout<<endl<<"***********"<<endl;
     }
     drawCursorLine(ta->cursor->position);
 }

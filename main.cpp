@@ -9,6 +9,24 @@
 
 using namespace std;
 
+void logPieceTableNodes(PieceTable *pt)
+{
+    PieceTableNodesList *ptnl = pt->nodesList;
+
+
+    int i;
+    printf("\n");
+    PieceTableNode *ptn = pt->nodesList->first;
+    cout<<"NODES LIST: \n";
+    while(ptn!=NULL)
+    {
+        i = 0;
+        cout<<"START: "<<ptn->start<<" length: "<<ptn->length<<'\n';
+        ptn = ptn->next;
+    }
+
+}
+
 int main()
 {
     Editor* e = initEditor();
@@ -62,6 +80,7 @@ int main()
             }
             // Test scroll
 
+            /*
             if(a == 'j')
             {
                 if(e->textArea->firstLine > 0)
@@ -89,11 +108,31 @@ int main()
                 e->textArea->firstColumn++;
                 e->textArea->changes = true;
             }
-            else if(isDisplayedChar(a))
+            else
+                */if(isDisplayedChar(a))
             {
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
-                e->textArea->changes = true;
+                //e->textArea->changes = true;
             }
+            e->textArea->changes = true;
+            logPieceTableNodes(e->textArea->pieceTable);
+
+
+            int i;
+            printf("\n");
+            PieceTableNode *ptn = e->textArea->pieceTable->nodesList->first;
+            while(ptn!=NULL)
+            {
+                i = 0;
+                while(i<ptn->length)
+                {
+                    printf("%c",ptn->buffer->text[i+ptn->start]);
+                    i++;
+                }
+                ptn = ptn->next;
+            }
+
+
 
         }
         drawEditor(e);
