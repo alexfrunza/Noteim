@@ -1,6 +1,5 @@
-#include <graphics.h>
 #include "piecetable.h"
-#include "helpers.h"
+#include <graphics.h>
 
 #ifndef NOTEIM_EDITOR_H
 #define NOTEIM_EDITOR_H
@@ -40,15 +39,18 @@ struct ScrollBarsArea
 ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight);
 void drawArea(ScrollBarsArea *sba);
 
-struct Cursor {
+struct Cursor
+{
     Point position;
 
     unsigned int positionInPieceTable;
 
     PieceTableNode* pieceTableNode;
+    unsigned int positionInNode;
 };
 
 Cursor* initCursor();
+void getCursorPositionInPiecetable(PieceTable *pt, Cursor &c, int firstLine, Point dest);
 
 struct TextArea
 {

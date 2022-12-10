@@ -24,11 +24,11 @@ void drawArea(ScrollBarsArea *sba)
 {
 }
 
-// De facut
 Cursor *initCursor(Point position)
 {
     Cursor* c = new Cursor;
     c->position = position;
+    c->positionInNode = 0;
 
     return c;
 }
@@ -37,20 +37,24 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
 {
     TextArea* ta = new TextArea;
     ta->unixFile = false;
+
+    ta->cursor = initCursor(topLeft);
     ta->topLeft = topLeft;
+    ta->bottomRight = bottomRight;
     ta->cursor = initCursor(topLeft);
     ta->firstLine = 0;
-
-    ta->bottomRight = bottomRight;
     drawCursorLine(ta->cursor->position);
+
     ta->changes = true;
     ta->pieceTable = initPieceTable();
-
-    Buffer *newBuffer = initBuffer();
-    addBuffer(ta->pieceTable->buffersList, newBuffer);
-
+    Buffer *firstBuffer = initBuffer();
+    addBuffer(ta->pieceTable->buffersList, firstBuffer);
+    PieceTableNode *firstNode = initPieceTableNode(ta->pieceTable->buffersList->first,0,0,0);
+    addPieceTableNode(ta->pieceTable->nodesList,firstNode);
+    ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
+
     return ta;
 }
 
@@ -70,10 +74,9 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
 
     openFile(ta, fileName);
-
     ta->cursor = initCursor(topLeft);
     drawCursorLine(ta->cursor->position);
-
+    ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     return ta;
 }
 
@@ -85,18 +88,11 @@ void drawCursorLine(Point p, bool white)
     setcolor(BLACK);
 }
 
-void moveCursor(TextArea *ta, Point dest)
+void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Point dest)
 {
-    if(dest.x<0 || dest.y <0)
-        return;
-    if(dest.x>=ta->maxCharLine || dest.y>=ta->maxLines)
-        return;
-    if(ta->pieceTable->nodesList->length==0)
-        return;
-
-    drawCursorLine(ta->cursor->position,true);
-    PieceTableNode *ptn = ta->pieceTable->nodesList->first;
-    int remainingNewLines = dest.y, i, currentXInLine=0;
+    // Trebuie modificat sa tina cont si de offset-ul pe linie (x)
+    PieceTableNode *ptn = pt->nodesList->first;
+    int remainingNewLines = dest.y + firstLine, i, currentXInLine=0;
     while(ptn!=NULL)
     {
         if(remainingNewLines-(int)ptn->numberNewLines<=0)
@@ -106,9 +102,8 @@ void moveCursor(TextArea *ta, Point dest)
     }
     if(ptn==NULL)
     {
-        ptn = ta->pieceTable->nodesList->last;
+        ptn = pt->nodesList->last;
         i = ptn->start+ptn->length-1;
-        currentXInLine = 0;
         while(ptn!=NULL && ptn->buffer->text[i]!='\n')
         {
             if(i==ptn->start-1)
@@ -121,8 +116,9 @@ void moveCursor(TextArea *ta, Point dest)
                 currentXInLine++;
             i--;
         }
-        ta->cursor->position = {currentXInLine,dest.y-remainingNewLines};
-        drawCursorLine(ta->cursor->position);
+        c->position = {currentXInLine,dest.y-remainingNewLines};
+        c->pieceTableNode = pt->nodesList->last;
+        c->positionInNode = pt->nodesList->last->length-1;
         return;
     }
     i = ptn->start;
@@ -144,10 +140,63 @@ void moveCursor(TextArea *ta, Point dest)
             currentXInLine++;
         i++;
     }
-    if(ptn==NULL || ptn->buffer->text[i]=='\n')
-        ta->cursor->position = {currentXInLine,dest.y};
+    if(currentXInLine==dest.x)
+    {
+        c->position = dest;
+        c->pieceTableNode = ptn;
+        c->positionInNode = i-ptn->start;
+    }
     else
-        ta->cursor->position = dest;
+    {
+        c->position = {currentXInLine,dest.y};
+        if(ptn==NULL)
+        {
+            c->pieceTableNode = pt->nodesList->last;
+            c->positionInNode = i-pt->nodesList->last->start-1;
+        }
+        else
+        {
+            c->pieceTableNode = ptn;
+            c->positionInNode = i-ptn->start;
+        }
+    }
+}
+
+void moveCursor(TextArea *ta, Point dest)
+{
+    if(ta->pieceTable->nodesList->length==0)
+        return;
+    if(dest.x<0)
+    {
+        // De facut
+        // if(ta.firstColumn>0)
+        //     scrollLeft
+        return;
+    }
+    if(dest.y<0)
+    {
+        // De facut
+        // if(ta.firstLine>0)
+        //     scrollUp
+        return;
+    }
+    if(dest.x>=ta->maxCharLine)
+    {
+        // De facut
+        // Conditie??
+        // scrollRight
+        return;
+    }
+    if(dest.y>=ta->maxLines)
+    {
+        // De facut
+        // if(dest.y<=ta->pieceTable->numberOfLines)
+        // scrollDown
+        return;
+    }
+
+    drawCursorLine(ta->cursor->position,true);
+    getCursorPositionInPiecetable(ta->pieceTable,ta->cursor,ta->firstLine,dest);
     drawCursorLine(ta->cursor->position);
 }
 
@@ -296,8 +345,9 @@ void drawArea(TextArea *ta)
                     else position = maxIndexInNode;
 
                     int copyLenPrevSequence = lenPrevSequence;
-                    if(current_x != ta->topLeft.x) {
-                       position -= lenPrevSequence;
+                    if(current_x != ta->topLeft.x)
+                    {
+                        position -= lenPrevSequence;
 
                     }
 
