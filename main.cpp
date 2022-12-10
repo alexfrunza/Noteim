@@ -13,12 +13,15 @@ int main()
     Editor* e = initEditor();
     char a;
     int x, y;
+    Cursor *c = e->textArea->cursor;
     while(e->running)
     {
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
             Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+            if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
+                newCursorPosition.x++;
             moveCursor(e->textArea,newCursorPosition);
             continue;
         }
@@ -36,26 +39,43 @@ int main()
                 // Maybe pop-up do you want to save the file, if the file isn't saved.
                 continue;
             }
+            drawCursorLine(c->position,true);
             if(a == 8)
             {
                 // Backspace deletion.
             }
             if(ENTER_PRESSED)
             {
-                drawCursorLine(e->textArea->cursor->position,true);
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,'\n');
+                drawCursorLine(c->position,true);
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,'\n');
                 e->textArea->pieceTable->numberOfLines++;
             }
             if(TAB_PRESSED)
             {
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,' ');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
             }
             if(isDisplayedChar(a))
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,a);
+                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
             e->textArea->changes = true;
+
+            int i;
+            printf("\n");
+        PieceTableNode *ptn = e->textArea->pieceTable->nodesList->first;
+        while(ptn!=NULL)
+        {
+            i = 0;
+            while(i<ptn->length)
+            {
+                printf("%c",ptn->buffer->text[i+ptn->start]);
+                i++;
+            }
+            ptn = ptn->next;
+        }
+
+
         }
         drawEditor(e);
         delay(10);
