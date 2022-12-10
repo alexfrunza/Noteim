@@ -71,13 +71,27 @@ int main()
                 e->textArea->firstLine++;
                 e->textArea->changes = true;
             }
-            else
-
-            if(isDisplayedChar(a))
+            else if(a=='h')
             {
-                addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,a);
+                if(e->textArea->firstColumn > 0)
+                {
+                    e->textArea->firstColumn--;
+                    e->textArea->changes = true;
+                }
+
+            }
+            else if(a=='l')
+            {
+                e->textArea->firstColumn++;
                 e->textArea->changes = true;
             }
+            else
+
+                if(isDisplayedChar(a))
+                {
+                    addElementToPieceTable(e->textArea->pieceTable,e->textArea->cursor->position,a);
+                    e->textArea->changes = true;
+                }
         }
         drawEditor(e);
         delay(10);

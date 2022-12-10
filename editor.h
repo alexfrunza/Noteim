@@ -64,6 +64,7 @@ struct TextArea
     Cursor *cursor;
     // Absolute number of the first line to be displayed on screen
     unsigned int firstLine;
+    unsigned int firstColumn;
 
     PieceTable *pieceTable;
     ScrollBarsArea *scrollBarsArea;

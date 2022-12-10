@@ -242,6 +242,7 @@ void drawArea(TextArea *ta)
         unsigned int positionInText = startIndex;
         bool linesDisplayed = false;
         bool skipUntilNextLine = false;
+        unsigned int lenPrevSequence = 0;
 
         while(currentPtn!=NULL && !linesDisplayed)
         {
@@ -294,6 +295,12 @@ void drawArea(TextArea *ta)
                     }
                     else position = maxIndexInNode;
 
+                    int copyLenPrevSequence = lenPrevSequence;
+                    if(current_x != ta->topLeft.x) {
+                       position -= lenPrevSequence;
+
+                    }
+
                     if(skipUntilNextLine == false)
                     {
                         char aux = currentPtn->buffer->text[position+1];
@@ -302,15 +309,17 @@ void drawArea(TextArea *ta)
                         currentPtn->buffer->text[position+1] = aux;
 
                         current_x = CHAR_WIDTH*(position - positionInText + 1);
+                        if(current_x != CHAR_WIDTH*maxPosition) lenPrevSequence = position - positionInText + 1;
                     }
 
-                    if(maxPosition-1 == position)
+                    if(maxPosition-1 == position + copyLenPrevSequence)
                     {
                         skipUntilNextLine = true;
 
                         current_y += CHAR_HEIGHT;
                         current_x = ta->topLeft.x;
                         linesRemainedToDisplay--;
+                        lenPrevSequence = 0;
                         if(linesRemainedToDisplay == 0) linesDisplayed = true;
                     }
 
