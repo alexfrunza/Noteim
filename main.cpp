@@ -1,5 +1,6 @@
 #include <iostream>
 #include "editor.h"
+#include "piecetable.h"
 
 #define ARROW_PRESSED a==0
 #define ESC_PRESSED a==27
@@ -7,6 +8,24 @@
 #define TAB_PRESSED a=='\t'
 
 using namespace std;
+
+void logPieceTableNodes(PieceTable *pt)
+{
+    PieceTableNodesList *ptnl = pt->nodesList;
+
+
+    int i;
+    printf("\n");
+    PieceTableNode *ptn = pt->nodesList->first;
+    cout<<"NODES LIST: \n";
+    while(ptn!=NULL)
+    {
+        i = 0;
+        cout<<"START: "<<ptn->start<<" length: "<<ptn->length<<'\n';
+        ptn = ptn->next;
+    }
+
+}
 
 int main()
 {
@@ -49,6 +68,7 @@ int main()
                 drawCursorLine(c->position,true);
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,'\n');
                 e->textArea->pieceTable->numberOfLines++;
+                e->textArea->changes = true;
             }
             if(TAB_PRESSED)
             {
@@ -56,24 +76,62 @@ int main()
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                e->textArea->changes = true;
             }
-            if(isDisplayedChar(a))
+            // Test scroll
+
+            /*
+            if(a == 'j')
+            {
+                if(e->textArea->firstLine > 0)
+                {
+                    e->textArea->firstLine--;
+                    e->textArea->changes = true;
+                }
+            }
+            else if(a=='k')
+            {
+                e->textArea->firstLine++;
+                e->textArea->changes = true;
+            }
+            else if(a=='h')
+            {
+                if(e->textArea->firstColumn > 0)
+                {
+                    e->textArea->firstColumn--;
+                    e->textArea->changes = true;
+                }
+
+            }
+            else if(a=='l')
+            {
+                e->textArea->firstColumn++;
+                e->textArea->changes = true;
+            }
+            else
+                */if(isDisplayedChar(a))
+            {
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
+                //e->textArea->changes = true;
+            }
             e->textArea->changes = true;
+            logPieceTableNodes(e->textArea->pieceTable);
+
 
             int i;
             printf("\n");
-        PieceTableNode *ptn = e->textArea->pieceTable->nodesList->first;
-        while(ptn!=NULL)
-        {
-            i = 0;
-            while(i<ptn->length)
+            PieceTableNode *ptn = e->textArea->pieceTable->nodesList->first;
+            while(ptn!=NULL)
             {
-                printf("%c",ptn->buffer->text[i+ptn->start]);
-                i++;
+                i = 0;
+                while(i<ptn->length)
+                {
+                    printf("%c",ptn->buffer->text[i+ptn->start]);
+                    i++;
+                }
+                ptn = ptn->next;
             }
-            ptn = ptn->next;
-        }
+
 
 
         }

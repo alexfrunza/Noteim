@@ -12,7 +12,7 @@ struct Buffer
 {
     char text[MAX_LENGTH_BUFFER+1];
     // Maximum length will be 511, last element is reserved for '\0'
-    unsigned int length:10;
+    unsigned int length:9;
     Buffer *prev;
     Buffer *next;
 };
@@ -31,6 +31,7 @@ struct BuffersList
 BuffersList* initBuffersList();
 void addBuffer(BuffersList *bl, Buffer *b);
 void removeLastBuffer(BuffersList *bl);
+void emptyBuffersList(BuffersList *bl);
 
 
 struct PieceTableNode
@@ -57,6 +58,7 @@ struct PieceTableNodesList
 PieceTableNodesList* initPieceTableNodesList();
 void addPieceTableNode(PieceTableNodesList *nl, PieceTableNode *n);
 void removeLastPieceTableNode(PieceTableNodesList *nl);
+void emptyPieceTableNodesList(PieceTableNodesList *nl);
 
 struct PieceTable
 {
@@ -68,5 +70,6 @@ struct PieceTable
 PieceTable* initPieceTable();
 void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInBuffer, char newLetter);
 void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode* &startPtn, unsigned int &linesUntil);
+void emptyPieceTable(PieceTable *pt);
 
 #endif // NOTEIM_PIECETABLE_H

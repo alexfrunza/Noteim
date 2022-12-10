@@ -1,1 +1,0 @@
-This sentence shall be used to test the functionality of our program.

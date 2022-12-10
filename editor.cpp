@@ -1,8 +1,12 @@
 #include <graphics.h>
 #include <cmath>
+#include <stdio.h>
 
 #include "editor.h"
 #include "helpers.h"
+
+#include <iostream>
+using namespace std;
 
 MenuArea* initMenuArea(Point topLeft, Point bottomRight)
 {
@@ -32,6 +36,7 @@ Cursor *initCursor(Point position)
 TextArea* initTextArea(Point topLeft, Point bottomRight)
 {
     TextArea* ta = new TextArea;
+    ta->unixFile = false;
 
     ta->cursor = initCursor(topLeft);
     ta->topLeft = topLeft;
@@ -56,24 +61,22 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 {
     TextArea* ta = new TextArea;
+    ta->unixFile = false;
+    ta->changes = true;
+    ta->firstLine = 0;
 
-    ta->cursor = initCursor(topLeft);
     ta->topLeft = topLeft;
     ta->bottomRight = bottomRight;
-    ta->cursor = initCursor(topLeft);
-    ta->firstLine = 0;
-    drawCursorLine(ta->cursor->position);
 
-    ta->changes = true;
     ta->pieceTable = initPieceTable();
-    Buffer *newBuffer = initBuffer();
-    addBuffer(ta->pieceTable->buffersList,newBuffer);
-    PieceTableNode *firstNode = initPieceTableNode(ta->pieceTable->buffersList->first,0,0,0);
-    addPieceTableNode(ta->pieceTable->nodesList,firstNode);
-    ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
+
     ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
 
+    openFile(ta, fileName);
+    ta->cursor = initCursor(topLeft);
+    drawCursorLine(ta->cursor->position);
+    ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     return ta;
 }
 
@@ -220,7 +223,7 @@ void moveCursorByArrow(TextArea *ta, char a)
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
-    settextstyle(0, HORIZ_DIR, 1);
+    settextstyle(0, HORIZ_DIR, 2);
 
     setbkcolor(WHITE);
     setcolor(BLACK);
@@ -255,6 +258,9 @@ void drawArea(TextArea *ta)
     int current_x=ta->topLeft.x;
     int current_y=ta->topLeft.y;
 
+    setfillstyle(1, COLOR(255, 255, 255));
+    bar(ta->topLeft.x, ta->topLeft.y, ta->bottomRight.x, ta->bottomRight.y);
+
     char *posInBuffer;
     char *newLinePosInBuffer;
     char aux;
@@ -284,10 +290,13 @@ void drawArea(TextArea *ta)
         unsigned int linesRemainedToDisplay = ta->maxLines;
         unsigned int positionInText = startIndex;
         bool linesDisplayed = false;
+        bool skipUntilNextLine = false;
+        unsigned int lenPrevSequence = 0;
 
         while(currentPtn!=NULL && !linesDisplayed)
         {
             long maxIndexInNode = currentPtn->start + currentPtn->length - 1;
+
             while((long)positionInText <= maxIndexInNode && !linesDisplayed)
             {
                 char *newLineInNode = strchr(currentPtn->buffer->text + positionInText, '\n');
@@ -296,41 +305,149 @@ void drawArea(TextArea *ta)
                     unsigned int positionNewline = newLineInNode - currentPtn->buffer->text;
 
                     unsigned int maxPosition = positionInText + ta->maxCharLine;
-                    for(unsigned int i = positionInText; i < positionNewline && i < maxPosition; i++, current_x += CHAR_WIDTH)
+
+                    unsigned int position;
+                    if(positionNewline > maxPosition)
                     {
-                        char aux = currentPtn->buffer->text[i+1];
-                        currentPtn->buffer->text[i+1] = '\0';
-                        outtextxy(current_x,current_y,currentPtn->buffer->text + i);
-                        currentPtn->buffer->text[i+1] = aux;
+                        position = maxPosition-1;
+                    }
+                    else position = positionNewline;
+
+                    if(skipUntilNextLine == false)
+                    {
+                        char aux = currentPtn->buffer->text[position+1];
+                        currentPtn->buffer->text[position+1] = '\0';
+                        //cout<<currentPtn->buffer->text + positionInText<<'\n';
+                        outtextxy(current_x,current_y,currentPtn->buffer->text + positionInText);
+                        currentPtn->buffer->text[position+1] = aux;
+                        current_x = ta->topLeft.x;
+                        current_y += CHAR_HEIGHT;
+                        linesRemainedToDisplay--;
+                        if(linesRemainedToDisplay == 0) linesDisplayed = true;
+                    }
+                    if(skipUntilNextLine == true)
+                    {
+                        skipUntilNextLine = false;
                     }
 
-                    current_x = ta->topLeft.x;
-                    current_y += CHAR_HEIGHT;
                     drawCursorLine({current_x,current_y},true);
 
-                    positionInText = newLineInNode - currentPtn->buffer->text + 1;
-                    linesRemainedToDisplay--;
-                    if(linesRemainedToDisplay == 0) linesDisplayed = true;
+                    positionInText = positionNewline + 1;
                 }
                 else
                 {
                     unsigned int maxPosition = positionInText + ta->maxCharLine;
-                    for(unsigned int i = positionInText; i <= maxIndexInNode && i < maxPosition; i++, current_x += CHAR_WIDTH)
+
+                    unsigned int position;
+                    if(maxIndexInNode > maxPosition)
                     {
-                        char aux = currentPtn->buffer->text[i+1];
-                        currentPtn->buffer->text[i+1] = '\0';
-                        outtextxy(current_x,current_y,currentPtn->buffer->text + i);
-                        currentPtn->buffer->text[i+1] = aux;
+                        position = maxPosition-1;
+                    }
+                    else position = maxIndexInNode;
+
+                    int copyLenPrevSequence = lenPrevSequence;
+                    if(current_x != ta->topLeft.x)
+                    {
+                        position -= lenPrevSequence;
+
+                    }
+
+                    if(skipUntilNextLine == false)
+                    {
+                        char aux = currentPtn->buffer->text[position+1];
+                        currentPtn->buffer->text[position+1] = '\0';
+                         //cout<<currentPtn->buffer->text + positionInText;
+                        outtextxy(current_x,current_y,currentPtn->buffer->text + positionInText);
+                        currentPtn->buffer->text[position+1] = aux;
+
+                        current_x = CHAR_WIDTH*(position - positionInText + 1);
+                        if(current_x != CHAR_WIDTH*maxPosition) lenPrevSequence = position - positionInText + 1;
+                    }
+
+                    if(maxPosition-1 == position + copyLenPrevSequence)
+                    {
+                        skipUntilNextLine = true;
+
+                        current_y += CHAR_HEIGHT;
+                        current_x = ta->topLeft.x;
+                        linesRemainedToDisplay--;
+                        lenPrevSequence = 0;
+                        if(linesRemainedToDisplay == 0) linesDisplayed = true;
                     }
 
                     positionInText = maxIndexInNode+1;
                 }
             }
-
             currentPtn = currentPtn->next;
+            if(currentPtn != NULL) positionInText = currentPtn->start;
         }
+        //cout<<endl<<"***********"<<endl;
     }
     drawCursorLine(ta->cursor->position);
+}
+
+void openFile(TextArea *ta, char *fileName)
+{
+    FILE *file = fopen(fileName, "rb");
+
+    if(file == NULL)
+    {
+        fclose(file);
+        printf("Eroare la citirea fisierului!\n");
+        return;
+    }
+
+    emptyPieceTable(ta->pieceTable);
+
+    bool unixFile = false;
+    unsigned int readSize;
+    do
+    {
+        Buffer *newBuffer = initBuffer();
+        addBuffer(ta->pieceTable->buffersList, newBuffer);
+        newBuffer->length = 0;
+
+        unsigned int numberNewLines = 0;
+        char x, last_x;
+
+        fread(&last_x, sizeof(char), 1, file);
+        newBuffer->text[newBuffer->length] = last_x;
+        if(last_x == '\n')
+        {
+            numberNewLines++;
+            unixFile = true;
+        }
+        newBuffer->length++;
+
+        while((newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file))
+        {
+            newBuffer->text[newBuffer->length] = x;
+            if(x == '\n') numberNewLines++;
+            if(x == '\n' && last_x != '\r') unixFile = true;
+            if(x == '\n' && last_x == '\r')
+            {
+                newBuffer->length--;
+                newBuffer->text[newBuffer->length] = x;
+            }
+            newBuffer->length++;
+            last_x = x;
+        }
+        PieceTableNode *newNode = initPieceTableNode(newBuffer, 0, newBuffer->length, numberNewLines);
+        addPieceTableNode(ta->pieceTable->nodesList, newNode);
+        ta->pieceTable->numberOfLines += numberNewLines;
+        readSize = newBuffer->length;
+    }
+    while(readSize == MAX_LENGTH_BUFFER);
+
+    if(unixFile) ta->unixFile = true;
+    Buffer *newBuffer = initBuffer();
+    addBuffer(ta->pieceTable->buffersList, newBuffer);
+
+    fclose(file);
+}
+
+void saveFile(TextArea *ta, char *fileName)
+{
 }
 
 void drawEditor(Editor *e)
