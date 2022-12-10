@@ -1,6 +1,9 @@
 #include "piecetable.h"
 #include <cstdio>
 
+#include <iostream>
+using namespace std;
+
 bool bufferIsFull(Buffer *b)
 {
     if (b->length >= MAX_LENGTH_BUFFER) return true;
@@ -77,6 +80,14 @@ void removeLastBuffer(BuffersList *bl)
     bl->length--;
 }
 
+void emptyBuffersList(BuffersList *bl)
+{
+    while(bl->length > 0)
+    {
+        removeLastBuffer(bl);
+    }
+}
+
 PieceTableNode* initPieceTableNode(Buffer* buffer, unsigned int start, unsigned int length, unsigned int numberNewLines)
 {
     PieceTableNode *n = new PieceTableNode;
@@ -97,15 +108,6 @@ PieceTableNodesList* initPieceTableNodesList()
     ptnl->first = NULL;
     ptnl->last = NULL;
     return ptnl;
-}
-
-PieceTable* initPieceTable()
-{
-    PieceTable* pt = new PieceTable;
-    pt->buffersList = initBuffersList();
-    pt->nodesList = initPieceTableNodesList();
-    pt->numberOfLines = 0;
-    return pt;
 }
 
 void addPieceTableNode(PieceTableNodesList *nl, PieceTableNode *n)
@@ -138,6 +140,23 @@ void removeLastPieceTableNode(PieceTableNodesList *nl)
     nl->length--;
 }
 
+void emptyPieceTableNodesList(PieceTableNodesList *nl)
+{
+    while(nl->length > 0)
+    {
+        removeLastPieceTableNode(nl);
+    }
+}
+
+PieceTable* initPieceTable()
+{
+    PieceTable* pt = new PieceTable;
+    pt->buffersList = initBuffersList();
+    pt->nodesList = initPieceTableNodesList();
+    pt->numberOfLines = 0;
+    return pt;
+}
+
 void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInNode, char newLetter)
 {
     if(bufferIsFull(pt->buffersList->last))
@@ -152,7 +171,8 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
     }
 
     if(destNode->buffer==pt->buffersList->last && positionInNode==destNode->length && destNode->start+destNode->length==pt->buffersList->last->length-1)
-    { // Add at the end of node
+    {
+        // Add at the end of node
         destNode->length++;
         positionInNode++;
         if(newLetter=='\n')
@@ -169,7 +189,8 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
     PieceTableNode *newNode = initPieceTableNode(pt->buffersList->last,pt->buffersList->last->length-1,1,newLetter=='\n'?1:0);
 
     if(positionInNode==destNode->length)
-    { // Add Node after
+    {
+        // Add Node after
         if(destNode->next!=NULL)
         {
             newNode->next = destNode->next;
@@ -260,7 +281,7 @@ void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTab
     startPtn = pt->nodesList->first;
     unsigned int linesCounter = startPtn->numberNewLines;
 
-    if(((long)line - 1) <= (long)linesCounter)
+    if(((long)line - 1) < (long)linesCounter)
     {
         linesUntil = 0;
         return;
@@ -274,7 +295,13 @@ void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTab
         prevLinesCounter = linesCounter;
         linesCounter += startPtn->numberNewLines;
     }
-    while((long)linesCounter < (long)(line - 1));
+    while((long)linesCounter <= (long)(line - 1));
 
     linesUntil = prevLinesCounter;
+}
+
+void emptyPieceTable(PieceTable *pt)
+{
+    emptyBuffersList(pt->buffersList);
+    emptyPieceTableNodesList(pt->nodesList);
 }

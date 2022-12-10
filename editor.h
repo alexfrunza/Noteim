@@ -39,7 +39,8 @@ struct ScrollBarsArea
 ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight);
 void drawArea(ScrollBarsArea *sba);
 
-struct Cursor {
+struct Cursor
+{
     Point position;
 
     unsigned int positionInPieceTable;
@@ -54,6 +55,8 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor &c, int firstLine, Poi
 struct TextArea
 {
     bool changes;
+    // De implementat la salvare, corespunzator pentru Windows file si unixFile (asaugare '\r' pentru windows file)
+    bool unixFile;
 
     unsigned int maxLines;
     unsigned short int maxCharLine;
@@ -61,7 +64,9 @@ struct TextArea
     Point bottomRight;
 
     Cursor *cursor;
+    // Absolute number of the first line to be displayed on screen
     unsigned int firstLine;
+    unsigned int firstColumn;
 
     PieceTable *pieceTable;
     ScrollBarsArea *scrollBarsArea;
@@ -74,6 +79,8 @@ void drawArea(TextArea *ta);
 void drawCursorLine(Point p, bool white=false);
 void moveCursor(TextArea *ta, Point dest);
 void moveCursorByArrow(TextArea *ta, char a);
+void openFile(TextArea *ta, char *fileName);
+void saveFile(TextArea *ta, char *fileName);
 
 struct Editor
 {
