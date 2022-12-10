@@ -92,6 +92,16 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Poi
 {
     // Trebuie modificat sa tina cont si de offset-ul pe linie (x)
     PieceTableNode *ptn = pt->nodesList->first;
+
+    // Pentru când ecranul e gol.
+    if(ptn->length==0)
+    {
+        c->position = {0,0};
+        c->pieceTableNode = ptn;
+        c->positionInNode = 0;
+        return;
+    }
+
     int remainingNewLines = dest.y + firstLine, i, currentXInLine=0;
     while(ptn!=NULL)
     {

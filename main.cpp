@@ -67,7 +67,6 @@ int main()
             {
                 drawCursorLine(c->position,true);
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,'\n');
-                e->textArea->pieceTable->numberOfLines++;
                 e->textArea->changes = true;
             }
             if(TAB_PRESSED)
