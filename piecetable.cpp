@@ -219,13 +219,13 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
     }
 
     {
-        PieceTableNode *rightSide = initPieceTableNode(destNode->buffer,destNode->start+positionInNode,destNode->length-positionInNode-1,0);
+        PieceTableNode *rightSide = initPieceTableNode(destNode->buffer,destNode->start+positionInNode,destNode->length-positionInNode,0);
         for(int i=rightSide->start+rightSide->length-1; i>=(int)rightSide->start; i--)
             if(rightSide->buffer->text[i]=='\n')
                 rightSide->numberNewLines++;
 
         destNode->numberNewLines -= rightSide->numberNewLines;
-        destNode->length = positionInNode+1;
+        destNode->length = positionInNode;
 
 
         if(destNode->next!=NULL)

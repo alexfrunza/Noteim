@@ -60,22 +60,6 @@ int main()
             if(isDisplayedChar(a))
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
             e->textArea->changes = true;
-
-            int i;
-            printf("\n");
-        PieceTableNode *ptn = e->textArea->pieceTable->nodesList->first;
-        while(ptn!=NULL)
-        {
-            i = 0;
-            while(i<ptn->length)
-            {
-                printf("%c",ptn->buffer->text[i+ptn->start]);
-                i++;
-            }
-            ptn = ptn->next;
-        }
-
-
         }
         drawEditor(e);
         delay(10);
