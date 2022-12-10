@@ -132,8 +132,6 @@ int main()
                 ptn = ptn->next;
             }
 
-
-
         }
         drawEditor(e);
         delay(10);
