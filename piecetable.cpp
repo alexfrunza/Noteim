@@ -276,28 +276,56 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
     }
 }
 
-void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode* &startPtn, unsigned int &linesUntil)
+void getWhereLineStarts(PieceTable* pt, long line, PieceTableNode* &ptn, long &indexOfLine)
 {
-    startPtn = pt->nodesList->first;
-    unsigned int linesCounter = startPtn->numberNewLines;
-
-    if(((long)line - 1) < (long)linesCounter)
+    if(pt->numberOfLines < line)
     {
-        linesUntil = 0;
+        ptn = NULL;
         return;
     }
 
-    unsigned int prevLinesCounter;
+    ptn = pt->nodesList->first;
+    long currentLine = 0;
+    long linesCounter = ptn->numberNewLines;
+    long indexLimitOfNode = ptn->start + ptn->length;
 
-    do
+    if(linesCounter < line)
     {
-        startPtn  = startPtn->next;
-        prevLinesCounter = linesCounter;
-        linesCounter += startPtn->numberNewLines;
-    }
-    while((long)linesCounter <= (long)(line - 1));
+        long prevLinesCounter;
 
-    linesUntil = prevLinesCounter;
+        do
+        {
+            ptn  = ptn->next;
+            prevLinesCounter = linesCounter;
+            linesCounter += ptn->numberNewLines;
+        }
+        while(linesCounter < line);
+
+        currentLine = prevLinesCounter;
+    }
+
+    indexOfLine = ptn->start - 1;
+    while(currentLine < line && indexOfLine < indexLimitOfNode)
+    {
+        indexOfLine++;
+        if(ptn->buffer->text[indexOfLine] == '\n') currentLine++;
+    }
+
+    indexOfLine++;
+    cout<<"SIUUUUUUUU: "<<indexOfLine<< " "<<indexLimitOfNode<<endl;
+    if(indexOfLine >= indexLimitOfNode)
+    {
+        if(ptn->next == NULL)
+        {
+            ptn = NULL;
+            return;
+        }
+        else if(ptn->next != NULL)
+        {
+            ptn = ptn->next;
+            indexOfLine = ptn->start;
+        }
+    }
 }
 
 void emptyPieceTable(PieceTable *pt)
