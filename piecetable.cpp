@@ -296,6 +296,7 @@ void getWhereLineStarts(PieceTable* pt, long line, PieceTableNode* &ptn, long &i
         do
         {
             ptn  = ptn->next;
+            indexLimitOfNode = ptn->start + ptn->length;
             prevLinesCounter = linesCounter;
             linesCounter += ptn->numberNewLines;
         }
@@ -312,7 +313,7 @@ void getWhereLineStarts(PieceTable* pt, long line, PieceTableNode* &ptn, long &i
     }
 
     indexOfLine++;
-    cout<<"SIUUUUUUUU: "<<indexOfLine<< " "<<indexLimitOfNode<<endl;
+    //cout<<"SIUUUUUUUU: "<<indexOfLine<< " "<<indexLimitOfNode<<endl;
     if(indexOfLine >= indexLimitOfNode)
     {
         if(ptn->next == NULL)
