@@ -269,14 +269,58 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
     long spaceRemainedOnScreen = ta->maxCharLine - 1;
     long current_x = ta->topLeft.x;
     long endOfDisplayedLine;
+    long skippedChars = ta->firstColumn;
     bool lineEnded = false;
+    bool skippedNode;
 
     while(spaceRemainedOnScreen > 0 && !lineEnded && ptn != NULL)
     {
         numberOfCharsFromNode = ptn->length - (indexOfLine - ptn->start);
         endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
+        skippedNode = false;
 
-        if(numberOfCharsFromNode <= spaceRemainedOnScreen)
+        /*
+        if(skippedChars > 0)
+        {
+            if(numberOfCharsFromNode <= spaceRemainedOnScreen)
+            {
+                endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
+            }
+            else
+            {
+                endOfDisplayedLine = indexOfLine + spaceRemainedOnScreen;
+            }
+
+            char aux = ptn->buffer->text[endOfDisplayedLine];
+            ptn->buffer->text[endOfDisplayedLine] = '\0';
+            char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
+            ptn->buffer->text[endOfDisplayedLine] = aux;
+
+            if(newLineInNode)
+            {
+                numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
+                endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
+            }
+
+            if(newLineInNode) break;
+
+
+            if(numberOfCharsFromNode <= skippedChars)
+            {
+                numberOfCharsFromNode = 0;
+                skippedChars = skippedChars - numberOfCharsFromNode;
+                skippedNode = true;
+            }
+            else
+            {
+                numberOfCharsFromNode -= skippedChars;
+                indexOfLine += skippedChars;
+                skippedChars = 0;
+            }
+        }
+        */
+
+        if(numberOfCharsFromNode <= spaceRemainedOnScreen && !skippedNode)
         {
             endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
 
@@ -287,6 +331,7 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
 
             if(newLineInNode)
             {
+                numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
                 endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
                 lineEnded = true;
                 //cout<<"INDEXXXX: "<<indexOfLine<<" "<<endOfDisplayedLine<<endl;
@@ -297,7 +342,7 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
             drawCharsInGui(ptn->buffer, current_x, y, indexOfLine, endOfDisplayedLine);
             current_x += numberOfCharsFromNode * CHAR_WIDTH;
         }
-        else
+        else if(!skippedNode)
         {
             endOfDisplayedLine = indexOfLine + spaceRemainedOnScreen;
 

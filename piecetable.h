@@ -1,4 +1,5 @@
 //#include "color.h"
+#include <graphics.h>
 #include "helpers.h"
 #include <cstddef>
 
@@ -6,6 +7,8 @@
 #define NOTEIM_PIECETABLE_H
 
 #define MAX_LENGTH_BUFFER 511
+#define CHAR_WIDTH textwidth("m")
+#define CHAR_HEIGHT textheight("|")
 
 
 struct Buffer

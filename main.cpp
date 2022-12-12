@@ -93,6 +93,7 @@ int main()
                 e->textArea->firstLine++;
                 e->textArea->changes = true;
             }
+
             else if(a=='h')
             {
                 if(e->textArea->firstColumn > 0)
@@ -107,13 +108,13 @@ int main()
                 e->textArea->firstColumn++;
                 e->textArea->changes = true;
             }
-            else
-                */if(isDisplayedChar(a))
+            else */
+            if(isDisplayedChar(a))
             {
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
-                //e->textArea->changes = true;
+                e->textArea->changes = true;
             }
-            e->textArea->changes = true;
+           // e->textArea->changes = true;
             // Logging pentru nodurile din tabel
             // logPieceTableNodes(e->textArea->pieceTable);
 
