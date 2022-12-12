@@ -245,9 +245,126 @@ Editor* initEditor()
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
+
+    // !!!!!!!!!!!!!!!!!!!!!!!!
+    // Citire din fisier
+    // e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
     e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
+}
+
+void drawCharsInGui(Buffer* b, int x, int y, long index, long endOfDisplayedLine)
+{
+    char aux = b->text[endOfDisplayedLine];
+    b->text[endOfDisplayedLine] = '\0';
+    //cout<<"SIr afisat: "<<index<<" "<<endOfDisplayedLine<<endl;
+    outtextxy(x, y, b->text + index);
+    b->text[endOfDisplayedLine] = aux;
+}
+
+void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
+{
+    long numberOfCharsFromNode;
+    long spaceRemainedOnScreen = ta->maxCharLine - 1;
+    long current_x = ta->topLeft.x;
+    long endOfDisplayedLine;
+    long skippedChars = ta->firstColumn;
+    bool lineEnded = false;
+    bool skippedNode;
+
+    while(spaceRemainedOnScreen > 0 && !lineEnded && ptn != NULL)
+    {
+        numberOfCharsFromNode = ptn->length - (indexOfLine - ptn->start);
+        endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
+        skippedNode = false;
+
+        /*
+        if(skippedChars > 0)
+        {
+            if(numberOfCharsFromNode <= spaceRemainedOnScreen)
+            {
+                endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
+            }
+            else
+            {
+                endOfDisplayedLine = indexOfLine + spaceRemainedOnScreen;
+            }
+
+            char aux = ptn->buffer->text[endOfDisplayedLine];
+            ptn->buffer->text[endOfDisplayedLine] = '\0';
+            char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
+            ptn->buffer->text[endOfDisplayedLine] = aux;
+
+            if(newLineInNode)
+            {
+                numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
+                endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
+            }
+
+            if(newLineInNode) break;
+
+
+            if(numberOfCharsFromNode <= skippedChars)
+            {
+                numberOfCharsFromNode = 0;
+                skippedChars = skippedChars - numberOfCharsFromNode;
+                skippedNode = true;
+            }
+            else
+            {
+                numberOfCharsFromNode -= skippedChars;
+                indexOfLine += skippedChars;
+                skippedChars = 0;
+            }
+        }
+        */
+
+        if(numberOfCharsFromNode <= spaceRemainedOnScreen && !skippedNode)
+        {
+            endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
+
+            char aux = ptn->buffer->text[endOfDisplayedLine];
+            ptn->buffer->text[endOfDisplayedLine] = '\0';
+            char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
+            ptn->buffer->text[endOfDisplayedLine] = aux;
+
+            if(newLineInNode)
+            {
+                numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
+                endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
+                lineEnded = true;
+                //cout<<"INDEXXXX: "<<indexOfLine<<" "<<endOfDisplayedLine<<endl;
+            }
+
+            //cout<<"DE la caracter mai mic: "<<indexOfLine<<" "<<endOfDisplayedLine<<endl;
+            spaceRemainedOnScreen -= numberOfCharsFromNode;
+            drawCharsInGui(ptn->buffer, current_x, y, indexOfLine, endOfDisplayedLine);
+            current_x += numberOfCharsFromNode * CHAR_WIDTH;
+        }
+        else if(!skippedNode)
+        {
+            endOfDisplayedLine = indexOfLine + spaceRemainedOnScreen;
+
+            char aux = ptn->buffer->text[endOfDisplayedLine];
+            ptn->buffer->text[endOfDisplayedLine] = '\0';
+            char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
+            ptn->buffer->text[endOfDisplayedLine] = aux;
+
+            if(newLineInNode)
+            {
+                endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
+                lineEnded = true;
+            }
+
+            //cout<<"DE la caracter mai mare: "<<indexOfLine<<" "<<endOfDisplayedLine<<endl;
+            drawCharsInGui(ptn->buffer, current_x, y, indexOfLine, endOfDisplayedLine);
+            lineEnded = true;
+        }
+
+        ptn = ptn->next;
+        if(ptn != NULL) indexOfLine = ptn->start;
+    }
 }
 
 void drawArea(TextArea *ta)
@@ -255,133 +372,33 @@ void drawArea(TextArea *ta)
     if(ta->changes==false)
         return;
 
-    int current_x=ta->topLeft.x;
     int current_y=ta->topLeft.y;
 
     setfillstyle(1, COLOR(255, 255, 255));
     bar(ta->topLeft.x, ta->topLeft.y, ta->bottomRight.x, ta->bottomRight.y);
 
-    char *posInBuffer;
-    char *newLinePosInBuffer;
-    char aux;
+    long showedLines = 0;
+    long currentLine = ta->firstLine;
 
-    unsigned int newLinesRemaining;
-
-    PieceTableNode *startPtn;
-    unsigned int linesUntilStartPtn;
-
-    if(ta->pieceTable->nodesList->first != NULL && ta->pieceTable->numberOfLines >= ta->firstLine)
+    while(showedLines < ta->maxLines)
     {
-        getFirstNodeWhereAbsoluteLineIs(ta->pieceTable, ta->firstLine, startPtn, linesUntilStartPtn);
+        PieceTableNode* lineNode;
+        long indexOfLine;
 
-        unsigned int startIndex = startPtn->start;
-        unsigned int newLinesCounter = linesUntilStartPtn;
-
-        if(newLinesCounter < ta->firstLine)
+        getWhereLineStarts(ta->pieceTable, currentLine, lineNode, indexOfLine);
+        if(!lineNode)
         {
-            while(newLinesCounter < ta->firstLine)
-            {
-                if(startPtn->buffer->text[startIndex] == '\n') newLinesCounter++;
-                startIndex++;
-            }
+            //cout<<"NU exista linia: "<<showedLines<<endl;
+            break;
         }
 
-        PieceTableNode* currentPtn = startPtn;
-        unsigned int linesRemainedToDisplay = ta->maxLines;
-        unsigned int positionInText = startIndex;
-        bool linesDisplayed = false;
-        bool skipUntilNextLine = false;
-        unsigned int lenPrevSequence = 0;
+        //cout<<"LINIA: "<<showedLines<<endl;
+        //cout<<"*****: "<< indexOfLine<<"   "<<lineNode<<endl;
+        showALine(current_y, ta, lineNode, indexOfLine);
 
-        while(currentPtn!=NULL && !linesDisplayed)
-        {
-            long maxIndexInNode = currentPtn->start + currentPtn->length - 1;
-
-            while((long)positionInText <= maxIndexInNode && !linesDisplayed)
-            {
-                char *newLineInNode = strchr(currentPtn->buffer->text + positionInText, '\n');
-                if(newLineInNode)
-                {
-                    unsigned int positionNewline = newLineInNode - currentPtn->buffer->text;
-
-                    unsigned int maxPosition = positionInText + ta->maxCharLine;
-
-                    unsigned int position;
-                    if(positionNewline > maxPosition)
-                    {
-                        position = maxPosition-1;
-                    }
-                    else position = positionNewline;
-
-                    if(skipUntilNextLine == false)
-                    {
-                        char aux = currentPtn->buffer->text[position+1];
-                        currentPtn->buffer->text[position+1] = '\0';
-                        //cout<<currentPtn->buffer->text + positionInText<<'\n';
-                        outtextxy(current_x,current_y,currentPtn->buffer->text + positionInText);
-                        currentPtn->buffer->text[position+1] = aux;
-                        current_x = ta->topLeft.x;
-                        current_y += CHAR_HEIGHT;
-                        linesRemainedToDisplay--;
-                        if(linesRemainedToDisplay == 0) linesDisplayed = true;
-                    }
-                    if(skipUntilNextLine == true)
-                    {
-                        skipUntilNextLine = false;
-                    }
-
-                    drawCursorLine({current_x,current_y},true);
-
-                    positionInText = positionNewline + 1;
-                }
-                else
-                {
-                    unsigned int maxPosition = positionInText + ta->maxCharLine;
-
-                    unsigned int position;
-                    if(maxIndexInNode > maxPosition)
-                    {
-                        position = maxPosition-1;
-                    }
-                    else position = maxIndexInNode;
-
-                    int copyLenPrevSequence = lenPrevSequence;
-                    if(current_x != ta->topLeft.x)
-                    {
-                        position -= lenPrevSequence;
-
-                    }
-
-                    if(skipUntilNextLine == false)
-                    {
-                        char aux = currentPtn->buffer->text[position+1];
-                        currentPtn->buffer->text[position+1] = '\0';
-                         //cout<<currentPtn->buffer->text + positionInText;
-                        outtextxy(current_x,current_y,currentPtn->buffer->text + positionInText);
-                        currentPtn->buffer->text[position+1] = aux;
-
-                        current_x = CHAR_WIDTH*(position - positionInText + 1);
-                        if(current_x != CHAR_WIDTH*maxPosition) lenPrevSequence = position - positionInText + 1;
-                    }
-
-                    if(maxPosition-1 == position + copyLenPrevSequence)
-                    {
-                        skipUntilNextLine = true;
-
-                        current_y += CHAR_HEIGHT;
-                        current_x = ta->topLeft.x;
-                        linesRemainedToDisplay--;
-                        lenPrevSequence = 0;
-                        if(linesRemainedToDisplay == 0) linesDisplayed = true;
-                    }
-
-                    positionInText = maxIndexInNode+1;
-                }
-            }
-            currentPtn = currentPtn->next;
-            if(currentPtn != NULL) positionInText = currentPtn->start;
-        }
-        //cout<<endl<<"***********"<<endl;
+        current_y += CHAR_HEIGHT;
+        currentLine++;
+        showedLines++;
     }
     drawCursorLine(ta->cursor->position);
 }
@@ -435,7 +452,13 @@ void openFile(TextArea *ta, char *fileName)
         PieceTableNode *newNode = initPieceTableNode(newBuffer, 0, newBuffer->length, numberNewLines);
         addPieceTableNode(ta->pieceTable->nodesList, newNode);
         ta->pieceTable->numberOfLines += numberNewLines;
+
+        //cout<<"lungimE buffer: "<<newBuffer->length<<"CARACTER: *"<<(int)newBuffer->text[0]<<"*"<<endl;
         readSize = newBuffer->length;
+
+        /*if(newBuffer->length == 1 && newBuffer->text[0] == '\0') {
+            emptyPieceTable(ta->pieceTable);
+        }*/
     }
     while(readSize == MAX_LENGTH_BUFFER);
 

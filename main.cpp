@@ -21,7 +21,7 @@ void logPieceTableNodes(PieceTable *pt)
     while(ptn!=NULL)
     {
         i = 0;
-        cout<<"START: "<<ptn->start<<" length: "<<ptn->length<<'\n';
+        cout<<"START: "<<ptn->start<<" length: "<<ptn->length<<" ADRESS: "<<ptn<<'\n';
         ptn = ptn->next;
     }
 
@@ -67,7 +67,6 @@ int main()
             {
                 drawCursorLine(c->position,true);
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,'\n');
-                e->textArea->pieceTable->numberOfLines++;
                 e->textArea->changes = true;
             }
             if(TAB_PRESSED)
@@ -94,6 +93,7 @@ int main()
                 e->textArea->firstLine++;
                 e->textArea->changes = true;
             }
+
             else if(a=='h')
             {
                 if(e->textArea->firstColumn > 0)
@@ -108,16 +108,17 @@ int main()
                 e->textArea->firstColumn++;
                 e->textArea->changes = true;
             }
-            else
-                */if(isDisplayedChar(a))
+            else */
+            if(isDisplayedChar(a))
             {
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
-                //e->textArea->changes = true;
+                e->textArea->changes = true;
             }
-            e->textArea->changes = true;
-            logPieceTableNodes(e->textArea->pieceTable);
+           // e->textArea->changes = true;
+            // Logging pentru nodurile din tabel
+            // logPieceTableNodes(e->textArea->pieceTable);
 
-
+            /*
             int i;
             printf("\n");
             PieceTableNode *ptn = e->textArea->pieceTable->nodesList->first;
@@ -131,8 +132,10 @@ int main()
                 }
                 ptn = ptn->next;
             }
+            */
 
         }
+
         drawEditor(e);
         delay(10);
     }
