@@ -97,7 +97,7 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
     PieceTableNode *ptn = ta->pieceTable->nodesList->first;
 
     // Pentru când ecranul e gol.
-    if(ptn->length==0)
+    if(ta->pieceTable->nodesList->length==1 && ptn->length==0)
     {
         ta->cursor->position = {0,0};
         ta->cursor->pieceTableNode = ptn;
@@ -241,116 +241,118 @@ void moveCursorByArrow(TextArea *ta, char a)
 
 void addCharToTextArea(TextArea *ta, char newLetter)
 {
+    Cursor *c = ta->cursor;
+
     if(bufferIsFull(ta->pieceTable->buffersList->last))
         addBuffer(ta->pieceTable->buffersList,initBuffer());
     addElementToBuffer(newLetter, ta->pieceTable->buffersList->last);
 
 
-    if(ta->cursor->positionInNode==0 && ta->cursor->pieceTableNode->prev!=NULL)
+    if(c->positionInNode==0 && c->pieceTableNode->prev!=NULL)
     {
-        ta->cursor->pieceTableNode = ta->cursor->pieceTableNode->prev;
-        ta->cursor->positionInNode = ta->cursor->pieceTableNode->length;
+        c->pieceTableNode = c->pieceTableNode->prev;
+        c->positionInNode = c->pieceTableNode->length;
     }
 
-    if(ta->cursor->pieceTableNode->buffer==ta->pieceTable->buffersList->last && ta->cursor->positionInNode==ta->cursor->pieceTableNode->length
-       && ta->cursor->pieceTableNode->start+ta->cursor->pieceTableNode->length==ta->pieceTable->buffersList->last->length-1)
+    if(c->pieceTableNode->buffer==ta->pieceTable->buffersList->last && c->positionInNode==c->pieceTableNode->length
+       && c->pieceTableNode->start+c->pieceTableNode->length==ta->pieceTable->buffersList->last->length-1)
     {
-        ta->cursor->pieceTableNode->length++;
-        ta->cursor->positionInNode++;
+        c->pieceTableNode->length++;
+        c->positionInNode++;
         if(newLetter=='\n')
         {
-            ta->cursor->position = {0,ta->cursor->position.y+1};
-            ta->cursor->pieceTableNode->numberNewLines++;
+            c->position = {0,c->position.y+1};
+            c->pieceTableNode->numberNewLines++;
             ta->pieceTable->numberOfLines++;
         }
         else
-            ta->cursor->position.x++;
+            c->position.x++;
         return;
     }
 
     PieceTableNode *newNode = initPieceTableNode(ta->pieceTable->buffersList->last,ta->pieceTable->buffersList->last->length-1,1,newLetter=='\n'?1:0);
 
-    if(ta->cursor->positionInNode==ta->cursor->pieceTableNode->length)
+    if(c->positionInNode==c->pieceTableNode->length)
     {
-        if(ta->cursor->pieceTableNode->next!=NULL)
+        if(c->pieceTableNode->next!=NULL)
         {
-            newNode->next = ta->cursor->pieceTableNode->next;
-            ta->cursor->pieceTableNode->next->prev = newNode;
+            newNode->next = c->pieceTableNode->next;
+            c->pieceTableNode->next->prev = newNode;
         }
         else
             ta->pieceTable->nodesList->last = newNode;
-        newNode->prev = ta->cursor->pieceTableNode;
-        ta->cursor->pieceTableNode->next = newNode;
+        newNode->prev = c->pieceTableNode;
+        c->pieceTableNode->next = newNode;
         ta->pieceTable->nodesList->length++;
 
         if(newLetter=='\n')
         {
-            ta->cursor->position = {0,ta->cursor->position.y+1};
+            c->position = {0,c->position.y+1};
             ta->pieceTable->numberOfLines++;
         }
         else
-            ta->cursor->position.x++;
-        ta->cursor->pieceTableNode = newNode;
-        ta->cursor->positionInNode = 1;
+            c->position.x++;
+        c->pieceTableNode = newNode;
+        c->positionInNode = 1;
         return;
     }
 
-    if(ta->cursor->positionInNode==0)
+    if(c->positionInNode==0)
     {
-        if(ta->cursor->pieceTableNode->prev!=NULL)
+        if(c->pieceTableNode->prev!=NULL)
         {
-            newNode->prev = ta->cursor->pieceTableNode->prev;
-            ta->cursor->pieceTableNode->prev->next = newNode;
+            newNode->prev = c->pieceTableNode->prev;
+            c->pieceTableNode->prev->next = newNode;
         }
         else
             ta->pieceTable->nodesList->first = newNode;
-        newNode->next = ta->cursor->pieceTableNode;
-        ta->cursor->pieceTableNode->prev = newNode;
+        newNode->next = c->pieceTableNode;
+        c->pieceTableNode->prev = newNode;
         ta->pieceTable->nodesList->length++;
 
         if(newLetter=='\n')
         {
-            ta->cursor->position = {0,ta->cursor->position.y+1};
+            c->position = {0,c->position.y+1};
             ta->pieceTable->numberOfLines++;
         }
         else
-            ta->cursor->position.x++;
-        ta->cursor->pieceTableNode = newNode;
-        ta->cursor->positionInNode = 1;
+            c->position.x++;
+        c->pieceTableNode = newNode;
+        c->positionInNode = 1;
         return;
     }
 
     {
-        PieceTableNode *rightSide = initPieceTableNode(ta->cursor->pieceTableNode->buffer,ta->cursor->pieceTableNode->start+ta->cursor->positionInNode,ta->cursor->pieceTableNode->length-ta->cursor->positionInNode,0);
+        PieceTableNode *rightSide = initPieceTableNode(c->pieceTableNode->buffer,c->pieceTableNode->start+c->positionInNode,c->pieceTableNode->length-c->positionInNode,0);
         for(int i=rightSide->start+rightSide->length-1; i>=(int)rightSide->start; i--)
             if(rightSide->buffer->text[i]=='\n')
                 rightSide->numberNewLines++;
 
-        ta->cursor->pieceTableNode->numberNewLines -= rightSide->numberNewLines;
-        ta->cursor->pieceTableNode->length = ta->cursor->positionInNode;
+        c->pieceTableNode->numberNewLines -= rightSide->numberNewLines;
+        c->pieceTableNode->length = c->positionInNode;
 
 
-        if(ta->cursor->pieceTableNode->next!=NULL)
+        if(c->pieceTableNode->next!=NULL)
         {
-            ta->cursor->pieceTableNode->next->prev = rightSide;
-            rightSide->next = ta->cursor->pieceTableNode->next;
+            c->pieceTableNode->next->prev = rightSide;
+            rightSide->next = c->pieceTableNode->next;
         }
         else
             ta->pieceTable->nodesList->last = rightSide;
         rightSide->prev = newNode;
         newNode->next = rightSide;
-        ta->cursor->pieceTableNode->next = newNode;
-        newNode->prev = ta->cursor->pieceTableNode;
+        c->pieceTableNode->next = newNode;
+        newNode->prev = c->pieceTableNode;
 
         if(newLetter=='\n')
         {
-            ta->cursor->position = {0,ta->cursor->position.y+1};
+            c->position = {0,c->position.y+1};
             ta->pieceTable->numberOfLines++;
         }
         else
-            ta->cursor->position.x++;
-        ta->cursor->pieceTableNode = newNode;
-        ta->cursor->positionInNode = 1;
+            c->position.x++;
+        c->pieceTableNode = newNode;
+        c->positionInNode = 1;
         ta->pieceTable->nodesList->length+=2;
 
         return;
@@ -358,14 +360,72 @@ void addCharToTextArea(TextArea *ta, char newLetter)
 }
 
 // WIP
-/*void removeCharFromTextArea(TextArea *ta)
+void removeCharFromTextArea(TextArea *ta)
 {
-    if(positionInBuffer==0 && destNode->prev==NULL)
-        return;
+    int i;
+    char deletedChar;
+    Cursor *c = ta->cursor;
+    PieceTableNode *ptn;
 
-    if(positionInNode==0)
+    if(c->positionInNode==0 && c->pieceTableNode->prev==NULL)
+        return;
+    if(c->positionInNode==c->pieceTableNode->length)
     {
-        PieceTableNode *anterior = destNode->prev;
+        c->positionInNode--;
+        deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start+c->positionInNode];
+        if(deletedChar=='\n')
+        {
+            c->pieceTableNode->numberNewLines--;
+            c->position = {0,c->position.y-1};
+            ptn = c->pieceTableNode;
+            if(c->positionInNode>0)
+                i = c->positionInNode-1;
+            else
+            {
+                ptn = ptn->prev;
+                if(ptn!=NULL)
+                    i = ptn->start+ptn->length-1;
+            }
+            while(ptn!=NULL && ptn->buffer->text[i]!='\n')
+            {
+                if(i==(int)ptn->start-1)
+                {
+                    ptn = ptn->prev;
+                    if(ptn!=NULL)
+                        i = ptn->start+ptn->length;
+                }
+                else
+                    c->position.x++;
+                i--;
+            }
+        }
+        else
+            c->position.x--;
+        c->pieceTableNode->length--;
+        if(c->pieceTableNode->length==0 && c->pieceTableNode->prev!=NULL)
+        {
+            ta->pieceTable->nodesList->length--;
+            ptn = c->pieceTableNode;
+            if(c->pieceTableNode==ta->pieceTable->nodesList->last)
+            {
+                ta->pieceTable->nodesList->last = c->pieceTableNode->prev;
+                c->pieceTableNode->prev->next = NULL;
+            }
+            else
+            {
+                c->pieceTableNode->prev->next = c->pieceTableNode->next;
+                c->pieceTableNode->next->prev = c->pieceTableNode->prev;
+            }
+            c->pieceTableNode = c->pieceTableNode->prev;
+            c->positionInNode = c->pieceTableNode->length;
+            delete ptn;
+        }
+        return;
+    }
+
+    /*if(c->positionInNode==0)
+    {
+        PieceTableNode *anterior = c->destNode->prev;
         anterior->length--;
         if(anterior->length==0)
         {
@@ -381,16 +441,18 @@ void addCharToTextArea(TextArea *ta, char newLetter)
 
         return;
     }
+
     if(positionInNode==1)
     {
         // Delete the first char of destNode
         return;
     }
+
     {
 
         return;
-    }
-}*/
+    }*/
+}
 
 Editor* initEditor()
 {
@@ -574,6 +636,10 @@ void drawArea(TextArea *ta)
         currentLine++;
         showedLines++;
     }
+
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!
+    // NEVER REACHES THIS POINT AFTER DELETING A NEWLINE
+
     drawCursorLine(ta->cursor->position);
 }
 
