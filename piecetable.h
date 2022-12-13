@@ -46,7 +46,6 @@ struct PieceTableNode
 };
 
 PieceTableNode* initPieceTableNode(Buffer* buffer, unsigned int start, unsigned int length, unsigned int numberNewLines);
-// PieceTableNode* modifyNode();
 
 struct PieceTableNodesList
 {
@@ -69,6 +68,7 @@ struct PieceTable
 
 PieceTable* initPieceTable();
 void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInBuffer, char newLetter);
+void removeElementFromPiecetable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInNode);
 void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode* &startPtn, unsigned int &linesUntil);
 void emptyPieceTable(PieceTable *pt);
 

@@ -120,7 +120,7 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Poi
             {
                 ptn = ptn->prev;
                 if(ptn!=NULL)
-                    i = ptn->start+ptn->length+1;
+                    i = ptn->start+ptn->length-1;
             }
             else
                 currentXInLine++;

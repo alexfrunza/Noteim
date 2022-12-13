@@ -172,7 +172,6 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
 
     if(destNode->buffer==pt->buffersList->last && positionInNode==destNode->length && destNode->start+destNode->length==pt->buffersList->last->length-1)
     {
-        // Add at the end of node
         destNode->length++;
         positionInNode++;
         if(newLetter=='\n')
@@ -190,7 +189,6 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
 
     if(positionInNode==destNode->length)
     {
-        // Add Node after
         if(destNode->next!=NULL)
         {
             newNode->next = destNode->next;
@@ -275,6 +273,106 @@ void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &po
         return;
     }
 }
+
+// WIP
+/*void removeElementFromPiecetable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInNode)
+{
+    if(positionInBuffer==0 && destNode->prev==NULL)
+        return;
+
+    unsigned int currentXInLine, i;
+    PieceTableNode *ptn;
+    if(positionInNode>0)
+    {
+        positionInNode--;
+        if(destNode->buffer->text[destNode->start+positionInNode]=='\n')
+        {
+            position.y--;
+            currentXInLine = 0;
+            ptn = destNode;
+            i = positionInNode;
+            currentXInLine = 0;
+            while(ptn!=NULL && ptn->buffer->text[i]!='\n')
+            {
+                if(i==ptn->start-1)
+                {
+                    ptn = ptn->prev;
+                    if(ptn!=NULL)
+                        i = ptn->start+ptn->length-1;
+                }
+                else
+                    currentXInLine++;
+                i--;
+            }
+            position.x = currentXInLine;
+        }
+        else
+            position.x--;
+    }
+    else
+    {
+        destNode = destNode->prev;
+        positionInBuffer = destNode->length-1;
+        if(destNode->next->buffer->text[destNode->next->start]=='\n')
+        {
+            position.y--;
+            currentXInLine = 0;
+            ptn = destNode;
+            i = positionInNode;
+            currentXInLine = 0;
+            while(ptn!=NULL && ptn->buffer->text[i]!='\n')
+            {
+                if(i==ptn->start-1)
+                {
+                    ptn = ptn->prev;
+                    if(ptn!=NULL)
+                        i = ptn->start+ptn->length-1;
+                }
+                else
+                    currentXInLine++;
+                i--;
+            }
+            position.x = currentXInLine;
+        }
+        else
+            position.x--;
+    }
+
+    // Delete at beginning of Node
+    if(positionInBuffer==0)
+    {
+        destNode->start++;
+        destNode->length--;
+        if(destNode->length==0)
+        {
+            if(destNode->prev!=NULL && destNode->next!=NULL)
+            {
+                destNode->prev->next = destNode->next;
+                destNode->next->prev = destNode->prev;
+                PieceTableNode *aux = destNode;
+                delete aux;
+
+            }
+        }
+        return;
+    }
+
+    // Delete at end of Node
+    if(positionInBuffer==destNode->length-1)
+    {
+        destNode->length--;
+        positionInBuffer--;
+        if(destNode->length==0)
+
+        return;
+    }
+
+    // Delete in between Node
+    {
+
+    }
+}
+*/
 
 void getFirstNodeWhereAbsoluteLineIs(PieceTable* pt, unsigned int line, PieceTableNode* &startPtn, unsigned int &linesUntil)
 {
