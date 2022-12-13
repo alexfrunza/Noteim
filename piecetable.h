@@ -70,8 +70,6 @@ struct PieceTable
 };
 
 PieceTable* initPieceTable();
-void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInBuffer, char newLetter);
-void removeElementFromPiecetable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInNode);
 void getWhereLineStarts(PieceTable* pt, long line, PieceTableNode* &ptn, long &indexOfLine);
 void emptyPieceTable(PieceTable *pt);
 

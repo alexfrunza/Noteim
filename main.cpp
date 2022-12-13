@@ -59,22 +59,24 @@ int main()
                 continue;
             }
             drawCursorLine(c->position,true);
+            // Must add Delete Deletion
             if(a == 8)
             {
-                // Backspace deletion.
+                //removeCharFromTextArea(e->textArea);
+                //e->textArea->changes = true;
             }
             if(ENTER_PRESSED)
             {
                 drawCursorLine(c->position,true);
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,'\n');
+                addCharToTextArea(e->textArea,'\n');
                 e->textArea->changes = true;
             }
             if(TAB_PRESSED)
             {
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                addCharToTextArea(e->textArea,' ');
+                addCharToTextArea(e->textArea,' ');
+                addCharToTextArea(e->textArea,' ');
+                addCharToTextArea(e->textArea,' ');
                 e->textArea->changes = true;
             }
             // Test scroll
@@ -111,7 +113,7 @@ int main()
             else*/
             if(isDisplayedChar(a))
             {
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
+                addCharToTextArea(e->textArea,a);
                 e->textArea->changes = true;
             }
            // e->textArea->changes = true;

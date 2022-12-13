@@ -90,21 +90,22 @@ void drawCursorLine(Point p, bool white)
     setcolor(BLACK);
 }
 
-void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Point dest)
+// !! Trebuie modificat pentru scroll
+void getCursorPositionInPiecetable(TextArea *ta, Point dest)
 {
     // Trebuie modificat sa tina cont si de offset-ul pe linie (x)
-    PieceTableNode *ptn = pt->nodesList->first;
+    PieceTableNode *ptn = ta->pieceTable->nodesList->first;
 
     // Pentru când ecranul e gol.
     if(ptn->length==0)
     {
-        c->position = {0,0};
-        c->pieceTableNode = ptn;
-        c->positionInNode = 0;
+        ta->cursor->position = {0,0};
+        ta->cursor->pieceTableNode = ptn;
+        ta->cursor->positionInNode = 0;
         return;
     }
 
-    int remainingNewLines = dest.y + firstLine, i, currentXInLine=0;
+    int remainingNewLines = dest.y + ta->firstLine, i, currentXInLine=0;
     while(ptn!=NULL)
     {
         if(remainingNewLines-(int)ptn->numberNewLines<=0)
@@ -114,7 +115,7 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Poi
     }
     if(ptn==NULL)
     {
-        ptn = pt->nodesList->last;
+        ptn = ta->pieceTable->nodesList->last;
         i = ptn->start+ptn->length-1;
         while(ptn!=NULL && ptn->buffer->text[i]!='\n')
         {
@@ -128,9 +129,9 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Poi
                 currentXInLine++;
             i--;
         }
-        c->position = {currentXInLine,dest.y-remainingNewLines};
-        c->pieceTableNode = pt->nodesList->last;
-        c->positionInNode = pt->nodesList->last->length-1;
+        ta->cursor->position = {currentXInLine,dest.y-remainingNewLines};
+        ta->cursor->pieceTableNode = ta->pieceTable->nodesList->last;
+        ta->cursor->positionInNode = ta->pieceTable->nodesList->last->length-1;
         return;
     }
     i = ptn->start;
@@ -154,22 +155,22 @@ void getCursorPositionInPiecetable(PieceTable *pt, Cursor *c, int firstLine, Poi
     }
     if(currentXInLine==dest.x)
     {
-        c->position = dest;
-        c->pieceTableNode = ptn;
-        c->positionInNode = i-ptn->start;
+        ta->cursor->position = dest;
+        ta->cursor->pieceTableNode = ptn;
+        ta->cursor->positionInNode = i-ptn->start;
     }
     else
     {
-        c->position = {currentXInLine,dest.y};
+        ta->cursor->position = {currentXInLine,dest.y};
         if(ptn==NULL)
         {
-            c->pieceTableNode = pt->nodesList->last;
-            c->positionInNode = i-pt->nodesList->last->start-1;
+            ta->cursor->pieceTableNode = ta->pieceTable->nodesList->last;
+            ta->cursor->positionInNode = i-ta->pieceTable->nodesList->last->start-1;
         }
         else
         {
-            c->pieceTableNode = ptn;
-            c->positionInNode = i-ptn->start;
+            ta->cursor->pieceTableNode = ptn;
+            ta->cursor->positionInNode = i-ptn->start;
         }
     }
 }
@@ -208,7 +209,7 @@ void moveCursor(TextArea *ta, Point dest)
     }
 
     drawCursorLine(ta->cursor->position,true);
-    getCursorPositionInPiecetable(ta->pieceTable,ta->cursor,ta->firstLine,dest);
+    getCursorPositionInPiecetable(ta,dest);
     drawCursorLine(ta->cursor->position);
 }
 
@@ -231,6 +232,159 @@ void moveCursorByArrow(TextArea *ta, char a)
     }
     moveCursor(ta,dest);
 }
+
+void addCharToTextArea(TextArea *ta, char newLetter)
+{
+    if(bufferIsFull(ta->pieceTable->buffersList->last))
+        addBuffer(ta->pieceTable->buffersList,initBuffer());
+    addElementToBuffer(newLetter, ta->pieceTable->buffersList->last);
+
+
+    if(ta->cursor->positionInNode==0 && ta->cursor->pieceTableNode->prev!=NULL)
+    {
+        ta->cursor->pieceTableNode = ta->cursor->pieceTableNode->prev;
+        ta->cursor->positionInNode = ta->cursor->pieceTableNode->length;
+    }
+
+    if(ta->cursor->pieceTableNode->buffer==ta->pieceTable->buffersList->last && ta->cursor->positionInNode==ta->cursor->pieceTableNode->length
+       && ta->cursor->pieceTableNode->start+ta->cursor->pieceTableNode->length==ta->pieceTable->buffersList->last->length-1)
+    {
+        ta->cursor->pieceTableNode->length++;
+        ta->cursor->positionInNode++;
+        if(newLetter=='\n')
+        {
+            ta->cursor->position = {0,ta->cursor->position.y+1};
+            ta->cursor->pieceTableNode->numberNewLines++;
+            ta->pieceTable->numberOfLines++;
+        }
+        else
+            ta->cursor->position.x++;
+        return;
+    }
+
+    PieceTableNode *newNode = initPieceTableNode(ta->pieceTable->buffersList->last,ta->pieceTable->buffersList->last->length-1,1,newLetter=='\n'?1:0);
+
+    if(ta->cursor->positionInNode==ta->cursor->pieceTableNode->length)
+    {
+        if(ta->cursor->pieceTableNode->next!=NULL)
+        {
+            newNode->next = ta->cursor->pieceTableNode->next;
+            ta->cursor->pieceTableNode->next->prev = newNode;
+        }
+        else
+            ta->pieceTable->nodesList->last = newNode;
+        newNode->prev = ta->cursor->pieceTableNode;
+        ta->cursor->pieceTableNode->next = newNode;
+        ta->pieceTable->nodesList->length++;
+
+        if(newLetter=='\n')
+        {
+            ta->cursor->position = {0,ta->cursor->position.y+1};
+            ta->pieceTable->numberOfLines++;
+        }
+        else
+            ta->cursor->position.x++;
+        ta->cursor->pieceTableNode = newNode;
+        ta->cursor->positionInNode = 1;
+        return;
+    }
+
+    if(ta->cursor->positionInNode==0)
+    {
+        if(ta->cursor->pieceTableNode->prev!=NULL)
+        {
+            newNode->prev = ta->cursor->pieceTableNode->prev;
+            ta->cursor->pieceTableNode->prev->next = newNode;
+        }
+        else
+            ta->pieceTable->nodesList->first = newNode;
+        newNode->next = ta->cursor->pieceTableNode;
+        ta->cursor->pieceTableNode->prev = newNode;
+        ta->pieceTable->nodesList->length++;
+
+        if(newLetter=='\n')
+        {
+            ta->cursor->position = {0,ta->cursor->position.y+1};
+            ta->pieceTable->numberOfLines++;
+        }
+        else
+            ta->cursor->position.x++;
+        ta->cursor->pieceTableNode = newNode;
+        ta->cursor->positionInNode = 1;
+        return;
+    }
+
+    {
+        PieceTableNode *rightSide = initPieceTableNode(ta->cursor->pieceTableNode->buffer,ta->cursor->pieceTableNode->start+ta->cursor->positionInNode,ta->cursor->pieceTableNode->length-ta->cursor->positionInNode,0);
+        for(int i=rightSide->start+rightSide->length-1; i>=(int)rightSide->start; i--)
+            if(rightSide->buffer->text[i]=='\n')
+                rightSide->numberNewLines++;
+
+        ta->cursor->pieceTableNode->numberNewLines -= rightSide->numberNewLines;
+        ta->cursor->pieceTableNode->length = ta->cursor->positionInNode;
+
+
+        if(ta->cursor->pieceTableNode->next!=NULL)
+        {
+            ta->cursor->pieceTableNode->next->prev = rightSide;
+            rightSide->next = ta->cursor->pieceTableNode->next;
+        }
+        else
+            ta->pieceTable->nodesList->last = rightSide;
+        rightSide->prev = newNode;
+        newNode->next = rightSide;
+        ta->cursor->pieceTableNode->next = newNode;
+        newNode->prev = ta->cursor->pieceTableNode;
+
+        if(newLetter=='\n')
+        {
+            ta->cursor->position = {0,ta->cursor->position.y+1};
+            ta->pieceTable->numberOfLines++;
+        }
+        else
+            ta->cursor->position.x++;
+        ta->cursor->pieceTableNode = newNode;
+        ta->cursor->positionInNode = 1;
+        ta->pieceTable->nodesList->length+=2;
+
+        return;
+    }
+}
+
+// WIP
+/*void removeCharFromTextArea(TextArea *ta)
+{
+    if(positionInBuffer==0 && destNode->prev==NULL)
+        return;
+
+    if(positionInNode==0)
+    {
+        PieceTableNode *anterior = destNode->prev;
+        anterior->length--;
+        if(anterior->length==0)
+        {
+            if(anterior->prev==NULL)
+                pt->nodesList->first = destNode;
+            else
+                anterior->prev->next = destNode;
+
+            destNode->prev = anterior->prev;
+            delete anterior;
+            pt->nodesList->length--;
+        }
+
+        return;
+    }
+    if(positionInNode==1)
+    {
+        // Delete the first char of destNode
+        return;
+    }
+    {
+
+        return;
+    }
+}*/
 
 Editor* initEditor()
 {
@@ -264,8 +418,8 @@ Editor* initEditor()
     //cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
 
 
-    e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-    // e->textArea = initTextArea(topLeft, bottomRight);
+    //e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
+    e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
 }

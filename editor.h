@@ -47,7 +47,6 @@ struct Cursor
 };
 
 Cursor* initCursor();
-void getCursorPositionInPiecetable(PieceTable *pt, Cursor &c, int firstLine, Point dest);
 
 struct TextArea
 {
@@ -72,6 +71,9 @@ struct TextArea
 
 TextArea* initTextArea(Point topLeft, Point bottomRight);
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName);
+void getCursorPositionInPiecetable(TextArea *ta, Point dest);
+void addCharToTextArea(TextArea *ta, char newLetter);
+void removeCharFromTextArea(TextArea *ta);
 void drawArea(TextArea *ta);
 void drawCursorLine(Point p, bool white=false);
 void moveCursor(TextArea *ta, Point dest);
