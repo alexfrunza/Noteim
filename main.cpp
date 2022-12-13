@@ -1,5 +1,6 @@
 #include <iostream>
 #include "editor.h"
+#include "color.h"
 #include "piecetable.h"
 
 #define ARROW_PRESSED a==0
@@ -35,6 +36,7 @@ int main()
     Cursor *c = e->textArea->cursor;
     while(e->running)
     {
+        // cout<<mousex()<<" "<<mousey()<<'\n';
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);

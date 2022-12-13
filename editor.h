@@ -1,19 +1,62 @@
-#include "piecetable.h"
 #include <graphics.h>
+#include "piecetable.h"
+#include "color.h"
 
 #ifndef NOTEIM_EDITOR_H
 #define NOTEIM_EDITOR_H
 
 #define MAX_WIDTH getmaxwidth()
 #define MAX_HEIGHT getmaxheight()
+#define MAX_NAMES_LEN 50
+
+struct Button {
+    char *text;
+    int type;
+    bool hovered;
+    bool changes;
+    unsigned int padding;
+
+    Color hoverBK;
+    Color normalBK;
+    Color hoverFT;
+    Color normalFT;
+
+    Point topLeft;
+    Point bottomRight;
+
+    Button *next;
+    Button *prev;
+};
+
+Button* initButton(char *name, Point topLeft);
+void drawButton(Button* b);
+
+
+struct ButtonsList {
+    Button *first;
+    Button *last;
+    unsigned int length;
+};
+
+ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int length);
+void removeLastButtonFromList(ButtonsList *bl);
+void clearButtonsList(ButtonsList *bl);
+void addButtonToList(ButtonsList *bl, Button *b);
+bool isButtonsListEmpty(ButtonsList *bl);
+void drawButtonsList(ButtonsList *bl);
 
 struct MenuArea
 {
     bool changes;
+    Point topLeft;
+    Point bottomRight;
+    unsigned int separatorLength;
+
+    ButtonsList* buttonsList;
     // Soon
 };
 
-MenuArea* initMenuArea(Point topLeft, Point bottomRight);
+MenuArea* initMenuArea(Point topLeft);
 void drawArea(MenuArea *ma);
 
 struct VerticalScrollBarArea
@@ -54,6 +97,7 @@ struct TextArea
     bool changes;
     // De implementat la salvare, corespunzator pentru Windows file si unixFile (asaugare '\r' pentru windows file)
     bool unixFile;
+    bool savedChanges;
 
     unsigned int maxLines;
     unsigned short int maxCharLine;
