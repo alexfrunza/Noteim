@@ -141,6 +141,12 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
             remainingNewLines--;
         i++;
     }
+    if(i==ptn->start+ptn->length)
+    {
+        ptn = ptn->next;
+        if(ptn!=NULL)
+            i = ptn->start;
+    }
     while(ptn!=NULL && currentXInLine!=dest.x && ptn->buffer->text[i]!='\n')
     {
         if(i==ptn->start+ptn->length)

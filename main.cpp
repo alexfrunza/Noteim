@@ -15,13 +15,14 @@ void logPieceTableNodes(PieceTable *pt)
 
 
     int i;
-    printf("\n");
+    printf("\n\n");
     PieceTableNode *ptn = pt->nodesList->first;
     cout<<"NODES LIST: \n";
     while(ptn!=NULL)
     {
-        i = 0;
         cout<<"START: "<<ptn->start<<" length: "<<ptn->length<<" ADRESS: "<<ptn<<'\n';
+        for(i=0; i<ptn->length; i++)
+            cout << (ptn->buffer->text[ptn->start+i]!='\n'?ptn->buffer->text[ptn->start+i]:'*');
         ptn = ptn->next;
     }
 
