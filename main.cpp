@@ -108,7 +108,7 @@ int main()
                 e->textArea->firstColumn++;
                 e->textArea->changes = true;
             }
-            else */
+            else*/
             if(isDisplayedChar(a))
             {
                 addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);

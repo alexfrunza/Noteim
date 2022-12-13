@@ -10,6 +10,8 @@ using namespace std;
 
 MenuArea* initMenuArea(Point topLeft, Point bottomRight)
 {
+    MenuArea* ma = new MenuArea;
+    return ma;
 }
 
 void drawArea(MenuArea *ma)
@@ -234,7 +236,7 @@ Editor* initEditor()
 
     Point topLeft, bottomRight;
 
-    topLeft= {0,0};
+    topLeft= {0, 0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
     e->menuArea = initMenuArea(topLeft, bottomRight);
 
@@ -243,13 +245,17 @@ Editor* initEditor()
     //e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     // De mutat in initTextArea
 
-    topLeft= {0,0};
+    topLeft= {0, 0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
     // !!!!!!!!!!!!!!!!!!!!!!!!
     // Citire din fisier
-    // e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-    e->textArea = initTextArea(topLeft, bottomRight);
+    //cout<<"TOP LEFT: "<<topLeft.x<<" "<<topLeft.y<<'\n';
+    //cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
+
+
+    e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
+    // e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
 }
@@ -279,7 +285,7 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
         endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
         skippedNode = false;
 
-        /*
+        // For horizontal scroll
         if(skippedChars > 0)
         {
             if(numberOfCharsFromNode <= spaceRemainedOnScreen)
@@ -300,10 +306,8 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
             {
                 numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
                 endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
+                lineEnded = true;
             }
-
-            if(newLineInNode) break;
-
 
             if(numberOfCharsFromNode <= skippedChars)
             {
@@ -318,7 +322,7 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
                 skippedChars = 0;
             }
         }
-        */
+        // end
 
         if(numberOfCharsFromNode <= spaceRemainedOnScreen && !skippedNode)
         {
@@ -485,5 +489,5 @@ void stopEditor(Editor *e)
 {
     e->running = false;
     closegraph();
-    // Delete data from memory
+    // TODO: Delete data from memory
 }
