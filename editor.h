@@ -7,9 +7,6 @@
 #define MAX_WIDTH getmaxwidth()
 #define MAX_HEIGHT getmaxheight()
 
-#define CHAR_WIDTH textwidth("m")
-#define CHAR_HEIGHT textheight("|")
-
 struct MenuArea
 {
     bool changes;
