@@ -98,6 +98,7 @@ void updateCursorPosition(TextArea *ta, char deletedChar)
     if(deletedChar=='\n')
     {
         c->pieceTableNode->numberNewLines--;
+        ta->pieceTable->numberOfLines--;
         c->position = {0,c->position.y-1};
         ptn = c->pieceTableNode;
         if(c->positionInNode>0)
@@ -449,8 +450,16 @@ void removeCharFromTextArea(TextArea *ta)
     }
 
     {
-
-        return;
+        /*PieceTableNode *rightSide = initPieceTableNode(c->pieceTableNode->buffer,c->positionInNode,c->pieceTableNode->length-c->positionInNode,0);
+        for(i=c->positionInNode; i<c->pieceTableNode->length; i++)
+            if(c->pieceTableNode->buffer->text[c->pieceTableNode->start+i]=='\n')
+                rightSide->numberNewLines++;
+        deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start];
+        c->pieceTableNode->length = c->positionInNode-1;
+        c->pieceTableNode->numberNewLines -= rightSide->numberNewLines;
+        ta->pieceTable->nodesList->length++;
+        updateCursorPosition(ta,deletedChar);
+        */return;
     }
 }
 
