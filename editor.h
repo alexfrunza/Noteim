@@ -71,6 +71,7 @@ struct TextArea
 
 TextArea* initTextArea(Point topLeft, Point bottomRight);
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName);
+void updateCursorPosition(TextArea *ta, char deletedChar);
 void getCursorPositionInPiecetable(TextArea *ta, Point dest);
 void addCharToTextArea(TextArea *ta, char newLetter);
 void removeCharFromTextArea(TextArea *ta);
