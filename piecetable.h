@@ -49,7 +49,6 @@ struct PieceTableNode
 };
 
 PieceTableNode* initPieceTableNode(Buffer* buffer, unsigned int start, unsigned int length, unsigned int numberNewLines);
-// PieceTableNode* modifyNode();
 
 struct PieceTableNodesList
 {
@@ -71,7 +70,6 @@ struct PieceTable
 };
 
 PieceTable* initPieceTable();
-void addElementToPieceTable(PieceTable *pt, PieceTableNode* &destNode, Point &position, unsigned int &positionInBuffer, char newLetter);
 void getWhereLineStarts(PieceTable* pt, long line, PieceTableNode* &ptn, long &indexOfLine);
 void emptyPieceTable(PieceTable *pt);
 
