@@ -124,11 +124,11 @@ bool isButtonsListEmpty(ButtonsList *bl)
 
 void drawButtonsList(ButtonsList *bl)
 {
-    cout<<"GOO\n";
+    // cout<<"GOO\n";
     for(Button *b = bl->first; b; b = b->next)
     {
-        cout<<"TOP LEFT: "<<b->topLeft.x<<" "<<b->topLeft.y<<'\n';
-        cout<<"Bottom right: "<<b->bottomRight.x<<" "<<b->bottomRight.y<<'\n';
+        // cout<<"TOP LEFT: "<<b->topLeft.x<<" "<<b->topLeft.y<<'\n';
+        // cout<<"Bottom right: "<<b->bottomRight.x<<" "<<b->bottomRight.y<<'\n';
         drawButton(b);
     }
 }
