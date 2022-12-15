@@ -627,7 +627,8 @@ Editor* initEditor()
     //e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     // De mutat in initTextArea
 
-    topLeft= {0, e->menuArea->bottomRight.y};
+    // topLeft= {0, e->menuArea->bottomRight.y};
+    topLeft= {0, 0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
     // !!!!!!!!!!!!!!!!!!!!!!!!
@@ -636,8 +637,8 @@ Editor* initEditor()
     cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
 
 
-    //e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-    e->textArea = initTextArea(topLeft, bottomRight);
+     // e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
+     e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
 }
@@ -670,39 +671,34 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
         // For horizontal scroll
         if(skippedChars > 0)
         {
-            if(numberOfCharsFromNode <= spaceRemainedOnScreen)
-            {
-                endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
-            }
-            else
-            {
-                endOfDisplayedLine = indexOfLine + spaceRemainedOnScreen;
-            }
-
             char aux = ptn->buffer->text[endOfDisplayedLine];
             ptn->buffer->text[endOfDisplayedLine] = '\0';
+            cout<<"END from skipped: "<<endOfDisplayedLine<<'\n';
             char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
             ptn->buffer->text[endOfDisplayedLine] = aux;
 
+            // cout<<"START: "<<indexOfLine<<" "<<endOfDisplayedLine<<'\n';
             if(newLineInNode)
             {
+                cout<<"SKIPPED: "<<skippedChars<<'\n';
+                if((void*)newLineInNode <= (void*)ptn->buffer->text + indexOfLine + skippedChars) break;
+
+                indexOfLine += skippedChars;
                 numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
                 endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
-                lineEnded = true;
+            } else {
+                if(numberOfCharsFromNode <= skippedChars) {
+                    skippedChars = skippedChars - numberOfCharsFromNode;
+                    skippedNode = true;
+                } else {
+                    numberOfCharsFromNode -= skippedChars;
+                    indexOfLine += skippedChars;
+                    skippedChars = 0;
+                }
             }
-
-            if(numberOfCharsFromNode <= skippedChars)
-            {
-                numberOfCharsFromNode = 0;
-                skippedChars = skippedChars - numberOfCharsFromNode;
-                skippedNode = true;
-            }
-            else
-            {
-                numberOfCharsFromNode -= skippedChars;
-                indexOfLine += skippedChars;
-                skippedChars = 0;
-            }
+            // cout<<"start: "<<indexOfLine<<" end: "<<endOfDisplayedLine<<'\n';
+            // cout<<"numberOfCharsFromNode: "<<numberOfCharsFromNode<<'\n';
+            //cout<<"SKIPPEd: "<<skippedChars<<'\n';
         }
         // end
 
@@ -712,7 +708,9 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
 
             char aux = ptn->buffer->text[endOfDisplayedLine];
             ptn->buffer->text[endOfDisplayedLine] = '\0';
+            cout<<"END: "<<endOfDisplayedLine<<'\n';
             char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
+            cout<<"POINTER NEW LINE: "<<(void*)newLineInNode<<'\n';
             ptn->buffer->text[endOfDisplayedLine] = aux;
 
             if(newLineInNode)
@@ -778,7 +776,7 @@ void drawArea(TextArea *ta)
             break;
         }
 
-        //cout<<"LINIA: "<<showedLines<<endl;
+        cout<<"LINIA: "<<showedLines<<endl;
         //cout<<"*****: "<< indexOfLine<<"   "<<lineNode<<endl;
         showALine(current_y, ta, lineNode, indexOfLine);
 
@@ -866,7 +864,7 @@ void saveFile(TextArea *ta, char *fileName)
 void drawEditor(Editor *e)
 {
     drawArea(e->textArea);
-    drawArea(e->menuArea);
+    // drawArea(e->menuArea);
     //drawArea(e->scrollBarsArea);
     e->textArea->changes = false;
 }
