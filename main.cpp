@@ -1,5 +1,6 @@
 #include <iostream>
 #include "editor.h"
+#include "color.h"
 #include "piecetable.h"
 
 #define ARROW_PRESSED a==0
@@ -15,13 +16,14 @@ void logPieceTableNodes(PieceTable *pt)
 
 
     int i;
-    printf("\n");
+    printf("\n\n");
     PieceTableNode *ptn = pt->nodesList->first;
-    cout<<"NODES LIST: \n";
+    cout<<"NODES LIST: " << pt->nodesList->length << " nodes\n";
     while(ptn!=NULL)
     {
-        i = 0;
-        cout<<"START: "<<ptn->start<<" length: "<<ptn->length<<" ADRESS: "<<ptn<<'\n';
+        cout<<"START: "<<ptn->start<<" LENGTH: "<<ptn->length<< " NUMBERNEWLINES: " << ptn->numberNewLines << " ADRESS: "<<ptn <<'\n';
+        for(i=0; i<ptn->length; i++)
+            cout << ptn->buffer->text[ptn->start+i];
         ptn = ptn->next;
     }
 
@@ -35,6 +37,7 @@ int main()
     Cursor *c = e->textArea->cursor;
     while(e->running)
     {
+        // cout<<mousex()<<" "<<mousey()<<'\n';
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
@@ -59,22 +62,25 @@ int main()
                 continue;
             }
             drawCursorLine(c->position,true);
+            // Must add Delete Deletion
             if(a == 8)
             {
-                // Backspace deletion.
+                //drawCursorLine(c->position,true);
+                removeCharFromTextArea(e->textArea);
+                e->textArea->changes = true;
             }
             if(ENTER_PRESSED)
             {
                 drawCursorLine(c->position,true);
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,'\n');
+                addCharToTextArea(e->textArea,'\n');
                 e->textArea->changes = true;
             }
             if(TAB_PRESSED)
             {
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,' ');
+                addCharToTextArea(e->textArea,' ');
+                addCharToTextArea(e->textArea,' ');
+                addCharToTextArea(e->textArea,' ');
+                addCharToTextArea(e->textArea,' ');
                 e->textArea->changes = true;
             }
             // Test scroll
@@ -111,12 +117,12 @@ int main()
             else*/
             if(isDisplayedChar(a))
             {
-                addElementToPieceTable(e->textArea->pieceTable,c->pieceTableNode,c->position,c->positionInNode,a);
+                addCharToTextArea(e->textArea,a);
                 e->textArea->changes = true;
             }
            // e->textArea->changes = true;
             // Logging pentru nodurile din tabel
-            // logPieceTableNodes(e->textArea->pieceTable);
+             logPieceTableNodes(e->textArea->pieceTable);
 
             /*
             int i;
@@ -135,7 +141,6 @@ int main()
             */
 
         }
-
         drawEditor(e);
         delay(10);
     }
