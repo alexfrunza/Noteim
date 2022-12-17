@@ -1,21 +1,163 @@
 #include <graphics.h>
 #include <cmath>
 #include <stdio.h>
+#include <stdlib.h>
+#include <cstring>
 
 #include "editor.h"
 #include "helpers.h"
 
+// For debugging
 #include <iostream>
 using namespace std;
+//
 
-MenuArea* initMenuArea(Point topLeft, Point bottomRight)
+Button* initButton(char *name, Point topLeft, int type)
+{
+    Button *b = new Button;
+    b->type = type;
+    if(type == 1)
+    {
+        b->padding = 3;
+        b->hoverBK = {30, 41, 59};
+        b->hoverFT = {255, 255, 255};
+        b->normalBK = {255, 255, 255};
+        b->normalFT = {13, 23, 42};
+    }
+
+    b->next = NULL;
+    b->prev = NULL;
+
+    b->topLeft = topLeft;
+    b->bottomRight = {b->topLeft.x + strlen(name) * CHAR_WIDTH + b->padding, b->topLeft.y + CHAR_HEIGHT + b->padding};
+
+    b->text = (char*) malloc(sizeof(char) * strlen(name));
+    strcpy(b->text, name);
+
+    b->hovered = false;
+    b->changes = true;
+
+    return b;
+}
+
+void drawButton(Button* b)
+{
+    if(b->changes == false)
+        return;
+
+    if(b->hovered == false)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(b->normalBK));
+        setcolor(convertToBGIColor(b->normalFT));
+    }
+    if(b->hovered == true)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(b->hoverBK));
+        setcolor(convertToBGIColor(b->hoverFT));
+    }
+
+    bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x, b->bottomRight.y);
+    outtextxy(b->topLeft.x + b->padding, b->topLeft.y + b->padding, b->text);
+}
+
+ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int length, int type)
+{
+    ButtonsList* bl = new ButtonsList;
+    bl->first = NULL;
+    bl->last = NULL;
+    bl->length = 0;
+
+    Point topLeft = {0, 0};
+    for(int i=0; i<length; i++)
+    {
+        Button* b = initButton(buttonsNames[i], topLeft, type);
+        addButtonToList(bl, b);
+        topLeft = {b->bottomRight.x + b->padding, 0};
+    }
+
+    return bl;
+}
+
+void removeLastButtonFromList(ButtonsList *bl)
+{
+    if(!isButtonsListEmpty(bl))
+    {
+        Button *aux = bl->last;
+        bl->last = bl->last->prev;
+        bl->last->next = NULL;
+        delete aux;
+        bl->length--;
+    }
+}
+
+void clearButtonsList(ButtonsList *bl)
+{
+    while(!isButtonsListEmpty(bl))
+    {
+        removeLastButtonFromList(bl);
+    }
+}
+
+
+void addButtonToList(ButtonsList *bl, Button *b)
+{
+    if(bl->length == 0)
+    {
+        bl->length = 1;
+        bl->first = b;
+        bl->last = b;
+        return;
+    }
+
+    b->next = NULL;
+    b->prev = bl->last;
+    bl->last->next = b;
+    bl->last = b;
+    bl->length++;
+}
+
+bool isButtonsListEmpty(ButtonsList *bl)
+{
+    if(bl->length == 0) return true;
+    return false;
+}
+
+void drawButtonsList(ButtonsList *bl)
+{
+    // cout<<"GOO\n";
+    for(Button *b = bl->first; b; b = b->next)
+    {
+        // cout<<"TOP LEFT: "<<b->topLeft.x<<" "<<b->topLeft.y<<'\n';
+        // cout<<"Bottom right: "<<b->bottomRight.x<<" "<<b->bottomRight.y<<'\n';
+        drawButton(b);
+    }
+}
+
+MenuArea* initMenuArea(Point topLeft)
 {
     MenuArea* ma = new MenuArea;
+    ma->separatorLength = 2;
+
+    ma->topLeft = topLeft;
+    char buttonsNames[][MAX_NAMES_LEN] = {"File", "Edit", "Format"};
+    ma->buttonsList = initButtonsList(buttonsNames, 3, 1);
+    ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 3};
+
+    ma->changes = true;
     return ma;
 }
 
 void drawArea(MenuArea *ma)
 {
+    if(ma->changes == false)
+        return;
+
+    // 7 is for light grey
+    setfillstyle(SOLID_FILL, 7);
+    bar(ma->topLeft.x, ma->bottomRight.y - ma->separatorLength, ma->bottomRight.x, ma->bottomRight.y);
+
+    drawButtonsList(ma->buttonsList);
+    ma->changes = false;
 }
 
 ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight)
@@ -493,25 +635,25 @@ Editor* initEditor()
     Point topLeft, bottomRight;
 
     topLeft= {0, 0};
-    bottomRight = {MAX_WIDTH,MAX_HEIGHT};
-    e->menuArea = initMenuArea(topLeft, bottomRight);
+    e->menuArea = initMenuArea(topLeft);
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
     //e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     // De mutat in initTextArea
 
+    // topLeft= {0, e->menuArea->bottomRight.y};
     topLeft= {0, 0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
     // !!!!!!!!!!!!!!!!!!!!!!!!
     // Citire din fisier
-    //cout<<"TOP LEFT: "<<topLeft.x<<" "<<topLeft.y<<'\n';
-    //cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
+    cout<<"TOP LEFT: "<<topLeft.x<<" "<<topLeft.y<<'\n';
+    cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
 
 
-    //e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-    e->textArea = initTextArea(topLeft, bottomRight);
+     // e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
+     e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
 }
@@ -544,39 +686,34 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
         // For horizontal scroll
         if(skippedChars > 0)
         {
-            if(numberOfCharsFromNode <= spaceRemainedOnScreen)
-            {
-                endOfDisplayedLine = indexOfLine + numberOfCharsFromNode;
-            }
-            else
-            {
-                endOfDisplayedLine = indexOfLine + spaceRemainedOnScreen;
-            }
-
             char aux = ptn->buffer->text[endOfDisplayedLine];
             ptn->buffer->text[endOfDisplayedLine] = '\0';
+            cout<<"END from skipped: "<<endOfDisplayedLine<<'\n';
             char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
             ptn->buffer->text[endOfDisplayedLine] = aux;
 
+            // cout<<"START: "<<indexOfLine<<" "<<endOfDisplayedLine<<'\n';
             if(newLineInNode)
             {
+                cout<<"SKIPPED: "<<skippedChars<<'\n';
+                if((void*)newLineInNode <= (void*)ptn->buffer->text + indexOfLine + skippedChars) break;
+
+                indexOfLine += skippedChars;
                 numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
                 endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
-                lineEnded = true;
+            } else {
+                if(numberOfCharsFromNode <= skippedChars) {
+                    skippedChars = skippedChars - numberOfCharsFromNode;
+                    skippedNode = true;
+                } else {
+                    numberOfCharsFromNode -= skippedChars;
+                    indexOfLine += skippedChars;
+                    skippedChars = 0;
+                }
             }
-
-            if(numberOfCharsFromNode <= skippedChars)
-            {
-                numberOfCharsFromNode = 0;
-                skippedChars = skippedChars - numberOfCharsFromNode;
-                skippedNode = true;
-            }
-            else
-            {
-                numberOfCharsFromNode -= skippedChars;
-                indexOfLine += skippedChars;
-                skippedChars = 0;
-            }
+            // cout<<"start: "<<indexOfLine<<" end: "<<endOfDisplayedLine<<'\n';
+            // cout<<"numberOfCharsFromNode: "<<numberOfCharsFromNode<<'\n';
+            //cout<<"SKIPPEd: "<<skippedChars<<'\n';
         }
         // end
 
@@ -586,7 +723,9 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
 
             char aux = ptn->buffer->text[endOfDisplayedLine];
             ptn->buffer->text[endOfDisplayedLine] = '\0';
+            cout<<"END: "<<endOfDisplayedLine<<'\n';
             char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
+            cout<<"POINTER NEW LINE: "<<(void*)newLineInNode<<'\n';
             ptn->buffer->text[endOfDisplayedLine] = aux;
 
             if(newLineInNode)
@@ -652,7 +791,7 @@ void drawArea(TextArea *ta)
             break;
         }
 
-        //cout<<"LINIA: "<<showedLines<<endl;
+        cout<<"LINIA: "<<showedLines<<endl;
         //cout<<"*****: "<< indexOfLine<<"   "<<lineNode<<endl;
         showALine(current_y, ta, lineNode, indexOfLine);
 
@@ -740,7 +879,7 @@ void saveFile(TextArea *ta, char *fileName)
 void drawEditor(Editor *e)
 {
     drawArea(e->textArea);
-    //drawArea(e->menuArea);
+    // drawArea(e->menuArea);
     //drawArea(e->scrollBarsArea);
     e->textArea->changes = false;
 }
