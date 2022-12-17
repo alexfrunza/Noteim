@@ -90,42 +90,6 @@ void drawCursorLine(Point p, bool white)
     setcolor(BLACK);
 }
 
-void updateCursorPosition(TextArea *ta, char deletedChar)
-{
-    Cursor *c = ta->cursor;
-    PieceTableNode *ptn;
-    int i;
-    if(deletedChar=='\n')
-    {
-        c->pieceTableNode->numberNewLines--;
-        ta->pieceTable->numberOfLines--;
-        c->position = {0,c->position.y-1};
-        ptn = c->pieceTableNode;
-        if(c->positionInNode>0)
-            i = c->positionInNode-1;
-        else
-        {
-            ptn = ptn->prev;
-            if(ptn!=NULL)
-                i = ptn->start+ptn->length-1;
-        }
-        while(ptn!=NULL && ptn->buffer->text[i]!='\n')
-        {
-            if(i==(int)ptn->start-1)
-            {
-                ptn = ptn->prev;
-                if(ptn!=NULL)
-                    i = ptn->start+ptn->length;
-            }
-            else
-                c->position.x++;
-            i--;
-        }
-    }
-    else
-        c->position.x--;
-}
-
 // !! Trebuie modificat pentru scroll
 void getCursorPositionInPiecetable(TextArea *ta, Point dest)
 {
@@ -396,6 +360,43 @@ void addCharToTextArea(TextArea *ta, char newLetter)
 }
 
 // WIP
+void updateCursorPosition(TextArea *ta, char deletedChar)
+{
+    Cursor *c = ta->cursor;
+    PieceTableNode *ptn;
+    int i;
+    if(deletedChar=='\n')
+    {
+        c->pieceTableNode->numberNewLines--;
+        ta->pieceTable->numberOfLines--;
+        c->position = {0,c->position.y-1};
+        ptn = c->pieceTableNode;
+        if(c->positionInNode>0)
+            i = c->positionInNode-1;
+        else
+        {
+            ptn = ptn->prev;
+            if(ptn!=NULL)
+                i = ptn->start+ptn->length-1;
+        }
+        while(ptn!=NULL && ptn->buffer->text[i]!='\n')
+        {
+            if(i==(int)ptn->start-1)
+            {
+                ptn = ptn->prev;
+                if(ptn!=NULL)
+                    i = ptn->start+ptn->length;
+            }
+            else
+                c->position.x++;
+            i--;
+        }
+    }
+    else
+        c->position.x--;
+}
+
+// WIP
 void removeCharFromTextArea(TextArea *ta)
 {
     int i;
@@ -418,6 +419,7 @@ void removeCharFromTextArea(TextArea *ta)
         c->pieceTableNode->length--;
         deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start+c->positionInNode];
         updateCursorPosition(ta,deletedChar);
+        cout << '<' << c->position.x << ',' << c->position.y << '>' << endl;
         if(c->pieceTableNode->length==0 && c->pieceTableNode->prev!=NULL)
         {
             ta->pieceTable->nodesList->length--;
@@ -450,16 +452,29 @@ void removeCharFromTextArea(TextArea *ta)
     }
 
     {
-        /*PieceTableNode *rightSide = initPieceTableNode(c->pieceTableNode->buffer,c->positionInNode,c->pieceTableNode->length-c->positionInNode,0);
+        PieceTableNode *rightSide = initPieceTableNode(c->pieceTableNode->buffer,c->pieceTableNode->start+c->positionInNode,c->pieceTableNode->length-c->positionInNode,0);
         for(i=c->positionInNode; i<c->pieceTableNode->length; i++)
             if(c->pieceTableNode->buffer->text[c->pieceTableNode->start+i]=='\n')
                 rightSide->numberNewLines++;
-        deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start];
-        c->pieceTableNode->length = c->positionInNode-1;
+        c->positionInNode--;
+        deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start+c->positionInNode];
+        c->pieceTableNode->length = c->positionInNode;
         c->pieceTableNode->numberNewLines -= rightSide->numberNewLines;
+        if(c->pieceTableNode == ta->pieceTable->nodesList->last)
+        {
+            ta->pieceTable->nodesList->last = rightSide;
+            rightSide->next = NULL;
+        }
+        else
+        {
+            rightSide->next = c->pieceTableNode->next;
+            c->pieceTableNode->next->prev = rightSide;
+        }
+        c->pieceTableNode->next = rightSide;
+        rightSide->prev = c->pieceTableNode;
         ta->pieceTable->nodesList->length++;
         updateCursorPosition(ta,deletedChar);
-        */return;
+        return;
     }
 }
 
