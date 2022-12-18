@@ -66,7 +66,7 @@ int main()
                 // Maybe pop-up do you want to save the file, if the file isn't saved.
                 continue;
             }
-            drawCursorLine(c->position,true);
+            drawCursorLine(e->textArea,true);
             // Must add Delete Deletion
             if(a == 8)
             {
@@ -76,7 +76,7 @@ int main()
             }
             if(ENTER_PRESSED)
             {
-                drawCursorLine(c->position,true);
+                //drawCursorLine(e->textArea,true);
                 addCharToTextArea(e->textArea,'\n');
                 e->textArea->changes = true;
             }

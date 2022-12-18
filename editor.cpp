@@ -187,7 +187,7 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
     ta->bottomRight = bottomRight;
     ta->cursor = initCursor(topLeft);
     ta->firstLine = 0;
-    drawCursorLine(ta->cursor->position);
+    drawCursorLine(ta);
 
     ta->changes = true;
     ta->pieceTable = initPieceTable();
@@ -219,16 +219,18 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 
     openFile(ta, fileName);
     ta->cursor = initCursor(topLeft);
-    drawCursorLine(ta->cursor->position);
+    drawCursorLine(ta);
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     return ta;
 }
 
-void drawCursorLine(Point p, bool white)
+void drawCursorLine(TextArea *ta, bool white)
 {
     if(white==true)
         setcolor(WHITE);
-    line(p.x*CHAR_WIDTH,p.y*CHAR_HEIGHT,p.x*CHAR_WIDTH,p.y*CHAR_HEIGHT+CHAR_HEIGHT-1);
+    int x = (ta->cursor->position.x + ta->firstColumn)*CHAR_WIDTH + ta->topLeft.x;
+    int y = (ta->cursor->position.y + ta->firstLine)*CHAR_HEIGHT + ta->topLeft.y;
+    line(x,y,x,y+CHAR_HEIGHT-1);
     setcolor(BLACK);
 }
 
@@ -270,7 +272,7 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
                 currentXInLine++;
             i--;
         }
-        ta->cursor->position = {currentXInLine-ta->firstColumn, dest.y-remainingNewLines};
+        ta->cursor->position = {currentXInLine - ta->firstColumn, dest.y - remainingNewLines};
         ta->cursor->pieceTableNode = ta->pieceTable->nodesList->last;
         ta->cursor->positionInNode = ta->pieceTable->nodesList->last->length-1;
         return;
@@ -324,7 +326,7 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
 
 void moveCursor(TextArea *ta, Point dest)
 {
-    if(ta->pieceTable->nodesList->length==0)
+    if(ta->pieceTable->nodesList->length==1 && ta->pieceTable->nodesList->first->length==0)
         return;
     if(dest.x<0)
     {
@@ -354,10 +356,9 @@ void moveCursor(TextArea *ta, Point dest)
         // scrollDown
         return;
     }
-    drawCursorLine(ta->cursor->position,true);
+    drawCursorLine(ta,true);
     getCursorPositionInPiecetable(ta,dest);
-    ta->cursor->position = {ta->cursor->position.x + ta->topLeft.x/CHAR_WIDTH, ta->cursor->position.y + ta->topLeft.y/CHAR_HEIGHT};
-    drawCursorLine(ta->cursor->position);
+    drawCursorLine(ta);
 }
 
 void moveCursorByArrow(TextArea *ta, char a)
@@ -642,7 +643,7 @@ Editor* initEditor()
     // De mutat in initTextArea
 
     topLeft= {0, e->menuArea->bottomRight.y};
-    cout << topLeft.y << endl;
+    //cout << topLeft.y << endl;
     //topLeft= {0, 0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
@@ -800,7 +801,7 @@ void drawArea(TextArea *ta)
         showedLines++;
     }
 
-    drawCursorLine(ta->cursor->position);
+    drawCursorLine(ta);
 }
 
 void openFile(TextArea *ta, char *fileName)
