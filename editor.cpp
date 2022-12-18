@@ -211,10 +211,10 @@ void drawArea(ScrollBarsArea *sba)
 {
 }
 
-Cursor *initCursor(Point position)
+Cursor *initCursor()
 {
     Cursor* c = new Cursor;
-    c->position = position;
+    c->position = {0,0};
     c->positionInNode = 0;
 
     return c;
@@ -226,10 +226,9 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
     ta->unixFile = false;
     ta->savedChanges = true;
 
-    ta->cursor = initCursor(topLeft);
     ta->topLeft = topLeft;
     ta->bottomRight = bottomRight;
-    ta->cursor = initCursor(topLeft);
+    ta->cursor = initCursor();
     ta->firstLine = 0;
     drawCursorLine(ta);
 
@@ -263,7 +262,7 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
     ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
 
     openFile(ta, fileName);
-    ta->cursor = initCursor(topLeft);
+    ta->cursor = initCursor();
     drawCursorLine(ta);
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     return ta;
@@ -373,6 +372,8 @@ void moveCursor(TextArea *ta, Point dest)
     if(ta->pieceTable->nodesList->length==1 && ta->pieceTable->nodesList->first->length==0)
         return;
 
+    Point prevCursorPosition = ta->cursor->position;
+
     if(dest.x<0)
     {
         if(ta->firstColumn==0)
@@ -408,12 +409,13 @@ void moveCursor(TextArea *ta, Point dest)
 
     drawCursorLine(ta,true);
     getCursorPositionInPiecetable(ta,dest);
-    if(ta->cursor->position.x < ta->firstColumn)
+    cout << ta->cursor->positionInNode << endl;
+    /*if(ta->cursor->position.x < ta->firstColumn)
     {
         ta->firstColumn = ta->cursor->position.x;
         ta->changes = true;
         ta->cursor->position.x = 0;
-    }
+    }*/
     drawCursorLine(ta);
     cout << '<' << ta->cursor->position.x << ',' << ta->cursor->position.y << '>' << endl;
 }

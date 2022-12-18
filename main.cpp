@@ -101,7 +101,7 @@ int main()
             */
 
             // Test scroll
-            /*
+
             if(a == 'j')
             {
                 if(e->textArea->firstLine > 0)
