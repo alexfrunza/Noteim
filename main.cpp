@@ -37,6 +37,13 @@ int main()
     Cursor *c = e->textArea->cursor;
     while(e->running)
     {
+        // cout<<mousex()<<" "<<mousey()<<'\n';
+        int mx = mousex();
+        int my = mousey();
+        if(cursorInArea(e->menuArea, mx, my)) {
+               handleHover(e->menuArea, mx, my);
+        }
+        clearHover(e->menuArea, mx, my);
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
@@ -86,9 +93,15 @@ int main()
                 addCharToTextArea(e->textArea,' ');
                 e->textArea->changes = true;
             }
+            // Test save file
+            /*
+            if(a == 's') {
+                    saveFile(e->textArea, "C:\\Users\\Alex\\Noteim\\foobar.txt");
+            } else
+            */
+
             // Test scroll
-
-
+            /*
             if(a == 'j')
             {
                 if(e->textArea->firstLine > 0)

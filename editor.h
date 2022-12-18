@@ -9,9 +9,21 @@
 #define MAX_HEIGHT getmaxheight()
 #define MAX_NAMES_LEN 50
 
+enum ButtonType {
+    FILEB,
+    EDIT,
+    FORMAT
+};
+
+enum ButtonStyle {
+    MENUBAR,
+    SUBMENU1
+};
+
 struct Button {
     char *text;
-    int type;
+    ButtonType type;
+    ButtonStyle style;
     bool hovered;
     bool changes;
     unsigned int padding;
@@ -28,8 +40,9 @@ struct Button {
     Button *prev;
 };
 
-Button* initButton(char *name, Point topLeft);
+Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style);
 void drawButton(Button* b);
+bool cursorInArea(Button* b, int x, int y);
 
 
 struct ButtonsList {
@@ -38,7 +51,7 @@ struct ButtonsList {
     unsigned int length;
 };
 
-ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int length);
+ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int length, ButtonType type, ButtonStyle style);
 void removeLastButtonFromList(ButtonsList *bl);
 void clearButtonsList(ButtonsList *bl);
 void addButtonToList(ButtonsList *bl, Button *b);
@@ -58,6 +71,9 @@ struct MenuArea
 
 MenuArea* initMenuArea(Point topLeft);
 void drawArea(MenuArea *ma);
+bool cursorInArea(MenuArea *ma, int x, int y);
+void handleHover(MenuArea *ma, int x, int y);
+void clearHover(MenuArea *ma, int x, int y);
 
 struct VerticalScrollBarArea
 {
@@ -97,6 +113,7 @@ struct TextArea
     // De implementat la salvare, corespunzator pentru Windows file si unixFile (asaugare '\r' pentru windows file)
     bool unixFile;
     bool savedChanges;
+    char fileName[500];
 
     unsigned int maxLines;
     unsigned short int maxCharLine;
