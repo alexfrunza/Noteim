@@ -127,7 +127,7 @@ int main()
             }
             // e->textArea->changes = true;
             // Logging pentru nodurile din tabel
-            // logPieceTableNodes(e->textArea->pieceTable);
+            //logPieceTableNodes(e->textArea->pieceTable);
 
             /*
             int i;

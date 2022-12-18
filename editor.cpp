@@ -228,13 +228,12 @@ void drawCursorLine(TextArea *ta, bool white)
 {
     if(white==true)
         setcolor(WHITE);
-    int x = (ta->cursor->position.x + ta->firstColumn)*CHAR_WIDTH + ta->topLeft.x;
-    int y = (ta->cursor->position.y + ta->firstLine)*CHAR_HEIGHT + ta->topLeft.y;
+    int x = ta->cursor->position.x*CHAR_WIDTH + ta->topLeft.x;
+    int y = ta->cursor->position.y*CHAR_HEIGHT + ta->topLeft.y;
     line(x,y,x,y+CHAR_HEIGHT-1);
     setcolor(BLACK);
 }
 
-// !! Trebuie modificat pentru scroll
 void getCursorPositionInPiecetable(TextArea *ta, Point dest)
 {
     PieceTableNode *ptn = ta->pieceTable->nodesList->first;
