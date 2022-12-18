@@ -315,9 +315,9 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
                 currentXInLine++;
             i--;
         }
-        ta->cursor->position = {currentXInLine - ta->firstColumn, dest.y - remainingNewLines};
+        ta->cursor->position = {currentXInLine - ta->firstColumn, dest.y - ta->firstLine - remainingNewLines};
         ta->cursor->pieceTableNode = ta->pieceTable->nodesList->last;
-        ta->cursor->positionInNode = ta->pieceTable->nodesList->last->length-1;
+        ta->cursor->positionInNode = ta->pieceTable->nodesList->last->length;
         return;
     }
     i = ptn->start;
@@ -401,23 +401,16 @@ void moveCursor(TextArea *ta, Point dest)
 
     if(dest.y>=ta->maxLines)
     {
-        // De facut
-        // if(dest.y<=ta->pieceTable->numberOfLines)
-        // scrollDown
-        return;
+        if(dest.y>=ta->pieceTable->numberOfLines)
+            return;
+        ta->firstLine++;
+        ta->changes = true;
+        dest.y--;
     }
 
     drawCursorLine(ta,true);
     getCursorPositionInPiecetable(ta,dest);
-    cout << ta->cursor->positionInNode << endl;
-    /*if(ta->cursor->position.x < ta->firstColumn)
-    {
-        ta->firstColumn = ta->cursor->position.x;
-        ta->changes = true;
-        ta->cursor->position.x = 0;
-    }*/
     drawCursorLine(ta);
-    cout << '<' << ta->cursor->position.x << ',' << ta->cursor->position.y << '>' << endl;
 }
 
 void moveCursorByArrow(TextArea *ta, char a)

@@ -100,37 +100,6 @@ int main()
             } else
             */
 
-            // Test scroll
-
-            if(a == 'j')
-            {
-                if(e->textArea->firstLine > 0)
-                {
-                    e->textArea->firstLine--;
-                    e->textArea->changes = true;
-                }
-            }
-            else if(a=='k')
-            {
-                e->textArea->firstLine++;
-                e->textArea->changes = true;
-            }
-
-            else if(a=='h')
-            {
-                if(e->textArea->firstColumn > 0)
-                {
-                    e->textArea->firstColumn--;
-                    e->textArea->changes = true;
-                }
-
-            }
-            else if(a=='l')
-            {
-                e->textArea->firstColumn++;
-                e->textArea->changes = true;
-            }
-            else
             if(isDisplayedChar(a))
             {
                 addCharToTextArea(e->textArea,a);
