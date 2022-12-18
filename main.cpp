@@ -70,13 +70,11 @@ int main()
             // Must add Delete Deletion
             if(a == 8)
             {
-                //drawCursorLine(c->position,true);
                 removeCharFromTextArea(e->textArea);
                 e->textArea->changes = true;
             }
             if(ENTER_PRESSED)
             {
-                //drawCursorLine(e->textArea,true);
                 addCharToTextArea(e->textArea,'\n');
                 e->textArea->changes = true;
             }
