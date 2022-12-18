@@ -231,7 +231,7 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
     ta->bottomRight = bottomRight;
     ta->cursor = initCursor(topLeft);
     ta->firstLine = 0;
-    drawCursorLine(ta->cursor->position);
+    drawCursorLine(ta);
 
     ta->changes = true;
     ta->pieceTable = initPieceTable();
@@ -264,62 +264,26 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 
     openFile(ta, fileName);
     ta->cursor = initCursor(topLeft);
-    drawCursorLine(ta->cursor->position);
+    drawCursorLine(ta);
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     return ta;
 }
 
-void drawCursorLine(Point p, bool white)
+void drawCursorLine(TextArea *ta, bool white)
 {
     if(white==true)
         setcolor(WHITE);
-    line(p.x*CHAR_WIDTH,p.y*CHAR_HEIGHT,p.x*CHAR_WIDTH,p.y*CHAR_HEIGHT+CHAR_HEIGHT-1);
+    int x = ta->cursor->position.x*CHAR_WIDTH + ta->topLeft.x;
+    int y = ta->cursor->position.y*CHAR_HEIGHT + ta->topLeft.y;
+    line(x,y,x,y+CHAR_HEIGHT-1);
     setcolor(BLACK);
 }
 
-void updateCursorPosition(TextArea *ta, char deletedChar)
-{
-    Cursor *c = ta->cursor;
-    PieceTableNode *ptn;
-    int i;
-    if(deletedChar=='\n')
-    {
-        c->pieceTableNode->numberNewLines--;
-        ta->pieceTable->numberOfLines--;
-        c->position = {0,c->position.y-1};
-        ptn = c->pieceTableNode;
-        if(c->positionInNode>0)
-            i = c->positionInNode-1;
-        else
-        {
-            ptn = ptn->prev;
-            if(ptn!=NULL)
-                i = ptn->start+ptn->length-1;
-        }
-        while(ptn!=NULL && ptn->buffer->text[i]!='\n')
-        {
-            if(i==(int)ptn->start-1)
-            {
-                ptn = ptn->prev;
-                if(ptn!=NULL)
-                    i = ptn->start+ptn->length;
-            }
-            else
-                c->position.x++;
-            i--;
-        }
-    }
-    else
-        c->position.x--;
-}
-
-// !! Trebuie modificat pentru scroll
 void getCursorPositionInPiecetable(TextArea *ta, Point dest)
 {
-    // Trebuie modificat sa tina cont si de offset-ul pe linie (x)
     PieceTableNode *ptn = ta->pieceTable->nodesList->first;
+    dest = {dest.x + ta->firstColumn, dest.y + ta->firstLine};
 
-    // Pentru când ecranul e gol.
     if(ta->pieceTable->nodesList->length==1 && ptn->length==0)
     {
         ta->cursor->position = {0,0};
@@ -328,7 +292,7 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
         return;
     }
 
-    int remainingNewLines = dest.y + ta->firstLine, i, currentXInLine=0;
+    int remainingNewLines = dest.y, i, currentXInLine=0;
     while(ptn!=NULL)
     {
         if(remainingNewLines-(int)ptn->numberNewLines<=0)
@@ -352,7 +316,7 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
                 currentXInLine++;
             i--;
         }
-        ta->cursor->position = {currentXInLine,dest.y-remainingNewLines};
+        ta->cursor->position = {currentXInLine - ta->firstColumn, dest.y - remainingNewLines};
         ta->cursor->pieceTableNode = ta->pieceTable->nodesList->last;
         ta->cursor->positionInNode = ta->pieceTable->nodesList->last->length-1;
         return;
@@ -384,13 +348,13 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
     }
     if(currentXInLine==dest.x)
     {
-        ta->cursor->position = dest;
+        ta->cursor->position = {dest.x - ta->firstColumn, dest.y - ta->firstLine};
         ta->cursor->pieceTableNode = ptn;
         ta->cursor->positionInNode = i-ptn->start;
     }
     else
     {
-        ta->cursor->position = {currentXInLine,dest.y};
+        ta->cursor->position = {currentXInLine - ta->firstColumn, dest.y - ta->firstLine};
         if(ptn==NULL)
         {
             ta->cursor->pieceTableNode = ta->pieceTable->nodesList->last;
@@ -406,29 +370,34 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
 
 void moveCursor(TextArea *ta, Point dest)
 {
-    if(ta->pieceTable->nodesList->length==0)
+    if(ta->pieceTable->nodesList->length==1 && ta->pieceTable->nodesList->first->length==0)
         return;
+
     if(dest.x<0)
     {
-        // De facut
-        // if(ta.firstColumn>0)
-        //     scrollLeft
-        return;
+        if(ta->firstColumn==0)
+            return;
+        ta->firstColumn--;
+        ta->changes = true;
+        dest.x = 0;
     }
+
     if(dest.y<0)
     {
-        // De facut
-        // if(ta.firstLine>0)
-        //     scrollUp
-        return;
+        if(ta->firstLine==0)
+            return;
+        ta->firstLine--;
+        ta->changes = true;
+        dest.y = 0;
     }
+
     if(dest.x>=ta->maxCharLine)
     {
-        // De facut
-        // Conditie??
-        // scrollRight
-        return;
+        ta->firstColumn++;
+        ta->changes = true;
+        dest.x--;
     }
+
     if(dest.y>=ta->maxLines)
     {
         // De facut
@@ -437,9 +406,16 @@ void moveCursor(TextArea *ta, Point dest)
         return;
     }
 
-    drawCursorLine(ta->cursor->position,true);
+    drawCursorLine(ta,true);
     getCursorPositionInPiecetable(ta,dest);
-    drawCursorLine(ta->cursor->position);
+    if(ta->cursor->position.x < ta->firstColumn)
+    {
+        ta->firstColumn = ta->cursor->position.x;
+        ta->changes = true;
+        ta->cursor->position.x = 0;
+    }
+    drawCursorLine(ta);
+    cout << '<' << ta->cursor->position.x << ',' << ta->cursor->position.y << '>' << endl;
 }
 
 void moveCursorByArrow(TextArea *ta, char a)
@@ -583,6 +559,43 @@ void addCharToTextArea(TextArea *ta, char newLetter)
 }
 
 // WIP
+void updateCursorPosition(TextArea *ta, char deletedChar)
+{
+    Cursor *c = ta->cursor;
+    PieceTableNode *ptn;
+    int i;
+    if(deletedChar=='\n')
+    {
+        c->pieceTableNode->numberNewLines--;
+        ta->pieceTable->numberOfLines--;
+        c->position = {0,c->position.y-1};
+        ptn = c->pieceTableNode;
+        if(c->positionInNode>0)
+            i = c->positionInNode-1;
+        else
+        {
+            ptn = ptn->prev;
+            if(ptn!=NULL)
+                i = ptn->start+ptn->length-1;
+        }
+        while(ptn!=NULL && ptn->buffer->text[i]!='\n')
+        {
+            if(i==(int)ptn->start-1)
+            {
+                ptn = ptn->prev;
+                if(ptn!=NULL)
+                    i = ptn->start+ptn->length;
+            }
+            else
+                c->position.x++;
+            i--;
+        }
+    }
+    else
+        c->position.x--;
+}
+
+// WIP
 void removeCharFromTextArea(TextArea *ta)
 {
     int i;
@@ -605,6 +618,7 @@ void removeCharFromTextArea(TextArea *ta)
         c->pieceTableNode->length--;
         deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start+c->positionInNode];
         updateCursorPosition(ta,deletedChar);
+        //cout << '<' << c->position.x << ',' << c->position.y << '>' << endl;
         if(c->pieceTableNode->length==0 && c->pieceTableNode->prev!=NULL)
         {
             ta->pieceTable->nodesList->length--;
@@ -637,16 +651,29 @@ void removeCharFromTextArea(TextArea *ta)
     }
 
     {
-        /*PieceTableNode *rightSide = initPieceTableNode(c->pieceTableNode->buffer,c->positionInNode,c->pieceTableNode->length-c->positionInNode,0);
+        PieceTableNode *rightSide = initPieceTableNode(c->pieceTableNode->buffer,c->pieceTableNode->start+c->positionInNode,c->pieceTableNode->length-c->positionInNode,0);
         for(i=c->positionInNode; i<c->pieceTableNode->length; i++)
             if(c->pieceTableNode->buffer->text[c->pieceTableNode->start+i]=='\n')
                 rightSide->numberNewLines++;
-        deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start];
-        c->pieceTableNode->length = c->positionInNode-1;
+        c->positionInNode--;
+        deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start+c->positionInNode];
+        c->pieceTableNode->length = c->positionInNode;
         c->pieceTableNode->numberNewLines -= rightSide->numberNewLines;
+        if(c->pieceTableNode == ta->pieceTable->nodesList->last)
+        {
+            ta->pieceTable->nodesList->last = rightSide;
+            rightSide->next = NULL;
+        }
+        else
+        {
+            rightSide->next = c->pieceTableNode->next;
+            c->pieceTableNode->next->prev = rightSide;
+        }
+        c->pieceTableNode->next = rightSide;
+        rightSide->prev = c->pieceTableNode;
         ta->pieceTable->nodesList->length++;
         updateCursorPosition(ta,deletedChar);
-        */return;
+        return;
     }
 }
 
@@ -679,8 +706,8 @@ Editor* initEditor()
 
     // !!!!!!!!!!!!!!!!!!!!!!!!
     // Citire din fisier
-    cout<<"TOP LEFT: "<<topLeft.x<<" "<<topLeft.y<<'\n';
-    cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
+    //cout<<"TOP LEFT: "<<topLeft.x<<" "<<topLeft.y<<'\n';
+    //cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
 
 
     e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
@@ -718,14 +745,14 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
         {
             char aux = ptn->buffer->text[endOfDisplayedLine];
             ptn->buffer->text[endOfDisplayedLine] = '\0';
-            cout<<"END from skipped: "<<endOfDisplayedLine<<'\n';
+            //cout<<"END from skipped: "<<endOfDisplayedLine<<'\n';
             char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
             ptn->buffer->text[endOfDisplayedLine] = aux;
 
             // cout<<"START: "<<indexOfLine<<" "<<endOfDisplayedLine<<'\n';
             if(newLineInNode)
             {
-                cout<<"SKIPPED: "<<skippedChars<<'\n';
+                //cout<<"SKIPPED: "<<skippedChars<<'\n';
                 if((void*)newLineInNode <= (void*)ptn->buffer->text + indexOfLine + skippedChars) break;
 
                 indexOfLine += skippedChars;
@@ -746,7 +773,7 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
                     skippedChars = 0;
                 }
             }
-            // cout<<"start: "<<indexOfLine<<" end: "<<endOfDisplayedLine<<'\n';
+            // //cout<<"start: "<<indexOfLine<<" end: "<<endOfDisplayedLine<<'\n';
             // cout<<"numberOfCharsFromNode: "<<numberOfCharsFromNode<<'\n';
             //cout<<"SKIPPEd: "<<skippedChars<<'\n';
         }
@@ -758,9 +785,9 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
 
             char aux = ptn->buffer->text[endOfDisplayedLine];
             ptn->buffer->text[endOfDisplayedLine] = '\0';
-            cout<<"END: "<<endOfDisplayedLine<<'\n';
+            //cout<<"END: "<<endOfDisplayedLine<<'\n';
             char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
-            cout<<"POINTER NEW LINE: "<<(void*)newLineInNode<<'\n';
+            //cout<<"POINTER NEW LINE: "<<(void*)newLineInNode<<'\n';
             ptn->buffer->text[endOfDisplayedLine] = aux;
 
             if(newLineInNode)
@@ -826,7 +853,7 @@ void drawArea(TextArea *ta)
             break;
         }
 
-        cout<<"LINIA: "<<showedLines<<endl;
+        //cout<<"LINIA: "<<showedLines<<endl;
         //cout<<"*****: "<< indexOfLine<<"   "<<lineNode<<endl;
         showALine(current_y, ta, lineNode, indexOfLine);
 
@@ -835,10 +862,7 @@ void drawArea(TextArea *ta)
         showedLines++;
     }
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!
-    // NEVER REACHES THIS POINT AFTER DELETING A NEWLINE
-
-    drawCursorLine(ta->cursor->position);
+    drawCursorLine(ta);
 }
 
 void openFile(TextArea *ta, char *fileName)

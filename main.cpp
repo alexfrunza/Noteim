@@ -47,11 +47,17 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
-            Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
-            if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
-                newCursorPosition.x++;
-            moveCursor(e->textArea,newCursorPosition);
-            continue;
+            if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&
+               y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y)
+            {
+                x -= e->textArea->topLeft.x;
+                y -= e->textArea->topLeft.y;
+                Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+                if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
+                    newCursorPosition.x++;
+                moveCursor(e->textArea,newCursorPosition);
+                continue;
+            }
         }
         if(kbhit())
         {
@@ -67,17 +73,15 @@ int main()
                 // Maybe pop-up do you want to save the file, if the file isn't saved.
                 continue;
             }
-            drawCursorLine(c->position,true);
+            drawCursorLine(e->textArea,true);
             // Must add Delete Deletion
             if(a == 8)
             {
-                //drawCursorLine(c->position,true);
                 removeCharFromTextArea(e->textArea);
                 e->textArea->changes = true;
             }
             if(ENTER_PRESSED)
             {
-                drawCursorLine(c->position,true);
                 addCharToTextArea(e->textArea,'\n');
                 e->textArea->changes = true;
             }
@@ -126,15 +130,15 @@ int main()
                 e->textArea->firstColumn++;
                 e->textArea->changes = true;
             }
-            else*/
+            else
             if(isDisplayedChar(a))
             {
                 addCharToTextArea(e->textArea,a);
                 e->textArea->changes = true;
             }
-           // e->textArea->changes = true;
+            // e->textArea->changes = true;
             // Logging pentru nodurile din tabel
-             logPieceTableNodes(e->textArea->pieceTable);
+            //logPieceTableNodes(e->textArea->pieceTable);
 
             /*
             int i;
