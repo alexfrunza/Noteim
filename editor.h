@@ -97,6 +97,7 @@ struct TextArea
     // De implementat la salvare, corespunzator pentru Windows file si unixFile (asaugare '\r' pentru windows file)
     bool unixFile;
     bool savedChanges;
+    char fileName[500];
 
     unsigned int maxLines;
     unsigned short int maxCharLine;

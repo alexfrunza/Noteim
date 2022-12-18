@@ -181,6 +181,7 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
 {
     TextArea* ta = new TextArea;
     ta->unixFile = false;
+    ta->savedChanges = true;
 
     ta->cursor = initCursor(topLeft);
     ta->topLeft = topLeft;
@@ -205,6 +206,7 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 {
     TextArea* ta = new TextArea;
+    ta->savedChanges = true;
     ta->unixFile = false;
     ta->changes = true;
     ta->firstLine = 0;
@@ -433,7 +435,7 @@ void addCharToTextArea(TextArea *ta, char newLetter)
     }
 
     if(c->pieceTableNode->buffer==ta->pieceTable->buffersList->last && c->positionInNode==c->pieceTableNode->length
-       && c->pieceTableNode->start+c->pieceTableNode->length==ta->pieceTable->buffersList->last->length-1)
+            && c->pieceTableNode->start+c->pieceTableNode->length==ta->pieceTable->buffersList->last->length-1)
     {
         c->pieceTableNode->length++;
         c->positionInNode++;
@@ -637,8 +639,8 @@ Editor* initEditor()
     cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
 
 
-     // e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-     e->textArea = initTextArea(topLeft, bottomRight);
+    // e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
+    e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
 }
@@ -686,11 +688,16 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
                 indexOfLine += skippedChars;
                 numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
                 endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
-            } else {
-                if(numberOfCharsFromNode <= skippedChars) {
+            }
+            else
+            {
+                if(numberOfCharsFromNode <= skippedChars)
+                {
                     skippedChars = skippedChars - numberOfCharsFromNode;
                     skippedNode = true;
-                } else {
+                }
+                else
+                {
                     numberOfCharsFromNode -= skippedChars;
                     indexOfLine += skippedChars;
                     skippedChars = 0;
@@ -859,6 +866,46 @@ void openFile(TextArea *ta, char *fileName)
 
 void saveFile(TextArea *ta, char *fileName)
 {
+    FILE *file = fopen(fileName, "wb");
+
+    if(file == NULL)
+    {
+        fclose(file);
+        printf("Eroare la scrierea fisierului!\n");
+        return;
+    }
+
+    for(PieceTableNode *currentNode = ta->pieceTable->nodesList->first; currentNode != NULL; currentNode = currentNode->next)
+    {
+        if(currentNode->numberNewLines == 0)
+        {
+            fwrite(currentNode->buffer->text + currentNode->start, sizeof(char), currentNode->length, file);
+        }
+        else
+        {
+            if(ta->unixFile == false)
+            {
+                fwrite(currentNode->buffer->text + currentNode->start, sizeof(char), currentNode->length, file);
+            }
+            else
+            {
+                for(unsigned int i = 0; i < currentNode->length; i++)
+                {
+                    if(*(currentNode->buffer->text + currentNode->start + i) == '\n')
+                    {
+                        char newLineWin[] = {'\r', '\n'};
+                        fwrite(newLineWin, sizeof(char), 2, file);
+                    }
+                    else
+                    {
+                        fwrite(currentNode->buffer->text + currentNode->start + i, sizeof(char), 1, file);
+                    }
+                }
+            }
+        }
+    }
+
+    fclose(file);
 }
 
 void drawEditor(Editor *e)
