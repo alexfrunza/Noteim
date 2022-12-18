@@ -12,13 +12,14 @@
 using namespace std;
 //
 
-Button* initButton(char *name, Point topLeft, int type)
+Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style)
 {
     Button *b = new Button;
     b->type = type;
-    if(type == 1)
+    b->style = style;
+    if(b->style == MENUBAR)
     {
-        b->padding = 3;
+        b->padding = 10;
         b->hoverBK = {30, 41, 59};
         b->hoverFT = {255, 255, 255};
         b->normalBK = {255, 255, 255};
@@ -48,19 +49,22 @@ void drawButton(Button* b)
     if(b->hovered == false)
     {
         setfillstyle(SOLID_FILL, convertToBGIColor(b->normalBK));
+        setbkcolor(convertToBGIColor(b->normalBK));
         setcolor(convertToBGIColor(b->normalFT));
     }
     if(b->hovered == true)
     {
         setfillstyle(SOLID_FILL, convertToBGIColor(b->hoverBK));
+        setbkcolor(convertToBGIColor(b->hoverBK));
         setcolor(convertToBGIColor(b->hoverFT));
     }
 
-    bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x, b->bottomRight.y);
+    // TODO: change text background for outtextxy
+    bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x + b->padding, b->bottomRight.y + b->padding);
     outtextxy(b->topLeft.x + b->padding, b->topLeft.y + b->padding, b->text);
 }
 
-ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int length, int type)
+ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle style)
 {
     ButtonsList* bl = new ButtonsList;
     bl->first = NULL;
@@ -70,7 +74,7 @@ ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int le
     Point topLeft = {0, 0};
     for(int i=0; i<length; i++)
     {
-        Button* b = initButton(buttonsNames[i], topLeft, type);
+        Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
         addButtonToList(bl, b);
         topLeft = {b->bottomRight.x + b->padding, 0};
     }
@@ -133,15 +137,23 @@ void drawButtonsList(ButtonsList *bl)
     }
 }
 
+bool cursorInArea(Button* b, int x, int y)
+{
+    return b->topLeft.x <= x && x <= b->bottomRight.x && b->topLeft.y <= y && y <= b->bottomRight.y;
+}
+
 MenuArea* initMenuArea(Point topLeft)
 {
     MenuArea* ma = new MenuArea;
     ma->separatorLength = 2;
 
     ma->topLeft = topLeft;
+
     char buttonsNames[][MAX_NAMES_LEN] = {"File", "Edit", "Format"};
-    ma->buttonsList = initButtonsList(buttonsNames, 3, 1);
-    ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 3};
+    ButtonType types[] = {FILEB, EDIT, FORMAT};
+
+    ma->buttonsList = initButtonsList(buttonsNames, types, 3, MENUBAR);
+    ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 2*ma->buttonsList->first->padding};
 
     ma->changes = true;
     return ma;
@@ -158,6 +170,37 @@ void drawArea(MenuArea *ma)
 
     drawButtonsList(ma->buttonsList);
     ma->changes = false;
+}
+
+bool cursorInArea(MenuArea *ma, int x, int y)
+{
+    return ma->topLeft.x <= x && x <= ma->bottomRight.x && ma->topLeft.y <= y && y <= ma->bottomRight.y;
+}
+
+void handleHover(MenuArea *ma, int x, int y)
+{
+    for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->hovered == false)
+        {
+            currentButton->hovered = true;
+            currentButton->changes = true;
+            ma->changes = true;
+        }
+    }
+}
+
+void clearHover(MenuArea *ma, int x, int y)
+{
+    for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(!cursorInArea(currentButton, x, y) && currentButton->hovered == true)
+        {
+            currentButton->hovered = false;
+            currentButton->changes = true;
+            ma->changes = true;
+        }
+    }
 }
 
 ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight)
@@ -626,11 +669,12 @@ Editor* initEditor()
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
-    //e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
+
+    //
+    // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     // De mutat in initTextArea
 
-    // topLeft= {0, e->menuArea->bottomRight.y};
-    topLeft= {0, 0};
+    topLeft= {0, e->menuArea->bottomRight.y};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
     // !!!!!!!!!!!!!!!!!!!!!!!!
@@ -639,8 +683,8 @@ Editor* initEditor()
     cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
 
 
-    // e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-    e->textArea = initTextArea(topLeft, bottomRight);
+    e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
+    // e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
 }
@@ -649,7 +693,6 @@ void drawCharsInGui(Buffer* b, int x, int y, long index, long endOfDisplayedLine
 {
     char aux = b->text[endOfDisplayedLine];
     b->text[endOfDisplayedLine] = '\0';
-    //cout<<"SIr afisat: "<<index<<" "<<endOfDisplayedLine<<endl;
     outtextxy(x, y, b->text + index);
     b->text[endOfDisplayedLine] = aux;
 }
@@ -813,23 +856,69 @@ void openFile(TextArea *ta, char *fileName)
 
     bool unixFile = false;
     unsigned int readSize;
+    char lastAddedChar = '\0';
+    int numberOfSpaces = 0;
+    bool ok = false;
+
     do
     {
-        Buffer *newBuffer = initBuffer();
-        addBuffer(ta->pieceTable->buffersList, newBuffer);
-        newBuffer->length = 0;
+        char last_x;
+        if(fread(&last_x, sizeof(char), 1, file) == 0)
+        {
+            last_x = '\0';
+            readSize = 0;
+        }
+
+        Buffer *newBuffer;
+        if(numberOfSpaces > 0 || last_x != '\0')
+        {
+            newBuffer = initBuffer();
+            addBuffer(ta->pieceTable->buffersList, newBuffer);
+            newBuffer->length = 0;
+        }
+        for(int i=0; i<numberOfSpaces; i++)
+        {
+            newBuffer->text[newBuffer->length] = ' ';
+            newBuffer->length++;
+            lastAddedChar = ' ';
+        }
+        if(numberOfSpaces > 0) {
+            numberOfSpaces = 0;
+            ok = true;
+        }
 
         unsigned int numberNewLines = 0;
-        char x, last_x;
+        char x;
 
-        fread(&last_x, sizeof(char), 1, file);
-        newBuffer->text[newBuffer->length] = last_x;
         if(last_x == '\n')
         {
-            numberNewLines++;
-            unixFile = true;
+            if(lastAddedChar == '\r')
+            {
+                ta->pieceTable->numberOfLines += 1;
+                ta->pieceTable->buffersList->last->text[ta->pieceTable->buffersList->last->length-1] = '\n';
+                ta->pieceTable->nodesList->last->numberNewLines += 1;
+            }
+            else
+            {
+                numberNewLines++;
+                unixFile = true;
+                newBuffer->length++;
+            }
         }
-        newBuffer->length++;
+        else if (last_x == '\t')
+        {
+            for(int i=0; i<4; i++)
+            {
+                newBuffer->text[newBuffer->length] = ' ';
+                newBuffer->length++;
+            }
+            last_x == ' ';
+        }
+        else if (last_x != '\0')
+        {
+            newBuffer->text[newBuffer->length] = last_x;
+            newBuffer->length++;
+        }
 
         while((newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file))
         {
@@ -841,19 +930,48 @@ void openFile(TextArea *ta, char *fileName)
                 newBuffer->length--;
                 newBuffer->text[newBuffer->length] = x;
             }
-            newBuffer->length++;
-            last_x = x;
+            if(x == '\t')
+            {
+                if(newBuffer->length + 4 > MAX_LENGTH_BUFFER)
+                {
+                    numberOfSpaces = newBuffer->length + 4 - MAX_LENGTH_BUFFER;
+                    for(int i=newBuffer->length; i<=MAX_LENGTH_BUFFER; i++)
+                    {
+                        newBuffer->text[newBuffer->length] = ' ';
+                    }
+                    newBuffer->length = MAX_LENGTH_BUFFER;
+                }
+                else
+                {
+                    for(int i=0; i<4; i++)
+                    {
+                        newBuffer->text[newBuffer->length] = ' ';
+                        newBuffer->length++;
+                    }
+                }
+                last_x = ' ';
+            }
+            else
+            {
+                newBuffer->length++;
+                last_x = x;
+            }
         }
-        PieceTableNode *newNode = initPieceTableNode(newBuffer, 0, newBuffer->length, numberNewLines);
-        addPieceTableNode(ta->pieceTable->nodesList, newNode);
-        ta->pieceTable->numberOfLines += numberNewLines;
+        if(last_x != '\0' || ok)
+        {
+            PieceTableNode *newNode = initPieceTableNode(newBuffer, 0, newBuffer->length, numberNewLines);
+            addPieceTableNode(ta->pieceTable->nodesList, newNode);
+            ta->pieceTable->numberOfLines += numberNewLines;
 
-        //cout<<"lungimE buffer: "<<newBuffer->length<<"CARACTER: *"<<(int)newBuffer->text[0]<<"*"<<endl;
-        readSize = newBuffer->length;
+            //cout<<"lungimE buffer: "<<newBuffer->length<<"CARACTER: *"<<(int)newBuffer->text[0]<<"*"<<endl;
+            lastAddedChar = newBuffer->text[newBuffer->length-1];
+            readSize = newBuffer->length;
 
-        /*if(newBuffer->length == 1 && newBuffer->text[0] == '\0') {
-            emptyPieceTable(ta->pieceTable);
-        }*/
+            /*if(newBuffer->length == 1 && newBuffer->text[0] == '\0') {
+                emptyPieceTable(ta->pieceTable);
+            }*/
+            ok = false;
+        }
     }
     while(readSize == MAX_LENGTH_BUFFER);
 
@@ -904,14 +1022,13 @@ void saveFile(TextArea *ta, char *fileName)
             }
         }
     }
-
     fclose(file);
 }
 
 void drawEditor(Editor *e)
 {
     drawArea(e->textArea);
-    // drawArea(e->menuArea);
+    drawArea(e->menuArea);
     //drawArea(e->scrollBarsArea);
     e->textArea->changes = false;
 }
