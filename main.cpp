@@ -37,15 +37,20 @@ int main()
     Cursor *c = e->textArea->cursor;
     while(e->running)
     {
-        // cout<<mousex()<<" "<<mousey()<<'\n';
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
-            Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
-            if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
-                newCursorPosition.x++;
-            moveCursor(e->textArea,newCursorPosition);
-            continue;
+            if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&
+               y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y)
+            {
+                x -= e->textArea->topLeft.x;
+                y -= e->textArea->topLeft.y;
+                Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+                if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
+                    newCursorPosition.x++;
+                moveCursor(e->textArea,newCursorPosition);
+                continue;
+            }
         }
         if(kbhit())
         {
@@ -85,7 +90,7 @@ int main()
             }
             // Test scroll
 
-            /*
+
             if(a == 'j')
             {
                 if(e->textArea->firstLine > 0)
@@ -114,15 +119,15 @@ int main()
                 e->textArea->firstColumn++;
                 e->textArea->changes = true;
             }
-            else*/
+            else
             if(isDisplayedChar(a))
             {
                 addCharToTextArea(e->textArea,a);
                 e->textArea->changes = true;
             }
-           // e->textArea->changes = true;
+            // e->textArea->changes = true;
             // Logging pentru nodurile din tabel
-             logPieceTableNodes(e->textArea->pieceTable);
+            // logPieceTableNodes(e->textArea->pieceTable);
 
             /*
             int i;
