@@ -333,7 +333,7 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
         if(ptn!=NULL)
             i = ptn->start;
     }
-    while(ptn!=NULL && currentXInLine!=dest.x && ptn->buffer->text[i]!='\n')
+    while(ptn!=NULL && currentXInLine!=dest.x && (ptn->buffer->text[i]!='\n' || i==ptn->start+ptn->length))
     {
         if(i==ptn->start+ptn->length)
         {
@@ -706,7 +706,7 @@ Editor* initEditor()
 
 
     e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-    // e->textArea = initTextArea(topLeft, bottomRight);
+    //e->textArea = initTextArea(topLeft, bottomRight);
 
     return e;
 }
