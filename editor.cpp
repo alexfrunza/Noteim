@@ -15,22 +15,42 @@ using namespace std;
 Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style)
 {
     Button *b = new Button;
+    b->subMenu = NULL;
+    b->pressed = false;
+
+
     b->type = type;
     b->style = style;
     if(b->style == MENUBAR)
     {
-        b->padding = 10;
-        b->hoverBK = {30, 41, 59};
-        b->hoverFT = {255, 255, 255};
+        b->paddingSides = 10;
+        b->paddingTopBottom = 5;
+        b->hoverBK = {229, 243, 255};
+        b->hoverFT = {0, 0, 0};
         b->normalBK = {255, 255, 255};
-        b->normalFT = {13, 23, 42};
+        b->normalFT = {0, 0, 0};
+        b->pressBK = {204, 232, 255};
+        b->pressFT = {0, 0, 0};
+        b->lengthText = strlen(name) * CHAR_WIDTH;
+    }
+    else if(b->style == SUBMENU1)
+    {
+        b->paddingSides = 20;
+        b->paddingTopBottom = 5;
+        b->hoverBK = {145, 201, 247};
+        b->hoverFT = {0, 0, 0};
+        b->normalBK = {242, 242, 242};
+        b->normalFT = {0, 0, 0};
+        b->pressBK = {145, 201, 247};
+        b->pressFT = {0, 0, 0};
+        b->lengthText = 20 * CHAR_WIDTH;
     }
 
     b->next = NULL;
     b->prev = NULL;
 
     b->topLeft = topLeft;
-    b->bottomRight = {b->topLeft.x + strlen(name) * CHAR_WIDTH + 2*b->padding, b->topLeft.y + CHAR_HEIGHT + 2*b->padding};
+    b->bottomRight = {b->topLeft.x + b->lengthText + 2*b->paddingSides, b->topLeft.y + CHAR_HEIGHT + 2*b->paddingTopBottom};
 
     b->text = (char*) malloc(sizeof(char) * strlen(name));
     strcpy(b->text, name);
@@ -43,47 +63,92 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
 
 void drawButton(Button* b)
 {
+    if(b->subMenu != NULL)
+    {
+        drawButtonsList(b->subMenu);
+    }
+
     if(b->changes == false)
         return;
 
-    if(b->hovered == false)
+    if(b->style == SUBMENU1)
     {
-        setfillstyle(SOLID_FILL, convertToBGIColor(b->normalBK));
-        setbkcolor(convertToBGIColor(b->normalBK));
-        setcolor(convertToBGIColor(b->normalFT));
+        setfillstyle(SOLID_FILL, 3);
+        bar(b->topLeft.x, b->bottomRight.y - 2,  b->bottomRight.x, b->bottomRight.y);
     }
-    if(b->hovered == true)
+
+    if(b->pressed == true)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(b->pressBK));
+        setbkcolor(convertToBGIColor(b->pressBK));
+        setcolor(convertToBGIColor(b->pressFT));
+    }
+    else if(b->hovered == true)
     {
         setfillstyle(SOLID_FILL, convertToBGIColor(b->hoverBK));
         setbkcolor(convertToBGIColor(b->hoverBK));
         setcolor(convertToBGIColor(b->hoverFT));
     }
+    else
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(b->normalBK));
+        setbkcolor(convertToBGIColor(b->normalBK));
+        setcolor(convertToBGIColor(b->normalFT));
+    }
 
-    // TODO: change text background for outtextxy
     bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x, b->bottomRight.y);
-    outtextxy(b->topLeft.x + b->padding, b->topLeft.y + b->padding, b->text);
+    outtextxy(b->topLeft.x + b->paddingSides, b->topLeft.y + b->paddingTopBottom, b->text);
+    b->changes = false;
 }
 
-ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle style)
+ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle style)
 {
     ButtonsList* bl = new ButtonsList;
+    bl->changes = true;
     bl->first = NULL;
     bl->last = NULL;
     bl->length = 0;
+    bl->topLeft = topLeft;
 
-    Point topLeft = {0, 0};
-    for(int i=0; i<length; i++)
+    if(style == MENUBAR)
     {
-        Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
-        addButtonToList(bl, b);
-        topLeft = {b->bottomRight.x, 0};
+        for(int i=0; i<length; i++)
+        {
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+            addButtonToList(bl, b);
+            topLeft.x = b->bottomRight.x;
+            bl->bottomRight.x = b->bottomRight.x;
+            bl->bottomRight.y = b->bottomRight.y;
+        }
     }
+    else if (style == SUBMENU1)
+    {
+        for(int i=0; i<length; i++)
+        {
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+            addButtonToList(bl, b);
+            topLeft.y = b->bottomRight.y;
+            bl->bottomRight.x = b->bottomRight.x;
+            bl->bottomRight.y = b->bottomRight.y;
+        }
+    }
+
+    // cout<<"Coordonate lista butoane: "<<bl->topLeft.x<< " "<<bl->topLeft.y<<" - "<<bl->bottomRight.x<<" "<<bl->bottomRight.y<<'\n';
 
     return bl;
 }
 
 void removeLastButtonFromList(ButtonsList *bl)
 {
+    if(bl->length == 1)
+    {
+        delete bl->first;
+        bl->first = NULL;
+        bl->last = NULL;
+        bl->length--;
+        return;
+    }
+
     if(!isButtonsListEmpty(bl))
     {
         Button *aux = bl->last;
@@ -102,6 +167,11 @@ void clearButtonsList(ButtonsList *bl)
     }
 }
 
+void deleteButtonsList(ButtonsList *bl)
+{
+    clearButtonsList(bl);
+    delete bl;
+}
 
 void addButtonToList(ButtonsList *bl, Button *b)
 {
@@ -135,11 +205,17 @@ void drawButtonsList(ButtonsList *bl)
         // cout<<"Bottom right: "<<b->bottomRight.x<<" "<<b->bottomRight.y<<'\n';
         drawButton(b);
     }
+    bl->changes = false;
+}
+
+bool cursorInArea(ButtonsList* bl, int x, int y)
+{
+    return bl->topLeft.x < x && x < bl->bottomRight.x && bl->topLeft.y < y && y < bl->bottomRight.y;
 }
 
 bool cursorInArea(Button* b, int x, int y)
 {
-    return b->topLeft.x <= x && x <= b->bottomRight.x && b->topLeft.y <= y && y <= b->bottomRight.y;
+    return b->topLeft.x < x && x < b->bottomRight.x && b->topLeft.y < y && y < b->bottomRight.y;
 }
 
 MenuArea* initMenuArea(Point topLeft)
@@ -150,10 +226,10 @@ MenuArea* initMenuArea(Point topLeft)
     ma->topLeft = topLeft;
 
     char buttonsNames[][MAX_NAMES_LEN] = {"File", "Edit", "Format"};
-    ButtonType types[] = {FILEB, EDIT, FORMAT};
+    ButtonType types[] = {FILE_ACTIONS, EDIT, FORMAT};
 
-    ma->buttonsList = initButtonsList(buttonsNames, types, 3, MENUBAR);
-    ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 2*ma->buttonsList->first->padding};
+    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 3, MENUBAR);
+    ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 2*ma->buttonsList->first->paddingTopBottom};
 
     ma->changes = true;
     return ma;
@@ -174,7 +250,7 @@ void drawArea(MenuArea *ma)
 
 bool cursorInArea(MenuArea *ma, int x, int y)
 {
-    return ma->topLeft.x <= x && x <= ma->bottomRight.x && ma->topLeft.y <= y && y <= ma->bottomRight.y;
+    return ma->topLeft.x < x && x < ma->bottomRight.x && ma->topLeft.y < y && y < ma->bottomRight.y;
 }
 
 void handleHover(MenuArea *ma, int x, int y)
@@ -197,6 +273,59 @@ void clearHover(MenuArea *ma, int x, int y)
         if(!cursorInArea(currentButton, x, y) && currentButton->hovered == true)
         {
             currentButton->hovered = false;
+            currentButton->changes = true;
+            ma->changes = true;
+        }
+    }
+}
+
+void showFileActionsSubMenu(Button* b, MenuArea* ma)
+{
+    char buttonsNames[][MAX_NAMES_LEN] = {"New", "Save", "Save as..."};
+    ButtonType types[] = {NEW_FILE, SAVE_FILE, SAVE_AS_FILE};
+
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 3, SUBMENU1);
+}
+
+bool handleClick(MenuArea *ma, int x, int y)
+{
+    for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->pressed == false)
+        {
+            currentButton->pressed = true;
+            switch (currentButton->type)
+            {
+            case FILE_ACTIONS:
+                showFileActionsSubMenu(currentButton, ma);
+                break;
+            }
+
+            currentButton->changes = true;
+            ma->changes = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+void clearClick(Editor *e, int x, int y)
+{
+    MenuArea *ma = e->menuArea;
+    for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(!cursorInArea(currentButton, x, y) && currentButton->pressed == true)
+        {
+            currentButton->pressed = false;
+            switch (currentButton->type)
+            {
+            case FILE_ACTIONS:
+                deleteButtonsList(currentButton->subMenu);
+                currentButton->subMenu = NULL;
+                e->textArea->changes = true;
+                break;
+            }
+
             currentButton->changes = true;
             ma->changes = true;
         }
@@ -729,6 +858,8 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
     bool lineEnded = false;
     bool skippedNode;
 
+    setbkcolor(convertToBGIColor({255, 255, 255}));
+
     while(spaceRemainedOnScreen > 0 && !lineEnded && ptn != NULL)
     {
         numberOfCharsFromNode = ptn->length - (indexOfLine - ptn->start);
@@ -901,7 +1032,8 @@ void openFile(TextArea *ta, char *fileName)
             newBuffer->length++;
             lastAddedChar = ' ';
         }
-        if(numberOfSpaces > 0) {
+        if(numberOfSpaces > 0)
+        {
             numberOfSpaces = 0;
             ok = true;
         }
