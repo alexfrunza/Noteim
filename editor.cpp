@@ -30,7 +30,7 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
     b->prev = NULL;
 
     b->topLeft = topLeft;
-    b->bottomRight = {b->topLeft.x + strlen(name) * CHAR_WIDTH + b->padding, b->topLeft.y + CHAR_HEIGHT + b->padding};
+    b->bottomRight = {b->topLeft.x + strlen(name) * CHAR_WIDTH + 2*b->padding, b->topLeft.y + CHAR_HEIGHT + 2*b->padding};
 
     b->text = (char*) malloc(sizeof(char) * strlen(name));
     strcpy(b->text, name);
@@ -60,7 +60,7 @@ void drawButton(Button* b)
     }
 
     // TODO: change text background for outtextxy
-    bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x + b->padding, b->bottomRight.y + b->padding);
+    bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x, b->bottomRight.y);
     outtextxy(b->topLeft.x + b->padding, b->topLeft.y + b->padding, b->text);
 }
 
@@ -76,7 +76,7 @@ ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], ButtonType type
     {
         Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
         addButtonToList(bl, b);
-        topLeft = {b->bottomRight.x + b->padding, 0};
+        topLeft = {b->bottomRight.x, 0};
     }
 
     return bl;
