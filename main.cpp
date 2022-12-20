@@ -21,7 +21,7 @@ void logPieceTableNodes(PieceTable *pt)
     cout<<"NODES LIST: " << pt->nodesList->length << " nodes\n";
     while(ptn!=NULL)
     {
-        cout<<"START: "<<ptn->start<<" LENGTH: "<<ptn->length<< " NUMBERNEWLINES: " << ptn->numberNewLines << " ADRESS: "<<ptn <<'\n';
+        cout<<"START: "<<ptn->start<<" LENGTH: "<<ptn->length<< " NUMBERNEWLINES: " << ptn->numberNewLines << " ADDRESS: "<<ptn <<'\n';
         for(i=0; i<ptn->length; i++)
             cout << ptn->buffer->text[ptn->start+i];
         ptn = ptn->next;
@@ -100,37 +100,6 @@ int main()
             } else
             */
 
-            // Test scroll
-            /*
-            if(a == 'j')
-            {
-                if(e->textArea->firstLine > 0)
-                {
-                    e->textArea->firstLine--;
-                    e->textArea->changes = true;
-                }
-            }
-            else if(a=='k')
-            {
-                e->textArea->firstLine++;
-                e->textArea->changes = true;
-            }
-
-            else if(a=='h')
-            {
-                if(e->textArea->firstColumn > 0)
-                {
-                    e->textArea->firstColumn--;
-                    e->textArea->changes = true;
-                }
-
-            }
-            else if(a=='l')
-            {
-                e->textArea->firstColumn++;
-                e->textArea->changes = true;
-            }
-            else
             if(isDisplayedChar(a))
             {
                 addCharToTextArea(e->textArea,a);
@@ -138,24 +107,7 @@ int main()
             }
             // e->textArea->changes = true;
             // Logging pentru nodurile din tabel
-            //logPieceTableNodes(e->textArea->pieceTable);
-
-            /*
-            int i;
-            printf("\n");
-            PieceTableNode *ptn = e->textArea->pieceTable->nodesList->first;
-            while(ptn!=NULL)
-            {
-                i = 0;
-                while(i<ptn->length)
-                {
-                    printf("%c",ptn->buffer->text[i+ptn->start]);
-                    i++;
-                }
-                ptn = ptn->next;
-            }
-            */
-
+            // logPieceTableNodes(e->textArea->pieceTable);
         }
         drawEditor(e);
         delay(10);
