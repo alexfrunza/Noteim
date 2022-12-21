@@ -675,7 +675,7 @@ void removeCharFromTextArea(TextArea *ta)
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
-    settextstyle(0, HORIZ_DIR, 2);
+    settextstyle(0, HORIZ_DIR, 1);
 
     setbkcolor(WHITE);
     setcolor(BLACK);
