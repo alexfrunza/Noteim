@@ -9,27 +9,46 @@
 #define MAX_HEIGHT getmaxheight()
 #define MAX_NAMES_LEN 50
 
-enum ButtonType {
-    FILEB,
+enum ButtonType
+{
+    FILE_ACTIONS,
     EDIT,
-    FORMAT
+    FORMAT,
+    NEW_FILE,
+    SAVE_FILE,
+    SAVE_AS_FILE
 };
 
-enum ButtonStyle {
+enum ButtonStyle
+{
     MENUBAR,
     SUBMENU1
 };
 
-struct Button {
+struct ButtonsList;
+
+struct Button
+{
     char *text;
     ButtonType type;
     ButtonStyle style;
+
+
     bool hovered;
     bool changes;
-    unsigned int padding;
 
+    bool pressed;
+    ButtonsList *subMenu;
+
+    unsigned int lengthText;
+    unsigned int paddingTopBottom;
+    unsigned int paddingSides;
+
+    Color pressBK;
     Color hoverBK;
     Color normalBK;
+
+    Color pressFT;
     Color hoverFT;
     Color normalFT;
 
@@ -45,18 +64,26 @@ void drawButton(Button* b);
 bool cursorInArea(Button* b, int x, int y);
 
 
-struct ButtonsList {
+struct ButtonsList
+{
+    Point topLeft;
+    Point bottomRight;
+
     Button *first;
     Button *last;
+
     unsigned int length;
+    bool changes;
 };
 
 ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int length, ButtonType type, ButtonStyle style);
 void removeLastButtonFromList(ButtonsList *bl);
 void clearButtonsList(ButtonsList *bl);
+void deleteButtonsList(ButtonsList *bl);
 void addButtonToList(ButtonsList *bl, Button *b);
 bool isButtonsListEmpty(ButtonsList *bl);
 void drawButtonsList(ButtonsList *bl);
+bool cursorInArea(ButtonsList* bl, int x, int y);
 
 struct MenuArea
 {
@@ -74,6 +101,7 @@ void drawArea(MenuArea *ma);
 bool cursorInArea(MenuArea *ma, int x, int y);
 void handleHover(MenuArea *ma, int x, int y);
 void clearHover(MenuArea *ma, int x, int y);
+bool handleClick(MenuArea *ma, int x, int y);
 
 struct VerticalScrollBarArea
 {
@@ -154,5 +182,6 @@ struct Editor
 Editor* initEditor();
 void drawEditor(Editor *e);
 void stopEditor(Editor *e);
+void clearClick(Editor *e, int x, int y);
 
 #endif // NOTEIM_EDITOR_H

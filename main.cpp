@@ -40,15 +40,23 @@ int main()
         // cout<<mousex()<<" "<<mousey()<<'\n';
         int mx = mousex();
         int my = mousey();
-        if(cursorInArea(e->menuArea, mx, my)) {
-               handleHover(e->menuArea, mx, my);
+        if(cursorInArea(e->menuArea, mx, my))
+        {
+            handleHover(e->menuArea, mx, my);
         }
         clearHover(e->menuArea, mx, my);
+
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
+            /// Verify a button is clicked
+            bool pressed = false;
+            pressed = handleClick(e->menuArea, x, y);
+            clearClick(e, x, y);
+            ///
+
             if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&
-               y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y)
+                    y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
             {
                 x -= e->textArea->topLeft.x;
                 y -= e->textArea->topLeft.y;
