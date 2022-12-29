@@ -179,6 +179,7 @@ void moveCursor(TextArea *ta, Point dest);
 void moveCursorByArrow(TextArea *ta, char a);
 void openFile(TextArea *ta, char *fileName);
 void saveFile(TextArea *ta, char *fileName);
+void drawLines(TextArea *ta, int current_y, int end_y);
 
 struct Editor
 {

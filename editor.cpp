@@ -42,6 +42,10 @@
 #define PRESS_BK_SUBMENU1_BUTTON {145, 201, 247}
 #define PRESS_FONT_SUBMENU1_BUTTON {0, 0, 0}
 
+// TextArea
+#define TEXTAREA_BK_NORMAL {100, 0, 100}
+#define TEXTAREA_FONT_NORMAL {124, 225, 255}
+
 // For debugging
 #include <iostream>
 using namespace std;
@@ -986,7 +990,8 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
     bool lineEnded = false;
     bool skippedNode;
 
-    setbkcolor(convertToBGIColor({255, 255, 255}));
+    setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
 
     while(spaceRemainedOnScreen > 0 && !lineEnded && ptn != NULL)
     {
@@ -1082,20 +1087,16 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
     }
 }
 
-void drawArea(TextArea *ta)
+void drawLines(TextArea *ta, int current_y, int end_y)
 {
-    if(ta->changes==false)
-        return;
+    setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+    bar(ta->topLeft.x, current_y, ta->bottomRight.x, end_y);
 
-    int current_y=ta->topLeft.y;
+    long showedLines = (current_y - ta->topLeft.y) / CHAR_HEIGHT;
+    long currentLine = ta->firstLine + showedLines;
+    long mustShowLines = (end_y - ta->topLeft.y) / CHAR_HEIGHT;
 
-    setfillstyle(1, COLOR(255, 255, 255));
-    bar(ta->topLeft.x, ta->topLeft.y, ta->bottomRight.x, ta->bottomRight.y);
-
-    long showedLines = 0;
-    long currentLine = ta->firstLine;
-
-    while(showedLines < ta->maxLines)
+    while(showedLines < mustShowLines)
     {
         PieceTableNode* lineNode;
         long indexOfLine;
@@ -1103,18 +1104,27 @@ void drawArea(TextArea *ta)
         getWhereLineStarts(ta->pieceTable, currentLine, lineNode, indexOfLine);
         if(!lineNode)
         {
-            //cout<<"NU exista linia: "<<showedLines<<endl;
             break;
         }
 
-        //cout<<"LINIA: "<<showedLines<<endl;
-        //cout<<"*****: "<< indexOfLine<<"   "<<lineNode<<endl;
         showALine(current_y, ta, lineNode, indexOfLine);
 
         current_y += CHAR_HEIGHT;
         currentLine++;
         showedLines++;
     }
+}
+
+void drawArea(TextArea *ta)
+{
+    if(ta->changes==false)
+        return;
+
+    int current_y=ta->topLeft.y;
+    long showedLines = 0;
+    long currentLine = ta->firstLine;
+
+    drawLines(ta, current_y, ta->bottomRight.y);
 
     drawCursorLine(ta);
 }
