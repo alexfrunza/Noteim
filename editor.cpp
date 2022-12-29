@@ -42,6 +42,10 @@
 #define PRESS_BK_SUBMENU1_BUTTON {145, 201, 247}
 #define PRESS_FONT_SUBMENU1_BUTTON {0, 0, 0}
 
+// TextArea
+#define TEXTAREA_BK_NORMAL {100, 0, 100}
+#define TEXTAREA_FONT_NORMAL {124, 225, 255}
+
 // For debugging
 #include <iostream>
 using namespace std;
@@ -370,8 +374,9 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
     b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 3, SUBMENU1, SUBMENU1_BL);
 }
 
-bool handleClick(MenuArea *ma, int x, int y)
+bool handleClick(Editor *e, int x, int y)
 {
+    MenuArea *ma = e->menuArea;
     for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
     {
         if(currentButton->subMenu != NULL)
@@ -394,6 +399,12 @@ bool handleClick(MenuArea *ma, int x, int y)
                         break;
                     }
 
+                    deleteButtonsList(currentButton->subMenu);
+                    currentButton->subMenu = NULL;
+
+                    currentButton->pressed = false;
+                    e->textArea->changes = true;
+                    currentButton->changes = true;
                     subMenuButton->changes = true;
                     ma->changes = true;
                     return true;
@@ -418,20 +429,31 @@ bool handleClick(MenuArea *ma, int x, int y)
     return false;
 }
 
-void clearClick(Editor *e, int x, int y)
+bool clearClick(Editor *e, int x, int y)
 {
     MenuArea *ma = e->menuArea;
+    bool pressedSubMenu = false;
     for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
     {
         if(!cursorInArea(currentButton, x, y) && currentButton->pressed == true)
         {
-            currentButton->pressed = false;
             switch (currentButton->type)
             {
             case FILE_ACTIONS:
-                deleteButtonsList(currentButton->subMenu);
-                currentButton->subMenu = NULL;
-                e->textArea->changes = true;
+                if(currentButton->subMenu != NULL && cursorInArea(currentButton->subMenu, x, y))
+                {
+                    pressedSubMenu = true;
+                }
+                if(currentButton->subMenu != NULL && !cursorInArea(currentButton->subMenu, x, y))
+                {
+                    deleteButtonsList(currentButton->subMenu);
+                    currentButton->subMenu = NULL;
+                    currentButton->pressed = false;
+                    e->textArea->changes = true;
+                }
+                break;
+            default:
+                currentButton->pressed = false;
                 break;
             }
 
@@ -439,6 +461,7 @@ void clearClick(Editor *e, int x, int y)
             ma->changes = true;
         }
     }
+    return pressedSubMenu;
 }
 
 ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight)
@@ -967,7 +990,8 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
     bool lineEnded = false;
     bool skippedNode;
 
-    setbkcolor(convertToBGIColor({255, 255, 255}));
+    setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
 
     while(spaceRemainedOnScreen > 0 && !lineEnded && ptn != NULL)
     {
@@ -1063,20 +1087,16 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
     }
 }
 
-void drawArea(TextArea *ta)
+void drawLines(TextArea *ta, int current_y, int end_y)
 {
-    if(ta->changes==false)
-        return;
+    setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+    bar(ta->topLeft.x, current_y, ta->bottomRight.x, end_y);
 
-    int current_y=ta->topLeft.y;
+    long showedLines = (current_y - ta->topLeft.y) / CHAR_HEIGHT;
+    long currentLine = ta->firstLine + showedLines;
+    long mustShowLines = (end_y - ta->topLeft.y) / CHAR_HEIGHT;
 
-    setfillstyle(1, COLOR(255, 255, 255));
-    bar(ta->topLeft.x, ta->topLeft.y, ta->bottomRight.x, ta->bottomRight.y);
-
-    long showedLines = 0;
-    long currentLine = ta->firstLine;
-
-    while(showedLines < ta->maxLines)
+    while(showedLines < mustShowLines)
     {
         PieceTableNode* lineNode;
         long indexOfLine;
@@ -1084,18 +1104,27 @@ void drawArea(TextArea *ta)
         getWhereLineStarts(ta->pieceTable, currentLine, lineNode, indexOfLine);
         if(!lineNode)
         {
-            //cout<<"NU exista linia: "<<showedLines<<endl;
             break;
         }
 
-        //cout<<"LINIA: "<<showedLines<<endl;
-        //cout<<"*****: "<< indexOfLine<<"   "<<lineNode<<endl;
         showALine(current_y, ta, lineNode, indexOfLine);
 
         current_y += CHAR_HEIGHT;
         currentLine++;
         showedLines++;
     }
+}
+
+void drawArea(TextArea *ta)
+{
+    if(ta->changes==false)
+        return;
+
+    int current_y=ta->topLeft.y;
+    long showedLines = 0;
+    long currentLine = ta->firstLine;
+
+    drawLines(ta, current_y, ta->bottomRight.y);
 
     drawCursorLine(ta);
 }

@@ -110,7 +110,6 @@ void drawArea(MenuArea *ma);
 bool cursorInArea(MenuArea *ma, int x, int y);
 void handleHover(MenuArea *ma, int x, int y);
 void clearHover(MenuArea *ma, int x, int y);
-bool handleClick(MenuArea *ma, int x, int y);
 
 struct VerticalScrollBarArea
 {
@@ -180,6 +179,7 @@ void moveCursor(TextArea *ta, Point dest);
 void moveCursorByArrow(TextArea *ta, char a);
 void openFile(TextArea *ta, char *fileName);
 void saveFile(TextArea *ta, char *fileName);
+void drawLines(TextArea *ta, int current_y, int end_y);
 
 struct Editor
 {
@@ -191,6 +191,7 @@ struct Editor
 Editor* initEditor();
 void drawEditor(Editor *e);
 void stopEditor(Editor *e);
-void clearClick(Editor *e, int x, int y);
+bool handleClick(Editor *e, int x, int y);
+bool clearClick(Editor *e, int x, int y);
 
 #endif // NOTEIM_EDITOR_H
