@@ -25,6 +25,12 @@ enum ButtonStyle
     SUBMENU1
 };
 
+enum ButtonListStyle
+{
+    MENUBAR_BL,
+    SUBMENU1_BL
+};
+
 struct ButtonsList;
 
 struct Button
@@ -74,6 +80,9 @@ struct ButtonsList
 
     unsigned int length;
     bool changes;
+
+    bool bkChanged;
+    ButtonListStyle style;
 };
 
 ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int length, ButtonType type, ButtonStyle style);
