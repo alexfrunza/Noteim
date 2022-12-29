@@ -46,10 +46,10 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
-            /// Verify a button is clicked
+            /// Verify a button is clicked or something from a submenu
             bool pressed = false;
-            pressed = handleClick(e->menuArea, x, y);
-            clearClick(e, x, y);
+            pressed = handleClick(e, x, y);
+            pressed = clearClick(e, x, y) || pressed;
             ///
 
             if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&

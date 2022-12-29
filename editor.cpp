@@ -370,8 +370,9 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
     b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 3, SUBMENU1, SUBMENU1_BL);
 }
 
-bool handleClick(MenuArea *ma, int x, int y)
+bool handleClick(Editor *e, int x, int y)
 {
+    MenuArea *ma = e->menuArea;
     for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
     {
         if(currentButton->subMenu != NULL)
@@ -394,6 +395,12 @@ bool handleClick(MenuArea *ma, int x, int y)
                         break;
                     }
 
+                    deleteButtonsList(currentButton->subMenu);
+                    currentButton->subMenu = NULL;
+
+                    currentButton->pressed = false;
+                    e->textArea->changes = true;
+                    currentButton->changes = true;
                     subMenuButton->changes = true;
                     ma->changes = true;
                     return true;
@@ -418,20 +425,31 @@ bool handleClick(MenuArea *ma, int x, int y)
     return false;
 }
 
-void clearClick(Editor *e, int x, int y)
+bool clearClick(Editor *e, int x, int y)
 {
     MenuArea *ma = e->menuArea;
+    bool pressedSubMenu = false;
     for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
     {
         if(!cursorInArea(currentButton, x, y) && currentButton->pressed == true)
         {
-            currentButton->pressed = false;
             switch (currentButton->type)
             {
             case FILE_ACTIONS:
-                deleteButtonsList(currentButton->subMenu);
-                currentButton->subMenu = NULL;
-                e->textArea->changes = true;
+                if(currentButton->subMenu != NULL && cursorInArea(currentButton->subMenu, x, y))
+                {
+                    pressedSubMenu = true;
+                }
+                if(currentButton->subMenu != NULL && !cursorInArea(currentButton->subMenu, x, y))
+                {
+                    deleteButtonsList(currentButton->subMenu);
+                    currentButton->subMenu = NULL;
+                    currentButton->pressed = false;
+                    e->textArea->changes = true;
+                }
+                break;
+            default:
+                currentButton->pressed = false;
                 break;
             }
 
@@ -439,6 +457,7 @@ void clearClick(Editor *e, int x, int y)
             ma->changes = true;
         }
     }
+    return pressedSubMenu;
 }
 
 ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight)
