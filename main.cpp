@@ -40,10 +40,7 @@ int main()
         // cout<<mousex()<<" "<<mousey()<<'\n';
         int mx = mousex();
         int my = mousey();
-        if(cursorInArea(e->menuArea, mx, my))
-        {
-            handleHover(e->menuArea, mx, my);
-        }
+        handleHover(e->menuArea, mx, my);
         clearHover(e->menuArea, mx, my);
 
         if(ismouseclick(WM_LBUTTONDOWN))
