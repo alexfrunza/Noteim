@@ -7,6 +7,45 @@
 #include "editor.h"
 #include "helpers.h"
 
+// MenuBar
+#define MENU_BAR_SEPARATOR_BAR {211, 211, 211}
+#define MENU_BAR_BK {0, 0, 0}
+
+// Buttons menu bar
+#define PADDING_SIDES_MENU_BAR_BUTTON 10
+#define PADDING_TOP_BOTTOM_MENU_BAR_BUTTON 5
+
+// Colors
+#define HOVER_BK_MENU_BAR_BUTTON {229, 243, 255}
+#define HOVER_FONT_MENU_BAR_BUTTON {0, 0, 0}
+#define NORMAL_BK_MENU_BAR_BUTTON {255, 255, 255}
+#define NORMAL_FONT_MENU_BAR_BUTTON {0, 0, 0}
+#define PRESS_BK_MENU_BAR_BUTTON {204, 232, 255}
+#define PRESS_FONT_MENU_BAR_BUTTON {0, 0, 0}
+
+// Submenu1
+#define SUBMENU1_PADDING 2
+#define SUBMENU1_BK {100, 100, 100}
+#define SUBMENU1_SHADOW {200, 200, 200}
+#define SUBMENU1_SHADOW_OFF 7
+
+// Buttons submenu1
+#define PADDING_SIDES_SUBMENU1_BUTTON 20
+#define PADDING_TOP_BOTTOM_SUBMENU1_BUTTON 5
+#define LENGTH_SEPARATOR_BUTTON_BOTTOM 2
+
+// Colors
+#define HOVER_BK_SUBMENU1_BUTTON {145, 201, 247}
+#define HOVER_FONT_SUBMENU1_BUTTON {0, 0, 0}
+#define NORMAL_BK_SUBMENU1_BUTTON {242, 242, 242}
+#define NORMAL_FONT_SUBMENU1_BUTTON {0, 0, 0}
+#define PRESS_BK_SUBMENU1_BUTTON {145, 201, 247}
+#define PRESS_FONT_SUBMENU1_BUTTON {0, 0, 0}
+
+// TextArea
+#define TEXTAREA_BK_NORMAL {100, 0, 100}
+#define TEXTAREA_FONT_NORMAL {124, 225, 255}
+
 // For debugging
 #include <iostream>
 using namespace std;
@@ -23,26 +62,26 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
     b->style = style;
     if(b->style == MENUBAR)
     {
-        b->paddingSides = 10;
-        b->paddingTopBottom = 5;
-        b->hoverBK = {229, 243, 255};
-        b->hoverFT = {0, 0, 0};
-        b->normalBK = {255, 255, 255};
-        b->normalFT = {0, 0, 0};
-        b->pressBK = {204, 232, 255};
-        b->pressFT = {0, 0, 0};
+        b->paddingSides = PADDING_SIDES_MENU_BAR_BUTTON;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MENU_BAR_BUTTON;
+        b->hoverBK = HOVER_BK_MENU_BAR_BUTTON;
+        b->hoverFT = HOVER_FONT_MENU_BAR_BUTTON;
+        b->normalBK = NORMAL_BK_MENU_BAR_BUTTON;
+        b->normalFT = NORMAL_FONT_MENU_BAR_BUTTON;
+        b->pressBK = PRESS_BK_MENU_BAR_BUTTON;
+        b->pressFT = PRESS_FONT_MENU_BAR_BUTTON;
         b->lengthText = strlen(name) * CHAR_WIDTH;
     }
     else if(b->style == SUBMENU1)
     {
-        b->paddingSides = 20;
-        b->paddingTopBottom = 5;
-        b->hoverBK = {145, 201, 247};
-        b->hoverFT = {0, 0, 0};
-        b->normalBK = {242, 242, 242};
-        b->normalFT = {0, 0, 0};
-        b->pressBK = {145, 201, 247};
-        b->pressFT = {0, 0, 0};
+        b->paddingSides = PADDING_SIDES_SUBMENU1_BUTTON;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_SUBMENU1_BUTTON;
+        b->hoverBK = HOVER_BK_SUBMENU1_BUTTON;
+        b->hoverFT = HOVER_FONT_SUBMENU1_BUTTON;
+        b->normalBK = NORMAL_BK_SUBMENU1_BUTTON;
+        b->normalFT = NORMAL_FONT_SUBMENU1_BUTTON;
+        b->pressBK = PRESS_BK_SUBMENU1_BUTTON;
+        b->pressFT = PRESS_FONT_SUBMENU1_BUTTON;
         b->lengthText = 20 * CHAR_WIDTH;
     }
 
@@ -71,12 +110,6 @@ void drawButton(Button* b)
     if(b->changes == false)
         return;
 
-    if(b->style == SUBMENU1)
-    {
-        setfillstyle(SOLID_FILL, 3);
-        bar(b->topLeft.x, b->bottomRight.y - 2,  b->bottomRight.x, b->bottomRight.y);
-    }
-
     if(b->pressed == true)
     {
         setfillstyle(SOLID_FILL, convertToBGIColor(b->pressBK));
@@ -101,7 +134,7 @@ void drawButton(Button* b)
     b->changes = false;
 }
 
-ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle style)
+ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle style, ButtonListStyle styleBl)
 {
     ButtonsList* bl = new ButtonsList;
     bl->changes = true;
@@ -109,6 +142,8 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
     bl->last = NULL;
     bl->length = 0;
     bl->topLeft = topLeft;
+    bl->bkChanged = true;
+    bl->style = styleBl;
 
     if(style == MENUBAR)
     {
@@ -123,7 +158,19 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
     }
     else if (style == SUBMENU1)
     {
-        for(int i=0; i<length; i++)
+        topLeft.x += SUBMENU1_PADDING;
+        topLeft.y += SUBMENU1_PADDING;
+        int i;
+        for(i=0; i<length-1; i++)
+        {
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+
+            addButtonToList(bl, b);
+            topLeft.y = b->bottomRight.y + LENGTH_SEPARATOR_BUTTON_BOTTOM;
+            bl->bottomRight.x = b->bottomRight.x;
+            bl->bottomRight.y = b->bottomRight.y;
+        }
+        if(length > 0)
         {
             Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
             addButtonToList(bl, b);
@@ -131,9 +178,9 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
             bl->bottomRight.x = b->bottomRight.x;
             bl->bottomRight.y = b->bottomRight.y;
         }
+        bl->bottomRight.x += SUBMENU1_PADDING;
+        bl->bottomRight.y += SUBMENU1_PADDING;
     }
-
-    // cout<<"Coordonate lista butoane: "<<bl->topLeft.x<< " "<<bl->topLeft.y<<" - "<<bl->bottomRight.x<<" "<<bl->bottomRight.y<<'\n';
 
     return bl;
 }
@@ -198,13 +245,30 @@ bool isButtonsListEmpty(ButtonsList *bl)
 
 void drawButtonsList(ButtonsList *bl)
 {
-    // cout<<"GOO\n";
+    if(bl->bkChanged)
+    {
+        switch (bl->style)
+        {
+        case MENUBAR_BL:
+            setfillstyle(SOLID_FILL, convertToBGIColor(MENU_BAR_BK));
+            bar(bl->topLeft.x, bl->topLeft.y, bl->bottomRight.x, bl->bottomRight.y);
+            break;
+        case SUBMENU1_BL:
+            setfillstyle(SOLID_FILL, convertToBGIColor(SUBMENU1_SHADOW));
+            bar(bl->topLeft.x + SUBMENU1_SHADOW_OFF, bl->topLeft.y + SUBMENU1_SHADOW_OFF, bl->bottomRight.x + SUBMENU1_SHADOW_OFF, bl->bottomRight.y + SUBMENU1_SHADOW_OFF);
+
+            setfillstyle(SOLID_FILL, convertToBGIColor(SUBMENU1_BK));
+            bar(bl->topLeft.x, bl->topLeft.y, bl->bottomRight.x, bl->bottomRight.y);
+            break;
+        }
+        bl->bkChanged = false;
+    }
+
     for(Button *b = bl->first; b; b = b->next)
     {
-        // cout<<"TOP LEFT: "<<b->topLeft.x<<" "<<b->topLeft.y<<'\n';
-        // cout<<"Bottom right: "<<b->bottomRight.x<<" "<<b->bottomRight.y<<'\n';
         drawButton(b);
     }
+
     bl->changes = false;
 }
 
@@ -228,7 +292,7 @@ MenuArea* initMenuArea(Point topLeft)
     char buttonsNames[][MAX_NAMES_LEN] = {"File", "Edit", "Format"};
     ButtonType types[] = {FILE_ACTIONS, EDIT, FORMAT};
 
-    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 3, MENUBAR);
+    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 3, MENUBAR, MENUBAR_BL);
     ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 2*ma->buttonsList->first->paddingTopBottom};
 
     ma->changes = true;
@@ -240,8 +304,7 @@ void drawArea(MenuArea *ma)
     if(ma->changes == false)
         return;
 
-    // 7 is for light grey
-    setfillstyle(SOLID_FILL, 7);
+    setfillstyle(SOLID_FILL, convertToBGIColor(MENU_BAR_SEPARATOR_BAR));
     bar(ma->topLeft.x, ma->bottomRight.y - ma->separatorLength, ma->bottomRight.x, ma->bottomRight.y);
 
     drawButtonsList(ma->buttonsList);
@@ -257,6 +320,18 @@ void handleHover(MenuArea *ma, int x, int y)
 {
     for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
     {
+        if(currentButton->subMenu != NULL)
+        {
+            for(Button* subMenuButton = currentButton->subMenu->first; subMenuButton != NULL; subMenuButton = subMenuButton->next)
+            {
+                if(cursorInArea(subMenuButton, x, y) && subMenuButton->hovered == false)
+                {
+                    subMenuButton->hovered = true;
+                    subMenuButton->changes = true;
+                    ma->changes = true;
+                }
+            }
+        }
         if(cursorInArea(currentButton, x, y) && currentButton->hovered == false)
         {
             currentButton->hovered = true;
@@ -270,6 +345,18 @@ void clearHover(MenuArea *ma, int x, int y)
 {
     for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
     {
+        if(currentButton->subMenu != NULL)
+        {
+            for(Button* subMenuButton = currentButton->subMenu->first; subMenuButton != NULL; subMenuButton = subMenuButton->next)
+            {
+                if(!cursorInArea(subMenuButton, x, y) && subMenuButton->hovered == true)
+                {
+                    subMenuButton->hovered = false;
+                    subMenuButton->changes = true;
+                    ma->changes = true;
+                }
+            }
+        }
         if(!cursorInArea(currentButton, x, y) && currentButton->hovered == true)
         {
             currentButton->hovered = false;
@@ -284,13 +371,46 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
     char buttonsNames[][MAX_NAMES_LEN] = {"New", "Save", "Save as..."};
     ButtonType types[] = {NEW_FILE, SAVE_FILE, SAVE_AS_FILE};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 3, SUBMENU1);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 3, SUBMENU1, SUBMENU1_BL);
 }
 
-bool handleClick(MenuArea *ma, int x, int y)
+bool handleClick(Editor *e, int x, int y)
 {
+    MenuArea *ma = e->menuArea;
     for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
     {
+        if(currentButton->subMenu != NULL)
+        {
+            for(Button* subMenuButton = currentButton->subMenu->first; subMenuButton != NULL; subMenuButton = subMenuButton->next)
+            {
+                if(cursorInArea(subMenuButton, x, y))
+                {
+                    subMenuButton->pressed = true;
+                    switch (subMenuButton->type)
+                    {
+                    case SAVE_FILE:
+                        cout<<"Am salvat fisierul\n";
+                        break;
+                    case NEW_FILE:
+                        cout<<"Fisier nou\n";
+                        break;
+                    case SAVE_AS_FILE:
+                        cout<<"Salveaza fisier ca...\n";
+                        break;
+                    }
+
+                    deleteButtonsList(currentButton->subMenu);
+                    currentButton->subMenu = NULL;
+
+                    currentButton->pressed = false;
+                    e->textArea->changes = true;
+                    currentButton->changes = true;
+                    subMenuButton->changes = true;
+                    ma->changes = true;
+                    return true;
+                }
+            }
+        }
         if(cursorInArea(currentButton, x, y) && currentButton->pressed == false)
         {
             currentButton->pressed = true;
@@ -309,20 +429,31 @@ bool handleClick(MenuArea *ma, int x, int y)
     return false;
 }
 
-void clearClick(Editor *e, int x, int y)
+bool clearClick(Editor *e, int x, int y)
 {
     MenuArea *ma = e->menuArea;
+    bool pressedSubMenu = false;
     for(Button* currentButton = ma->buttonsList->first; currentButton != NULL; currentButton = currentButton->next)
     {
         if(!cursorInArea(currentButton, x, y) && currentButton->pressed == true)
         {
-            currentButton->pressed = false;
             switch (currentButton->type)
             {
             case FILE_ACTIONS:
-                deleteButtonsList(currentButton->subMenu);
-                currentButton->subMenu = NULL;
-                e->textArea->changes = true;
+                if(currentButton->subMenu != NULL && cursorInArea(currentButton->subMenu, x, y))
+                {
+                    pressedSubMenu = true;
+                }
+                if(currentButton->subMenu != NULL && !cursorInArea(currentButton->subMenu, x, y))
+                {
+                    deleteButtonsList(currentButton->subMenu);
+                    currentButton->subMenu = NULL;
+                    currentButton->pressed = false;
+                    e->textArea->changes = true;
+                }
+                break;
+            default:
+                currentButton->pressed = false;
                 break;
             }
 
@@ -330,6 +461,7 @@ void clearClick(Editor *e, int x, int y)
             ma->changes = true;
         }
     }
+    return pressedSubMenu;
 }
 
 ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight)
@@ -858,7 +990,8 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
     bool lineEnded = false;
     bool skippedNode;
 
-    setbkcolor(convertToBGIColor({255, 255, 255}));
+    setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
 
     while(spaceRemainedOnScreen > 0 && !lineEnded && ptn != NULL)
     {
@@ -954,20 +1087,16 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
     }
 }
 
-void drawArea(TextArea *ta)
+void drawLines(TextArea *ta, int current_y, int end_y)
 {
-    if(ta->changes==false)
-        return;
+    setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+    bar(ta->topLeft.x, current_y, ta->bottomRight.x, end_y);
 
-    int current_y=ta->topLeft.y;
+    long showedLines = (current_y - ta->topLeft.y) / CHAR_HEIGHT;
+    long currentLine = ta->firstLine + showedLines;
+    long mustShowLines = (end_y - ta->topLeft.y) / CHAR_HEIGHT;
 
-    setfillstyle(1, COLOR(255, 255, 255));
-    bar(ta->topLeft.x, ta->topLeft.y, ta->bottomRight.x, ta->bottomRight.y);
-
-    long showedLines = 0;
-    long currentLine = ta->firstLine;
-
-    while(showedLines < ta->maxLines)
+    while(showedLines < mustShowLines)
     {
         PieceTableNode* lineNode;
         long indexOfLine;
@@ -975,18 +1104,27 @@ void drawArea(TextArea *ta)
         getWhereLineStarts(ta->pieceTable, currentLine, lineNode, indexOfLine);
         if(!lineNode)
         {
-            //cout<<"NU exista linia: "<<showedLines<<endl;
             break;
         }
 
-        //cout<<"LINIA: "<<showedLines<<endl;
-        //cout<<"*****: "<< indexOfLine<<"   "<<lineNode<<endl;
         showALine(current_y, ta, lineNode, indexOfLine);
 
         current_y += CHAR_HEIGHT;
         currentLine++;
         showedLines++;
     }
+}
+
+void drawArea(TextArea *ta)
+{
+    if(ta->changes==false)
+        return;
+
+    int current_y=ta->topLeft.y;
+    long showedLines = 0;
+    long currentLine = ta->firstLine;
+
+    drawLines(ta, current_y, ta->bottomRight.y);
 
     drawCursorLine(ta);
 }
