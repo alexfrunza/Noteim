@@ -28,6 +28,7 @@
 #define SUBMENU1_BK {100, 100, 100}
 #define SUBMENU1_SHADOW {200, 200, 200}
 #define SUBMENU1_SHADOW_OFF 7
+#define SUBMENU1_CHARS_BUTTON 20
 
 // Buttons submenu1
 #define PADDING_SIDES_SUBMENU1_BUTTON 20
@@ -46,6 +47,34 @@
 #define TEXTAREA_BK_NORMAL {100, 0, 100}
 #define TEXTAREA_FONT_NORMAL {124, 225, 255}
 
+// Modal1
+#define MODAL1_BK_NORMAL {150, 150, 150}
+#define MODAL1_FONT_NORMAL {0, 0, 0}
+#define MODAL1_SHADOW {170, 170, 170}
+#define MODAL1_SHADOW_OFF 15
+#define MODAL1_PADDING 30
+#define MODAL1_HEIGHT 200
+#define MODAL1_WIDTH 600
+#define MODAL1_CHARS_BUTTON 10
+
+// Buttons modal1
+#define PADDING_SIDES_MODAL1_BTN 20
+#define PADDING_TOP_BOTTOM_MODAL1_BTN 10
+
+#define HOVER_BK_MODAL1_YES_BUTTON {41, 204, 82}
+#define HOVER_FONT_MODAL1_YES_BUTTON {0, 0, 0}
+#define NORMAL_BK_MODAL1_YES_BUTTON {52, 255, 104}
+#define NORMAL_FONT_MODAL1_YES_BUTTON {0, 0, 0}
+#define PRESS_BK_MODAL1_YES_BUTTON {41, 204, 82}
+#define PRESS_FONT_MODAL1_YES_BUTTON {0, 0, 0}
+
+#define HOVER_BK_MODAL1_NO_BUTTON {217, 61, 92}
+#define HOVER_FONT_MODAL1_NO_BUTTON {0, 0, 0}
+#define NORMAL_BK_MODAL1_NO_BUTTON {255, 71, 109}
+#define NORMAL_FONT_MODAL1_NO_BUTTON {0, 0, 0}
+#define PRESS_BK_MODAL1_NO_BUTTON {217, 61, 92}
+#define PRESS_FONT_MODAL1_NO_BUTTON {0, 0, 0}
+
 // For debugging
 #include <iostream>
 using namespace std;
@@ -60,8 +89,9 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
 
     b->type = type;
     b->style = style;
-    if(b->style == MENUBAR)
+    switch (b->style)
     {
+    case MENUBAR:
         b->paddingSides = PADDING_SIDES_MENU_BAR_BUTTON;
         b->paddingTopBottom = PADDING_TOP_BOTTOM_MENU_BAR_BUTTON;
         b->hoverBK = HOVER_BK_MENU_BAR_BUTTON;
@@ -71,9 +101,8 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
         b->pressBK = PRESS_BK_MENU_BAR_BUTTON;
         b->pressFT = PRESS_FONT_MENU_BAR_BUTTON;
         b->lengthText = strlen(name) * CHAR_WIDTH;
-    }
-    else if(b->style == SUBMENU1)
-    {
+        break;
+    case SUBMENU1:
         b->paddingSides = PADDING_SIDES_SUBMENU1_BUTTON;
         b->paddingTopBottom = PADDING_TOP_BOTTOM_SUBMENU1_BUTTON;
         b->hoverBK = HOVER_BK_SUBMENU1_BUTTON;
@@ -82,7 +111,35 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
         b->normalFT = NORMAL_FONT_SUBMENU1_BUTTON;
         b->pressBK = PRESS_BK_SUBMENU1_BUTTON;
         b->pressFT = PRESS_FONT_SUBMENU1_BUTTON;
-        b->lengthText = 20 * CHAR_WIDTH;
+        b->lengthText = SUBMENU1_CHARS_BUTTON * CHAR_WIDTH;
+        break;
+    case MODAL1_CONFIRM_STYLE:
+        b->paddingSides = PADDING_SIDES_MODAL1_BTN;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MODAL1_BTN;
+
+        b->hoverBK = HOVER_BK_MODAL1_YES_BUTTON;
+        b->hoverFT = HOVER_FONT_MODAL1_YES_BUTTON;
+        b->normalBK = NORMAL_BK_MODAL1_YES_BUTTON;
+        b->normalFT = NORMAL_FONT_MODAL1_YES_BUTTON;
+        b->pressBK = PRESS_BK_MODAL1_YES_BUTTON;
+        b->pressFT = PRESS_FONT_MODAL1_YES_BUTTON;
+
+
+        b->lengthText = MODAL1_CHARS_BUTTON * CHAR_WIDTH;
+        break;
+    case MODAL1_CANCEL_STYLE:
+        b->paddingSides = PADDING_SIDES_MODAL1_BTN;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MODAL1_BTN;
+
+        b->hoverBK = HOVER_BK_MODAL1_NO_BUTTON;
+        b->hoverFT = HOVER_FONT_MODAL1_NO_BUTTON;
+        b->normalBK = NORMAL_BK_MODAL1_NO_BUTTON;
+        b->normalFT = NORMAL_FONT_MODAL1_NO_BUTTON;
+        b->pressBK = PRESS_BK_MODAL1_NO_BUTTON;
+        b->pressFT = PRESS_FONT_MODAL1_NO_BUTTON;
+
+        b->lengthText = MODAL1_CHARS_BUTTON * CHAR_WIDTH;
+        break;
     }
 
     b->next = NULL;
@@ -130,11 +187,24 @@ void drawButton(Button* b)
     }
 
     bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x, b->bottomRight.y);
-    outtextxy(b->topLeft.x + b->paddingSides, b->topLeft.y + b->paddingTopBottom, b->text);
+
+    int x;
+    switch (b->style)
+    {
+    // Center text in button for modal buttons
+    case MODAL1_CONFIRM_STYLE:
+    case MODAL1_CANCEL_STYLE:
+        x = (b->topLeft.x + b->bottomRight.x - strlen(b->text)*CHAR_WIDTH) / 2;
+        outtextxy(x, b->topLeft.y + b->paddingTopBottom, b->text);
+        break;
+    default:
+        outtextxy(b->topLeft.x + b->paddingSides, b->topLeft.y + b->paddingTopBottom, b->text);
+        break;
+    }
     b->changes = false;
 }
 
-ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle style, ButtonListStyle styleBl)
+ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle styles[], ButtonListStyle styleBl)
 {
     ButtonsList* bl = new ButtonsList;
     bl->changes = true;
@@ -145,25 +215,25 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
     bl->bkChanged = true;
     bl->style = styleBl;
 
-    if(style == MENUBAR)
+    switch (styleBl)
     {
+    case MENUBAR_BL:
         for(int i=0; i<length; i++)
         {
-            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], styles[i]);
             addButtonToList(bl, b);
             topLeft.x = b->bottomRight.x;
             bl->bottomRight.x = b->bottomRight.x;
             bl->bottomRight.y = b->bottomRight.y;
         }
-    }
-    else if (style == SUBMENU1)
-    {
+        break;
+    case SUBMENU1_BL:
         topLeft.x += SUBMENU1_PADDING;
         topLeft.y += SUBMENU1_PADDING;
         int i;
         for(i=0; i<length-1; i++)
         {
-            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], styles[i]);
 
             addButtonToList(bl, b);
             topLeft.y = b->bottomRight.y + LENGTH_SEPARATOR_BUTTON_BOTTOM;
@@ -172,7 +242,7 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
         }
         if(length > 0)
         {
-            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], styles[i]);
             addButtonToList(bl, b);
             topLeft.y = b->bottomRight.y;
             bl->bottomRight.x = b->bottomRight.x;
@@ -180,6 +250,17 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
         }
         bl->bottomRight.x += SUBMENU1_PADDING;
         bl->bottomRight.y += SUBMENU1_PADDING;
+        break;
+    case MODAL1_BL:
+        Button* b = initButton(buttonsNames[0], topLeft, types[0], styles[0]);
+        addButtonToList(bl, b);
+
+        topLeft.x = (MAX_WIDTH + MODAL1_WIDTH) / 2 - MODAL1_PADDING - 2*PADDING_SIDES_MODAL1_BTN - CHAR_WIDTH * MODAL1_CHARS_BUTTON;
+        b = initButton(buttonsNames[1], topLeft, types[1], styles[1]);
+        addButtonToList(bl, b);
+
+        bl->bottomRight = b->bottomRight;
+        break;
     }
 
     return bl;
@@ -201,6 +282,7 @@ void removeLastButtonFromList(ButtonsList *bl)
         Button *aux = bl->last;
         bl->last = bl->last->prev;
         bl->last->next = NULL;
+        free(aux->text);
         delete aux;
         bl->length--;
     }
@@ -282,17 +364,19 @@ bool cursorInArea(Button* b, int x, int y)
     return b->topLeft.x < x && x < b->bottomRight.x && b->topLeft.y < y && y < b->bottomRight.y;
 }
 
-MenuArea* initMenuArea(Point topLeft)
+MenuArea* initMenuArea(Point topLeft, Editor *e)
 {
     MenuArea* ma = new MenuArea;
+    ma->e = e;
     ma->separatorLength = 2;
 
     ma->topLeft = topLeft;
 
     char buttonsNames[][MAX_NAMES_LEN] = {"File", "Edit", "Format"};
     ButtonType types[] = {FILE_ACTIONS, EDIT, FORMAT};
+    ButtonStyle styles[] = {MENUBAR, MENUBAR, MENUBAR};
 
-    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 3, MENUBAR, MENUBAR_BL);
+    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 3, styles, MENUBAR_BL);
     ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 2*ma->buttonsList->first->paddingTopBottom};
 
     ma->changes = true;
@@ -368,11 +452,18 @@ void clearHover(MenuArea *ma, int x, int y)
 
 void showFileActionsSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"New", "Save", "Save as..."};
-    ButtonType types[] = {NEW_FILE, SAVE_FILE, SAVE_AS_FILE};
+    char buttonsNames[][MAX_NAMES_LEN] = {"New", "Open file...", "Save", "Save as..."};
+    ButtonType types[] = {NEW_FILE, OPEN_FILE, SAVE_FILE, SAVE_AS_FILE};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 3, SUBMENU1, SUBMENU1_BL);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
 }
+
+// test
+void blabla(Editor* e)
+{
+}
+//
 
 bool handleClick(Editor *e, int x, int y)
 {
@@ -393,6 +484,7 @@ bool handleClick(Editor *e, int x, int y)
                         break;
                     case NEW_FILE:
                         cout<<"Fisier nou\n";
+                        initModal1(e, "Esti sigur ca vrei sa faci asta?", "bla bla bla\nalt text", &blabla);
                         break;
                     case SAVE_AS_FILE:
                         cout<<"Salveaza fisier ca...\n";
@@ -401,7 +493,6 @@ bool handleClick(Editor *e, int x, int y)
 
                     deleteButtonsList(currentButton->subMenu);
                     currentButton->subMenu = NULL;
-
                     currentButton->pressed = false;
                     e->textArea->changes = true;
                     currentButton->changes = true;
@@ -948,7 +1039,7 @@ Editor* initEditor()
     Point topLeft, bottomRight;
 
     topLeft= {0, 0};
-    e->menuArea = initMenuArea(topLeft);
+    e->menuArea = initMenuArea(topLeft, e);
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
@@ -968,6 +1059,10 @@ Editor* initEditor()
 
     e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
     //e->textArea = initTextArea(topLeft, bottomRight);
+
+
+    e->modalOpen = false;
+    e->m1 = NULL;
 
     return e;
 }
@@ -1316,8 +1411,16 @@ void saveFile(TextArea *ta, char *fileName)
 
 void drawEditor(Editor *e)
 {
+
     drawArea(e->textArea);
     drawArea(e->menuArea);
+    if(e->modalOpen)
+    {
+        if(e->m1 != NULL)
+        {
+            drawModal1(e->m1);
+        }
+    }
     //drawArea(e->scrollBarsArea);
     e->textArea->changes = false;
 }
@@ -1327,4 +1430,134 @@ void stopEditor(Editor *e)
     e->running = false;
     closegraph();
     // TODO: Delete data from memory
+}
+
+Modal1* initModal1(Editor *e, char *title, char *description, void (*action)(Editor*))
+{
+    e->modalOpen = true;
+
+    Modal1 *m1 = new Modal1;
+    e->m1 = m1;
+    m1->changes = true;
+    m1->bkChanges = true;
+
+    m1->topLeft.x = (MAX_WIDTH - MODAL1_WIDTH) / 2;
+    m1->topLeft.y = (MAX_HEIGHT - MODAL1_HEIGHT) / 2;
+    m1->bottomRight.x = m1->topLeft.x + MODAL1_WIDTH;
+    m1->bottomRight.y = m1->topLeft.y + MODAL1_HEIGHT;
+
+    m1->title = (char*) malloc(sizeof(char) * strlen(title));
+    strcpy(m1->title, title);
+    m1->description = (char*) malloc(sizeof(char) * strlen(description));
+    strcpy(m1->description, description);
+
+    char buttonsNames[][MAX_NAMES_LEN] = {"Confirm", "Cancel"};
+    ButtonType types[] = {MODAL1_CONFIRM, MODAL1_CANCEL};
+    ButtonStyle styles[] = {MODAL1_CONFIRM_STYLE, MODAL1_CANCEL_STYLE};
+
+    m1->bl = initButtonsList({m1->topLeft.x + MODAL1_PADDING, m1->bottomRight.y - MODAL1_PADDING - CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL1_BTN},
+                             buttonsNames, types, 2, styles, MODAL1_BL);
+
+    m1->action = action;
+    m1->e = e;
+}
+
+void deleteModal1(Modal1 *m1)
+{
+    free(m1->title);
+    free(m1->description);
+    m1->e->m1 = NULL;
+    m1->e->modalOpen = false;
+    m1->e->textArea->changes = true;
+    deleteButtonsList(m1->bl);
+    delete m1;
+}
+
+void drawModal1(Modal1 *m1)
+{
+    if(!m1->changes) return;
+
+    if(m1->bkChanges)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL1_SHADOW));
+        bar(m1->topLeft.x + MODAL1_SHADOW_OFF, m1->topLeft.y+ MODAL1_SHADOW_OFF, m1->bottomRight.x+ MODAL1_SHADOW_OFF, m1->bottomRight.y+ MODAL1_SHADOW_OFF);
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL1_BK_NORMAL));
+        bar(m1->topLeft.x, m1->topLeft.y, m1->bottomRight.x, m1->bottomRight.y);
+
+        Point topLeft = m1->topLeft;
+        topLeft.x += MODAL1_PADDING;
+        topLeft.y += MODAL1_PADDING;
+
+        setbkcolor(convertToBGIColor(MODAL1_BK_NORMAL));
+        setcolor(convertToBGIColor(MODAL1_FONT_NORMAL));
+
+        char *p = strtok(m1->title, "\n");
+        while(p)
+        {
+            outtextxy(topLeft.x, topLeft.y, p);
+            p = strtok(NULL, "\n");
+            topLeft.y += CHAR_HEIGHT;
+        }
+
+        topLeft.y += CHAR_HEIGHT;
+
+        p = strtok(m1->description, "\n");
+        while(p)
+        {
+            outtextxy(topLeft.x, topLeft.y, p);
+            p = strtok(NULL, "\n");
+            topLeft.y += CHAR_HEIGHT;
+        }
+
+        m1->bkChanges = false;
+    }
+
+    drawButtonsList(m1->bl);
+    m1->changes = false;
+}
+
+void handleClick(Modal1 *m1, int x, int y)
+{
+    for(Button* currentButton = m1->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->pressed == false)
+        {
+            switch (currentButton->type)
+            {
+            case MODAL1_CONFIRM:
+                cout<<"CONFIRMAT\n";
+                break;
+            }
+
+            deleteModal1(m1);
+            return;
+        }
+    }
+}
+
+void handleHover(Modal1 *m1, int x, int y)
+{
+    for(Button* currentButton = m1->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->hovered == false)
+        {
+            currentButton->hovered = true;
+            currentButton->changes = true;
+            m1->changes = true;
+        }
+    }
+}
+
+void clearHover(Modal1 *m1, int x, int y)
+{
+    for(Button* currentButton = m1->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+
+        if(!cursorInArea(currentButton, x, y) && currentButton->hovered == true)
+        {
+            currentButton->hovered = false;
+            currentButton->changes = true;
+            m1->changes = true;
+        }
+    }
 }

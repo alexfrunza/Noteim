@@ -16,19 +16,25 @@ enum ButtonType
     FORMAT,
     NEW_FILE,
     SAVE_FILE,
-    SAVE_AS_FILE
+    SAVE_AS_FILE,
+    OPEN_FILE,
+    MODAL1_CONFIRM,
+    MODAL1_CANCEL
 };
 
 enum ButtonStyle
 {
     MENUBAR,
-    SUBMENU1
+    SUBMENU1,
+    MODAL1_CONFIRM_STYLE,
+    MODAL1_CANCEL_STYLE
 };
 
 enum ButtonListStyle
 {
     MENUBAR_BL,
-    SUBMENU1_BL
+    SUBMENU1_BL,
+    MODAL1_BL
 };
 
 struct ButtonsList;
@@ -85,7 +91,7 @@ struct ButtonsList
     ButtonListStyle style;
 };
 
-ButtonsList* initButtonsList(char buttonsNames[][MAX_NAMES_LEN], unsigned int length, ButtonType type, ButtonStyle style);
+ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle style, ButtonListStyle styleBl);
 void removeLastButtonFromList(ButtonsList *bl);
 void clearButtonsList(ButtonsList *bl);
 void deleteButtonsList(ButtonsList *bl);
@@ -94,8 +100,12 @@ bool isButtonsListEmpty(ButtonsList *bl);
 void drawButtonsList(ButtonsList *bl);
 bool cursorInArea(ButtonsList* bl, int x, int y);
 
+struct Editor;
+
 struct MenuArea
 {
+    Editor *e;
+
     bool changes;
     Point topLeft;
     Point bottomRight;
@@ -105,7 +115,7 @@ struct MenuArea
     // Soon
 };
 
-MenuArea* initMenuArea(Point topLeft);
+MenuArea* initMenuArea(Point topLeft, Editor *e);
 void drawArea(MenuArea *ma);
 bool cursorInArea(MenuArea *ma, int x, int y);
 void handleHover(MenuArea *ma, int x, int y);
@@ -181,9 +191,13 @@ void openFile(TextArea *ta, char *fileName);
 void saveFile(TextArea *ta, char *fileName);
 void drawLines(TextArea *ta, int current_y, int end_y);
 
+struct Modal1;
+
 struct Editor
 {
     bool running;
+    bool modalOpen;
+    Modal1 *m1;
     MenuArea *menuArea;
     TextArea *textArea;
 };
@@ -193,5 +207,31 @@ void drawEditor(Editor *e);
 void stopEditor(Editor *e);
 bool handleClick(Editor *e, int x, int y);
 bool clearClick(Editor *e, int x, int y);
+
+
+// This modal is to confirm actions
+struct Modal1
+{
+    Point topLeft;
+    Point bottomRight;
+
+    char *title;
+    char *description;
+    Editor *e;
+
+    ButtonsList *bl;
+    void (*action)(Editor*);
+
+    bool changes;
+    bool bkChanges;
+};
+
+Modal1* initModal1(Editor *e, char *title, char *description, void (*action)(Editor*));
+void deleteModal1(Modal1 *m1);
+void drawModal1(Modal1 *m1);
+void openModal1(Editor *e, Modal1 *m1);
+void handleClick(Modal1 *m1, int x, int y);
+void handleHover(Modal1 *m1, int x, int y);
+void clearHover(Modal1 *m1, int x, int y);
 
 #endif // NOTEIM_EDITOR_H

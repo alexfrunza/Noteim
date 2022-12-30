@@ -40,79 +40,107 @@ int main()
         // cout<<mousex()<<" "<<mousey()<<'\n';
         int mx = mousex();
         int my = mousey();
-        handleHover(e->menuArea, mx, my);
-        clearHover(e->menuArea, mx, my);
+
+        if(e->modalOpen)
+        {
+            if(e->m1 != NULL)
+            {
+                handleHover(e->m1, mx, my);
+                clearHover(e->m1, mx, my);
+            }
+        }
+        else
+        {
+            handleHover(e->menuArea, mx, my);
+            clearHover(e->menuArea, mx, my);
+        }
 
         if(ismouseclick(WM_LBUTTONDOWN))
         {
             getmouseclick(WM_LBUTTONDOWN,x,y);
-            /// Verify a button is clicked or something from a submenu
-            bool pressed = false;
-            pressed = handleClick(e, x, y);
-            pressed = clearClick(e, x, y) || pressed;
-            ///
-
-            if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&
-                    y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
+            if(e->modalOpen)
             {
-                x -= e->textArea->topLeft.x;
-                y -= e->textArea->topLeft.y;
-                Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
-                if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
-                    newCursorPosition.x++;
-                moveCursor(e->textArea,newCursorPosition);
-                continue;
+                if(e->m1 != NULL)
+                {
+                    handleClick(e->m1, x, y);
+                }
+            }
+            else
+            {
+                /// Verify a button is clicked or something from a submenu
+                bool pressed = false;
+                pressed = handleClick(e, x, y);
+                pressed = clearClick(e, x, y) || pressed;
+                ///
+
+                if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&
+                        y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
+                {
+                    x -= e->textArea->topLeft.x;
+                    y -= e->textArea->topLeft.y;
+                    Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+                    if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
+                        newCursorPosition.x++;
+                    moveCursor(e->textArea,newCursorPosition);
+                    continue;
+                }
             }
         }
         if(kbhit())
         {
             a = getch();
-            if(ARROW_PRESSED)
-            {
-                moveCursorByArrow(e->textArea,getch());
-                continue;
-            }
             if(ESC_PRESSED)
             {
                 stopEditor(e);
                 // Maybe pop-up do you want to save the file, if the file isn't saved.
                 continue;
             }
-            drawCursorLine(e->textArea,true);
-            // Must add Delete Deletion
-            if(a == 8)
+            if(e->modalOpen)
             {
-                removeCharFromTextArea(e->textArea);
-                e->textArea->changes = true;
             }
-            if(ENTER_PRESSED)
+            else
             {
-                addCharToTextArea(e->textArea,'\n');
-                e->textArea->changes = true;
-            }
-            if(TAB_PRESSED)
-            {
-                addCharToTextArea(e->textArea,' ');
-                addCharToTextArea(e->textArea,' ');
-                addCharToTextArea(e->textArea,' ');
-                addCharToTextArea(e->textArea,' ');
-                e->textArea->changes = true;
-            }
-            // Test save file
-            /*
-            if(a == 's') {
-                    saveFile(e->textArea, "C:\\Users\\Alex\\Noteim\\foobar.txt");
-            } else
-            */
+                if(ARROW_PRESSED)
+                {
+                    moveCursorByArrow(e->textArea,getch());
+                    continue;
+                }
+                drawCursorLine(e->textArea,true);
+                // Must add Delete Deletion
+                if(a == 8)
+                {
+                    removeCharFromTextArea(e->textArea);
+                    e->textArea->changes = true;
+                }
+                if(ENTER_PRESSED)
+                {
+                    addCharToTextArea(e->textArea,'\n');
+                    e->textArea->changes = true;
+                }
+                if(TAB_PRESSED)
+                {
+                    addCharToTextArea(e->textArea,' ');
+                    addCharToTextArea(e->textArea,' ');
+                    addCharToTextArea(e->textArea,' ');
+                    addCharToTextArea(e->textArea,' ');
+                    e->textArea->changes = true;
+                }
+                // Test save file
+                /*
+                if(a == 's') {
+                        saveFile(e->textArea, "C:\\Users\\Alex\\Noteim\\foobar.txt");
+                } else
+                */
 
-            if(isDisplayedChar(a))
-            {
-                addCharToTextArea(e->textArea,a);
-                e->textArea->changes = true;
+                if(isDisplayedChar(a))
+                {
+                    addCharToTextArea(e->textArea,a);
+                    e->textArea->changes = true;
+                }
+                // e->textArea->changes = true;
+                // Logging pentru nodurile din tabel
+                // logPieceTableNodes(e->textArea->pieceTable);
             }
-            // e->textArea->changes = true;
-            // Logging pentru nodurile din tabel
-            // logPieceTableNodes(e->textArea->pieceTable);
         }
         drawEditor(e);
         delay(10);
