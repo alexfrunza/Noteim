@@ -532,11 +532,11 @@ TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
 void drawCursorLine(TextArea *ta, bool white)
 {
     if(white==true)
-        setcolor(WHITE);
+        setcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
     int x = ta->cursor->position.x*CHAR_WIDTH + ta->topLeft.x;
     int y = ta->cursor->position.y*CHAR_HEIGHT + ta->topLeft.y;
     line(x,y,x,y+CHAR_HEIGHT-1);
-    setcolor(BLACK);
+    setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
 }
 
 void getCursorPositionInPiecetable(TextArea *ta, Point dest)
@@ -671,6 +671,13 @@ void moveCursor(TextArea *ta, Point dest)
 
     drawCursorLine(ta,true);
     getCursorPositionInPiecetable(ta,dest);
+    //cout << '<' << ta->cursor->position.x << ',' << ta->cursor->position.y << '>' << endl;
+    if(ta->cursor->position.x < 0)
+    {
+        ta->firstColumn += ta->cursor->position.x;
+        ta->cursor->position.x = 0;
+        ta->changes = true;
+    }
     drawCursorLine(ta);
 }
 
@@ -694,7 +701,6 @@ void moveCursorByArrow(TextArea *ta, char a)
     moveCursor(ta,dest);
 }
 
-// Needs scroll handling method
 void addCharToTextArea(TextArea *ta, char newLetter)
 {
     Cursor *c = ta->cursor;
@@ -718,6 +724,8 @@ void addCharToTextArea(TextArea *ta, char newLetter)
         if(newLetter=='\n')
         {
             c->position = {0,c->position.y+1};
+            if(ta->firstColumn>0)
+                ta->firstColumn = 0;
             c->pieceTableNode->numberNewLines++;
             ta->pieceTable->numberOfLines++;
         }
@@ -743,6 +751,8 @@ void addCharToTextArea(TextArea *ta, char newLetter)
 
         if(newLetter=='\n')
         {
+            if(ta->firstColumn>0)
+                ta->firstColumn = 0;
             c->position = {0,c->position.y+1};
             ta->pieceTable->numberOfLines++;
         }
@@ -768,6 +778,8 @@ void addCharToTextArea(TextArea *ta, char newLetter)
 
         if(newLetter=='\n')
         {
+            if(ta->firstColumn>0)
+                ta->firstColumn = 0;
             c->position = {0,c->position.y+1};
             ta->pieceTable->numberOfLines++;
         }
@@ -802,6 +814,8 @@ void addCharToTextArea(TextArea *ta, char newLetter)
 
         if(newLetter=='\n')
         {
+            if(ta->firstColumn>0)
+                ta->firstColumn = 0;
             c->position = {0,c->position.y+1};
             ta->pieceTable->numberOfLines++;
         }

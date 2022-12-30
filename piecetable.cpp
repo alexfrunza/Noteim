@@ -1,8 +1,5 @@
 #include "piecetable.h"
-#include <cstdio>
-
-#include <iostream>
-using namespace std;
+//#include <cstdio>
 
 bool bufferIsFull(Buffer *b)
 {
@@ -194,7 +191,6 @@ void getWhereLineStarts(PieceTable* pt, long line, PieceTableNode* &ptn, long &i
     }
 
     indexOfLine++;
-    //cout<<"SIUUUUUUUU: "<<indexOfLine<< " "<<indexLimitOfNode<<endl;
     if(indexOfLine >= indexLimitOfNode)
     {
         if(ptn->next == NULL)

@@ -53,7 +53,7 @@ int main()
             ///
 
             if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&
-                    y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
+               y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
             {
                 x -= e->textArea->topLeft.x;
                 y -= e->textArea->topLeft.y;

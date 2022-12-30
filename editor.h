@@ -146,7 +146,7 @@ Cursor* initCursor();
 struct TextArea
 {
     bool changes;
-    // De implementat la salvare, corespunzator pentru Windows file si unixFile (asaugare '\r' pentru windows file)
+    // De implementat la salvare, corespunzator pentru Windows file si unixFile (adaugare '\r' pentru windows file)
     bool unixFile;
     bool savedChanges;
     char fileName[500];
@@ -157,7 +157,6 @@ struct TextArea
     Point bottomRight;
 
     Cursor *cursor;
-    // Absolute number of the first line to be displayed on screen
     unsigned int firstLine;
     unsigned int firstColumn;
 
