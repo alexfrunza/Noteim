@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 #include "editor.h"
 #include "color.h"
 #include "piecetable.h"
@@ -48,6 +49,15 @@ int main()
                 handleHover(e->m1, mx, my);
                 clearHover(e->m1, mx, my);
             }
+            if(e->m2 != NULL)
+            {
+                if(time(0) - e->m2->iM->cursor->lastUpdate >= 1)
+                {
+                    changeCursor(e->m2->iM->cursor);
+                }
+                handleHover(e->m2, mx, my);
+                clearHover(e->m2, mx, my);
+            }
         }
         else
         {
@@ -63,6 +73,11 @@ int main()
                 if(e->m1 != NULL)
                 {
                     handleClick(e->m1, x, y);
+                }
+                if(e->m2 != NULL)
+                {
+                    clearClick(e->m2, x, y);
+                    handleClick(e->m2, x, y);
                 }
             }
             else
@@ -97,6 +112,20 @@ int main()
             }
             if(e->modalOpen)
             {
+                if(e->m2 != NULL)
+                {
+                    if(e->m2->iM->state)
+                    {
+                        if(isDisplayedChar(a))
+                        {
+                            addCharToModal2Input(e->m2->iM, a);
+                        }
+                        if(a == 8)
+                        {
+                            deleteCharFromModal2Input(e->m2->iM);
+                        }
+                    }
+                }
             }
             else
             {

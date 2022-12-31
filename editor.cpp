@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <ctime>
 
 #include "editor.h"
 #include "helpers.h"
@@ -47,7 +48,7 @@
 #define TEXTAREA_BK_NORMAL {100, 0, 100}
 #define TEXTAREA_FONT_NORMAL {124, 225, 255}
 
-// Modal1
+// Modal1 - confirmation modal
 #define MODAL1_BK_NORMAL {150, 150, 150}
 #define MODAL1_FONT_NORMAL {0, 0, 0}
 #define MODAL1_SHADOW {170, 170, 170}
@@ -74,6 +75,45 @@
 #define NORMAL_FONT_MODAL1_NO_BUTTON {0, 0, 0}
 #define PRESS_BK_MODAL1_NO_BUTTON {217, 61, 92}
 #define PRESS_FONT_MODAL1_NO_BUTTON {0, 0, 0}
+
+// Modal2 - input modal
+#define MODAL2_BK_NORMAL {150, 150, 150}
+#define MODAL2_FONT_NORMAL {0, 0, 0}
+#define MODAL2_SHADOW {170, 170, 170}
+#define MODAL2_SHADOW_OFF 15
+#define MODAL2_PADDING 30
+#define MODAL2_HEIGHT 300
+#define MODAL2_WIDTH 600
+#define MODAL2_CHARS_BUTTON 10
+
+// Input modal2
+#define INPUT_MODAL2_MARGIN_COLOR {75, 75, 75}
+#define INPUT_MODAL2_MARGIN_FOCUSED {0, 0, 0}
+#define INPUT_MODAL2_MARGIN_SIZE 3
+#define INPUT_MODAL2_PADDING 10
+#define INPUT_MODAL2_CURSOR_COLOR {0, 0, 0}
+#define INPUT_MODAL2_NORMAL_BK {175, 175, 175}
+#define INPUT_MODAL2_NORMAL_FONT {25, 25, 25}
+#define INPUT_MODAL2_FOCUSED_BK {255, 255, 255}
+#define INPUT_MODAL2_FOCUSED_FONT {0, 0, 0}
+
+// Buttons modal2
+#define PADDING_SIDES_MODAL2_BTN 20
+#define PADDING_TOP_BOTTOM_MODAL2_BTN 10
+
+#define HOVER_BK_MODAL2_YES_BUTTON {41, 204, 82}
+#define HOVER_FONT_MODAL2_YES_BUTTON {0, 0, 0}
+#define NORMAL_BK_MODAL2_YES_BUTTON {52, 255, 104}
+#define NORMAL_FONT_MODAL2_YES_BUTTON {0, 0, 0}
+#define PRESS_BK_MODAL2_YES_BUTTON {41, 204, 82}
+#define PRESS_FONT_MODAL2_YES_BUTTON {0, 0, 0}
+
+#define HOVER_BK_MODAL2_NO_BUTTON {217, 61, 92}
+#define HOVER_FONT_MODAL2_NO_BUTTON {0, 0, 0}
+#define NORMAL_BK_MODAL2_NO_BUTTON {255, 71, 109}
+#define NORMAL_FONT_MODAL2_NO_BUTTON {0, 0, 0}
+#define PRESS_BK_MODAL2_NO_BUTTON {217, 61, 92}
+#define PRESS_FONT_MODAL2_NO_BUTTON {0, 0, 0}
 
 // For debugging
 #include <iostream>
@@ -140,6 +180,33 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
 
         b->lengthText = MODAL1_CHARS_BUTTON * CHAR_WIDTH;
         break;
+    case MODAL2_CONFIRM_STYLE:
+        b->paddingSides = PADDING_SIDES_MODAL2_BTN;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MODAL2_BTN;
+
+        b->hoverBK = HOVER_BK_MODAL2_YES_BUTTON;
+        b->hoverFT = HOVER_FONT_MODAL2_YES_BUTTON;
+        b->normalBK = NORMAL_BK_MODAL2_YES_BUTTON;
+        b->normalFT = NORMAL_FONT_MODAL2_YES_BUTTON;
+        b->pressBK = PRESS_BK_MODAL2_YES_BUTTON;
+        b->pressFT = PRESS_FONT_MODAL2_YES_BUTTON;
+
+
+        b->lengthText = MODAL2_CHARS_BUTTON * CHAR_WIDTH;
+        break;
+    case MODAL2_CANCEL_STYLE:
+        b->paddingSides = PADDING_SIDES_MODAL2_BTN;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MODAL2_BTN;
+
+        b->hoverBK = HOVER_BK_MODAL2_NO_BUTTON;
+        b->hoverFT = HOVER_FONT_MODAL2_NO_BUTTON;
+        b->normalBK = NORMAL_BK_MODAL2_NO_BUTTON;
+        b->normalFT = NORMAL_FONT_MODAL2_NO_BUTTON;
+        b->pressBK = PRESS_BK_MODAL2_NO_BUTTON;
+        b->pressFT = PRESS_FONT_MODAL2_NO_BUTTON;
+
+        b->lengthText = MODAL2_CHARS_BUTTON * CHAR_WIDTH;
+        break;
     }
 
     b->next = NULL;
@@ -194,6 +261,8 @@ void drawButton(Button* b)
     // Center text in button for modal buttons
     case MODAL1_CONFIRM_STYLE:
     case MODAL1_CANCEL_STYLE:
+    case MODAL2_CONFIRM_STYLE:
+    case MODAL2_CANCEL_STYLE:
         x = (b->topLeft.x + b->bottomRight.x - strlen(b->text)*CHAR_WIDTH) / 2;
         outtextxy(x, b->topLeft.y + b->paddingTopBottom, b->text);
         break;
@@ -214,6 +283,8 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
     bl->topLeft = topLeft;
     bl->bkChanged = true;
     bl->style = styleBl;
+
+    Button* b;
 
     switch (styleBl)
     {
@@ -252,7 +323,17 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
         bl->bottomRight.y += SUBMENU1_PADDING;
         break;
     case MODAL1_BL:
-        Button* b = initButton(buttonsNames[0], topLeft, types[0], styles[0]);
+        b = initButton(buttonsNames[0], topLeft, types[0], styles[0]);
+        addButtonToList(bl, b);
+
+        topLeft.x = (MAX_WIDTH + MODAL1_WIDTH) / 2 - MODAL1_PADDING - 2*PADDING_SIDES_MODAL1_BTN - CHAR_WIDTH * MODAL1_CHARS_BUTTON;
+        b = initButton(buttonsNames[1], topLeft, types[1], styles[1]);
+        addButtonToList(bl, b);
+
+        bl->bottomRight = b->bottomRight;
+        break;
+    case MODAL2_BL:
+        b = initButton(buttonsNames[0], topLeft, types[0], styles[0]);
         addButtonToList(bl, b);
 
         topLeft.x = (MAX_WIDTH + MODAL1_WIDTH) / 2 - MODAL1_PADDING - 2*PADDING_SIDES_MODAL1_BTN - CHAR_WIDTH * MODAL1_CHARS_BUTTON;
@@ -463,6 +544,10 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
 void blabla(Editor* e)
 {
 }
+
+void blabla2(TextArea* e, char* x)
+{
+}
 //
 
 bool handleClick(Editor *e, int x, int y)
@@ -488,6 +573,10 @@ bool handleClick(Editor *e, int x, int y)
                         break;
                     case SAVE_AS_FILE:
                         cout<<"Salveaza fisier ca...\n";
+                        break;
+                    case OPEN_FILE:
+                        cout<<"Open file...\n";
+                        Modal2 *p = initModal2(e, "Type the file name", "bla bla bla\nalt text", "Open file", "Cancel", &openFile);
                         break;
                     }
 
@@ -1195,7 +1284,6 @@ void drawLines(TextArea *ta, int current_y, int end_y)
     {
         PieceTableNode* lineNode;
         long indexOfLine;
-
         getWhereLineStarts(ta->pieceTable, currentLine, lineNode, indexOfLine);
         if(!lineNode)
         {
@@ -1226,6 +1314,7 @@ void drawArea(TextArea *ta)
 
 void openFile(TextArea *ta, char *fileName)
 {
+
     FILE *file = fopen(fileName, "rb");
 
     if(file == NULL)
@@ -1242,6 +1331,7 @@ void openFile(TextArea *ta, char *fileName)
     char lastAddedChar = '\0';
     int numberOfSpaces = 0;
     bool ok = false;
+    ta->pieceTable->numberOfLines = 0;
 
     do
     {
@@ -1251,8 +1341,7 @@ void openFile(TextArea *ta, char *fileName)
             last_x = '\0';
             readSize = 0;
         }
-
-        Buffer *newBuffer;
+        Buffer *newBuffer=NULL;
         if(numberOfSpaces > 0 || last_x != '\0')
         {
             newBuffer = initBuffer();
@@ -1304,7 +1393,7 @@ void openFile(TextArea *ta, char *fileName)
             newBuffer->length++;
         }
 
-        while((newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file))
+        while(newBuffer != NULL && (newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file))
         {
             newBuffer->text[newBuffer->length] = x;
             if(x == '\n') numberNewLines++;
@@ -1341,6 +1430,7 @@ void openFile(TextArea *ta, char *fileName)
                 last_x = x;
             }
         }
+
         if(last_x != '\0' || ok)
         {
             PieceTableNode *newNode = initPieceTableNode(newBuffer, 0, newBuffer->length, numberNewLines);
@@ -1362,6 +1452,8 @@ void openFile(TextArea *ta, char *fileName)
     if(unixFile) ta->unixFile = true;
     Buffer *newBuffer = initBuffer();
     addBuffer(ta->pieceTable->buffersList, newBuffer);
+    PieceTableNode *newPtn = initPieceTableNode(newBuffer, 0, 0, 0);
+    addPieceTableNode(ta->pieceTable->nodesList, newPtn);
 
     fclose(file);
 }
@@ -1411,7 +1503,6 @@ void saveFile(TextArea *ta, char *fileName)
 
 void drawEditor(Editor *e)
 {
-
     drawArea(e->textArea);
     drawArea(e->menuArea);
     if(e->modalOpen)
@@ -1419,6 +1510,10 @@ void drawEditor(Editor *e)
         if(e->m1 != NULL)
         {
             drawModal1(e->m1);
+        }
+        if(e->m2 != NULL)
+        {
+            drawModal2(e->m2);
         }
     }
     //drawArea(e->scrollBarsArea);
@@ -1460,6 +1555,7 @@ Modal1* initModal1(Editor *e, char *title, char *description, void (*action)(Edi
 
     m1->action = action;
     m1->e = e;
+    return m1;
 }
 
 void deleteModal1(Modal1 *m1)
@@ -1561,3 +1657,300 @@ void clearHover(Modal1 *m1, int x, int y)
         }
     }
 }
+
+CursorModal2* initCursorModal2(Point position, InputModal2 *input)
+{
+    CursorModal2 *cursor = new CursorModal2;
+    cursor->input = input;
+    cursor->position = position;
+    cursor->state = false;
+    cursor->lastUpdate = 0;
+    return cursor;
+}
+
+void deleteCursorModal2(CursorModal2* cursor)
+{
+    delete cursor;
+}
+
+void changeCursor(CursorModal2* cursor)
+{
+    if(cursor->state)
+    {
+        cursor->state = false;
+    }
+    else
+    {
+        cursor->state = true;
+    }
+
+    cursor->input->changes = true;
+    cursor->input->modal->changes = true;
+    cursor->lastUpdate = time(0);
+}
+
+void drawCursorModal2(CursorModal2 *cursor)
+{
+    if(cursor->state)
+    {
+        setcolor(convertToBGIColor(INPUT_MODAL2_CURSOR_COLOR));
+    }
+    else
+    {
+        setcolor(convertToBGIColor(INPUT_MODAL2_FOCUSED_BK));
+    }
+    line(cursor->position.x, cursor->position.y, cursor->position.x, cursor->position.y + CHAR_HEIGHT - 1);
+}
+
+InputModal2* initInputModal2(Point topLeft, Point bottomRight, Modal2* modal)
+{
+    InputModal2 *input = new InputModal2;
+    input->modal = modal;
+    input->topLeft = topLeft;
+    input->bottomRight = bottomRight;
+    input->changes = true;
+    input->state = false;
+    input->text[0] = '\0';
+    input->cursor = initCursorModal2({topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING}, input);
+    return input;
+}
+
+void deleteInputModal2(InputModal2* input)
+{
+    deleteCursorModal2(input->cursor);
+    delete input;
+}
+
+void drawInputModal2(InputModal2 *input)
+{
+    if(!input->changes) return;
+
+    if(input->state)
+    {
+        // Draw the margins
+        setfillstyle(1, convertToBGIColor(INPUT_MODAL2_MARGIN_FOCUSED));
+        bar(input->topLeft.x, input->topLeft.y, input->bottomRight.x, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE);
+        bar(input->topLeft.x, input->topLeft.y, input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y);
+        bar(input->bottomRight.x, input->topLeft.y, input->bottomRight.x - INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y);
+        bar(input->topLeft.x, input->bottomRight.y, input->bottomRight.x, input->bottomRight.y - INPUT_MODAL2_MARGIN_SIZE);
+
+        setfillstyle(1, convertToBGIColor(INPUT_MODAL2_FOCUSED_BK));
+        bar(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.x - INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y - INPUT_MODAL2_MARGIN_SIZE);
+
+        setbkcolor(convertToBGIColor(INPUT_MODAL2_FOCUSED_BK));
+        setcolor(convertToBGIColor(INPUT_MODAL2_FOCUSED_FONT));
+        outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
+
+        drawCursorModal2(input->cursor);
+    }
+    else
+    {
+        // Draw the margins
+        setfillstyle(1, convertToBGIColor(INPUT_MODAL2_MARGIN_COLOR));
+        bar(input->topLeft.x, input->topLeft.y, input->bottomRight.x, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE);
+        bar(input->topLeft.x, input->topLeft.y, input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y);
+        bar(input->bottomRight.x, input->topLeft.y, input->bottomRight.x - INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y);
+        bar(input->topLeft.x, input->bottomRight.y, input->bottomRight.x, input->bottomRight.y - INPUT_MODAL2_MARGIN_SIZE);
+
+        setfillstyle(1, convertToBGIColor(INPUT_MODAL2_NORMAL_BK));
+        bar(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.x - INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y - INPUT_MODAL2_MARGIN_SIZE);
+
+        setbkcolor(convertToBGIColor(INPUT_MODAL2_NORMAL_BK));
+        setcolor(convertToBGIColor(INPUT_MODAL2_NORMAL_FONT));
+        outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
+
+    }
+    input->changes = false;
+}
+
+bool cursorInArea(InputModal2* input, int x, int y)
+{
+    return input->topLeft.x < x && x < input->bottomRight.x && input->topLeft.y < y && y < input->bottomRight.y;
+}
+
+void addCharToModal2Input(InputModal2* input, char x)
+{
+    unsigned int lg = strlen(input->text);
+    if(lg >= MAX_CHAR_MODAL2_INPUT) return;
+
+    input->text[lg] = x;
+    input->text[lg+1] = '\0';
+    input->cursor->position.x += CHAR_WIDTH;
+    input->cursor->state = true;
+    input->cursor->lastUpdate = time(0);
+    input->changes = true;
+    input->modal->changes = true;
+}
+
+void deleteCharFromModal2Input(InputModal2* input)
+{
+    unsigned int lg = strlen(input->text);
+    if(lg == 0) return;
+
+    input->text[lg-1] = '\0';
+    input->cursor->position.x -= CHAR_WIDTH;
+    input->cursor->state = true;
+    input->cursor->lastUpdate = time(0);
+    input->changes = true;
+    input->modal->changes = true;
+}
+
+Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, void (*action)(TextArea*, char*))
+{
+    e->modalOpen = true;
+
+    Modal2 *m2 = new Modal2;
+    e->m2 = m2;
+
+    m2->changes = true;
+    m2->bkChanges = true;
+
+    m2->topLeft.x = (MAX_WIDTH - MODAL2_WIDTH) / 2;
+    m2->topLeft.y = (MAX_HEIGHT - MODAL2_HEIGHT) / 2;
+    m2->bottomRight.x = m2->topLeft.x + MODAL2_WIDTH;
+    m2->bottomRight.y = m2->topLeft.y + MODAL2_HEIGHT;
+
+    m2->title = (char*) malloc(sizeof(char) * strlen(title));
+    strcpy(m2->title, title);
+    m2->description = (char*) malloc(sizeof(char) * strlen(description));
+    strcpy(m2->description, description);
+
+    char buttonsNames[2][MAX_NAMES_LEN];
+    strcpy(buttonsNames[0], buttonNameYes);
+    strcpy(buttonsNames[1], buttonNameNo);
+
+    ButtonType types[] = {MODAL2_CONFIRM, MODAL2_CANCEL};
+    ButtonStyle styles[] = {MODAL2_CONFIRM_STYLE, MODAL2_CANCEL_STYLE};
+
+    m2->bl = initButtonsList({m2->topLeft.x + MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN},
+                             buttonsNames, types, 2, styles, MODAL2_BL);
+    m2->iM = initInputModal2({m2->topLeft.x + MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 3*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN - 2*INPUT_MODAL2_PADDING - 2*INPUT_MODAL2_MARGIN_SIZE},
+    {m2->bottomRight.x - MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 2*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN}, m2);
+
+    m2->action = action;
+    m2->e = e;
+    return m2;
+}
+
+void deleteModal2(Modal2 *m2)
+{
+    free(m2->title);
+    free(m2->description);
+    m2->e->m2 = NULL;
+    m2->e->modalOpen = false;
+    m2->e->textArea->changes = true;
+    deleteButtonsList(m2->bl);
+    deleteInputModal2(m2->iM);
+    delete m2;
+}
+
+void drawModal2(Modal2 *m2)
+{
+    if(!m2->changes) return;
+
+    if(m2->bkChanges)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL2_SHADOW));
+        bar(m2->topLeft.x + MODAL2_SHADOW_OFF, m2->topLeft.y+ MODAL2_SHADOW_OFF, m2->bottomRight.x+ MODAL2_SHADOW_OFF, m2->bottomRight.y+ MODAL2_SHADOW_OFF);
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL2_BK_NORMAL));
+        bar(m2->topLeft.x, m2->topLeft.y, m2->bottomRight.x, m2->bottomRight.y);
+
+        Point topLeft = m2->topLeft;
+        topLeft.x += MODAL2_PADDING;
+        topLeft.y += MODAL2_PADDING;
+
+        setbkcolor(convertToBGIColor(MODAL2_BK_NORMAL));
+        setcolor(convertToBGIColor(MODAL2_FONT_NORMAL));
+
+        char *p = strtok(m2->title, "\n");
+        while(p)
+        {
+            outtextxy(topLeft.x, topLeft.y, p);
+            p = strtok(NULL, "\n");
+            topLeft.y += CHAR_HEIGHT;
+        }
+
+        topLeft.y += CHAR_HEIGHT;
+
+        p = strtok(m2->description, "\n");
+        while(p)
+        {
+            outtextxy(topLeft.x, topLeft.y, p);
+            p = strtok(NULL, "\n");
+            topLeft.y += CHAR_HEIGHT;
+        }
+
+        m2->bkChanges = false;
+
+    }
+
+    drawButtonsList(m2->bl);
+    drawInputModal2(m2->iM);
+    m2->changes = false;
+}
+
+void handleClick(Modal2 *m2, int x, int y)
+{
+    if(cursorInArea(m2->iM, x, y) && m2->iM->state == false)
+    {
+        m2->iM->state = true;
+        m2->iM->changes = true;
+        m2->changes = true;
+    }
+
+    for(Button* currentButton = m2->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->pressed == false)
+        {
+            switch (currentButton->type)
+            {
+            case MODAL2_CONFIRM:
+                m2->action(m2->e->textArea, m2->iM->text);
+                cout<<"CONFIRMAT\n";
+                break;
+            }
+
+            deleteModal2(m2);
+            return;
+        }
+    }
+}
+
+
+void handleHover(Modal2 *m2, int x, int y)
+{
+    for(Button* currentButton = m2->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->hovered == false)
+        {
+            currentButton->hovered = true;
+            currentButton->changes = true;
+            m2->changes = true;
+        }
+    }
+}
+
+void clearHover(Modal2 *m2, int x, int y)
+{
+    for(Button* currentButton = m2->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+
+        if(!cursorInArea(currentButton, x, y) && currentButton->hovered == true)
+        {
+            currentButton->hovered = false;
+            currentButton->changes = true;
+            m2->changes = true;
+        }
+    }
+}
+
+void clearClick(Modal2 *m2, int x, int y)
+{
+    if(!cursorInArea(m2->iM, x, y) && m2->iM->state == true)
+    {
+        m2->iM->state = false;
+        m2->iM->changes = true;
+        m2->changes = true;
+    }
+}
+
