@@ -10,7 +10,8 @@
 
 // MenuBar
 #define MENU_BAR_SEPARATOR_BAR {211, 211, 211}
-#define MENU_BAR_BK {0, 0, 0}
+#define MENU_BAR_BK {255, 255, 255}
+#define MENU_BAR_FONT {0, 0, 0}
 
 // Buttons menu bar
 #define PADDING_SIDES_MENU_BAR_BUTTON 10
@@ -83,7 +84,7 @@
 #define MODAL2_SHADOW_OFF 15
 #define MODAL2_PADDING 30
 #define MODAL2_HEIGHT 300
-#define MODAL2_WIDTH 600
+#define MODAL2_WIDTH 800
 #define MODAL2_CHARS_BUTTON 10
 
 // Input modal2
@@ -192,7 +193,7 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
         b->pressFT = PRESS_FONT_MODAL2_YES_BUTTON;
 
 
-        b->lengthText = MODAL2_CHARS_BUTTON * CHAR_WIDTH;
+        b->lengthText = max(int(strlen(name)), MODAL2_CHARS_BUTTON) * CHAR_WIDTH;
         break;
     case MODAL2_CANCEL_STYLE:
         b->paddingSides = PADDING_SIDES_MODAL2_BTN;
@@ -336,7 +337,7 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
         b = initButton(buttonsNames[0], topLeft, types[0], styles[0]);
         addButtonToList(bl, b);
 
-        topLeft.x = (MAX_WIDTH + MODAL1_WIDTH) / 2 - MODAL1_PADDING - 2*PADDING_SIDES_MODAL1_BTN - CHAR_WIDTH * MODAL1_CHARS_BUTTON;
+        topLeft.x = (MAX_WIDTH + MODAL2_WIDTH) / 2 - MODAL2_PADDING - 2*PADDING_SIDES_MODAL2_BTN - CHAR_WIDTH * MODAL2_CHARS_BUTTON;
         b = initButton(buttonsNames[1], topLeft, types[1], styles[1]);
         addButtonToList(bl, b);
 
@@ -448,6 +449,7 @@ bool cursorInArea(Button* b, int x, int y)
 MenuArea* initMenuArea(Point topLeft, Editor *e)
 {
     MenuArea* ma = new MenuArea;
+    ma->bkChanges = true;
     ma->e = e;
     ma->separatorLength = 2;
 
@@ -468,6 +470,25 @@ void drawArea(MenuArea *ma)
 {
     if(ma->changes == false)
         return;
+
+
+    if(ma->bkChanges)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(MENU_BAR_BK));
+        bar(ma->topLeft.x, ma->topLeft.y, ma->bottomRight.x, ma->bottomRight.y);
+        setbkcolor(convertToBGIColor(MENU_BAR_BK));
+        setcolor(convertToBGIColor(MENU_BAR_FONT));
+
+        if(strlen(ma->e->textArea->fileName) != 0)
+        {
+            outtextxy(ma->bottomRight.x - strlen(ma->e->textArea->fileName)*CHAR_WIDTH - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, ma->e->textArea->fileName);
+        }
+        else
+        {
+            outtextxy(ma->bottomRight.x - strlen("New file")*CHAR_WIDTH - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, "New file");
+        }
+        ma->bkChanges = false;
+    }
 
     setfillstyle(SOLID_FILL, convertToBGIColor(MENU_BAR_SEPARATOR_BAR));
     bar(ma->topLeft.x, ma->bottomRight.y - ma->separatorLength, ma->bottomRight.x, ma->bottomRight.y);
@@ -562,21 +583,29 @@ bool handleClick(Editor *e, int x, int y)
                 if(cursorInArea(subMenuButton, x, y))
                 {
                     subMenuButton->pressed = true;
+                    Modal2 *m2;
                     switch (subMenuButton->type)
                     {
                     case SAVE_FILE:
-                        cout<<"Am salvat fisierul\n";
+                        if(strlen(e->textArea->fileName)==0)
+                        {
+                            m2 = initModal2(e, "Save the file on the disk", "This is a new file and in order to save it you\nmust provide a path:", "Save file as...", "Cancel", &saveFile);
+                        }
+                        else
+                        {
+                            saveFile(e->textArea, e->textArea->fileName);
+                        }
                         break;
                     case NEW_FILE:
+                        // TODO
                         cout<<"Fisier nou\n";
                         initModal1(e, "Esti sigur ca vrei sa faci asta?", "bla bla bla\nalt text", &blabla);
                         break;
                     case SAVE_AS_FILE:
-                        cout<<"Salveaza fisier ca...\n";
+                        m2 = initModal2(e, "Save the file on the disk", "To save the file you must provide a path:", "Save file as...", "Cancel", &saveFile);
                         break;
                     case OPEN_FILE:
-                        cout<<"Open file...\n";
-                        Modal2 *p = initModal2(e, "Type the file name", "bla bla bla\nalt text", "Open file", "Cancel", &openFile);
+                        m2 = initModal2(e, "Open a file on the disk", "You must provide the full path to the file:", "Open file", "Cancel", &openFile);
                         break;
                     }
 
@@ -661,9 +690,11 @@ Cursor *initCursor()
     return c;
 }
 
-TextArea* initTextArea(Point topLeft, Point bottomRight)
+TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
 {
     TextArea* ta = new TextArea;
+    ta->e = e;
+    ta->fileName[0]='\0';
     ta->unixFile = false;
     ta->savedChanges = true;
 
@@ -686,9 +717,11 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
     return ta;
 }
 
-TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
+TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileName)
 {
     TextArea* ta = new TextArea;
+    ta->e = e;
+    ta->fileName[0]='\0';
     ta->savedChanges = true;
     ta->unixFile = false;
     ta->changes = true;
@@ -1140,15 +1173,8 @@ Editor* initEditor()
     topLeft= {0, e->menuArea->bottomRight.y};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!
-    // Citire din fisier
-    //cout<<"TOP LEFT: "<<topLeft.x<<" "<<topLeft.y<<'\n';
-    //cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
-
-
-    e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-    //e->textArea = initTextArea(topLeft, bottomRight);
-
+    //e->textArea = initTextArea(e, topLeft, bottomRight, "textText.txt");
+    e->textArea = initTextArea(e, topLeft, bottomRight);
 
     e->modalOpen = false;
     e->m1 = NULL;
@@ -1314,7 +1340,6 @@ void drawArea(TextArea *ta)
 
 void openFile(TextArea *ta, char *fileName)
 {
-
     FILE *file = fopen(fileName, "rb");
 
     if(file == NULL)
@@ -1322,6 +1347,14 @@ void openFile(TextArea *ta, char *fileName)
         fclose(file);
         printf("Eroare la citirea fisierului!\n");
         return;
+    }
+
+    strcpy(ta->fileName, fileName);
+    ta->e->menuArea->bkChanges = true;
+    ta->e->menuArea->changes = true;
+    for(Button *b=ta->e->menuArea->buttonsList->first; b != NULL; b = b->next)
+    {
+        b->changes = true;
     }
 
     emptyPieceTable(ta->pieceTable);
@@ -1455,6 +1488,10 @@ void openFile(TextArea *ta, char *fileName)
     PieceTableNode *newPtn = initPieceTableNode(newBuffer, 0, 0, 0);
     addPieceTableNode(ta->pieceTable->nodesList, newPtn);
 
+    ta->cursor->position = {0, 0};
+    ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
+    ta->cursor->positionInNode = 0;
+
     fclose(file);
 }
 
@@ -1467,6 +1504,16 @@ void saveFile(TextArea *ta, char *fileName)
         fclose(file);
         printf("Eroare la scrierea fisierului!\n");
         return;
+    }
+    if(strlen(ta->fileName) == 0)
+    {
+        strcpy(ta->fileName, fileName);
+        ta->e->menuArea->bkChanges = true;
+        ta->e->menuArea->changes = true;
+        for(Button *b=ta->e->menuArea->buttonsList->first; b != NULL; b = b->next)
+        {
+            b->changes = true;
+        }
     }
 
     for(PieceTableNode *currentNode = ta->pieceTable->nodesList->first; currentNode != NULL; currentNode = currentNode->next)
@@ -1822,7 +1869,8 @@ Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYe
     ButtonType types[] = {MODAL2_CONFIRM, MODAL2_CANCEL};
     ButtonStyle styles[] = {MODAL2_CONFIRM_STYLE, MODAL2_CANCEL_STYLE};
 
-    m2->bl = initButtonsList({m2->topLeft.x + MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN},
+    m2->bl = initButtonsList({(MAX_WIDTH + MODAL2_WIDTH) / 2 - MODAL2_PADDING - 4*PADDING_SIDES_MODAL2_BTN - CHAR_WIDTH * max((int)strlen(buttonsNames[1]),MODAL2_CHARS_BUTTON) - 2*CHAR_WIDTH - CHAR_WIDTH * max((int)strlen(buttonsNames[0]),MODAL2_CHARS_BUTTON),
+                              m2->bottomRight.y - MODAL2_PADDING - CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN},
                              buttonsNames, types, 2, styles, MODAL2_BL);
     m2->iM = initInputModal2({m2->topLeft.x + MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 3*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN - 2*INPUT_MODAL2_PADDING - 2*INPUT_MODAL2_MARGIN_SIZE},
     {m2->bottomRight.x - MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 2*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN}, m2);

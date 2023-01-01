@@ -9,7 +9,7 @@
 #define MAX_WIDTH getmaxwidth()
 #define MAX_HEIGHT getmaxheight()
 #define MAX_NAMES_LEN 50
-#define MAX_CHAR_MODAL2_INPUT 30
+#define MAX_CHAR_MODAL2_INPUT 50
 
 struct Buton;
 struct ButtonsList;
@@ -122,6 +122,7 @@ struct MenuArea
     Editor *e;
 
     bool changes;
+    bool bkChanges;
     Point topLeft;
     Point bottomRight;
     unsigned int separatorLength;
@@ -170,6 +171,7 @@ Cursor* initCursor();
 
 struct TextArea
 {
+    Editor* e;
     bool changes;
     // De implementat la salvare, corespunzator pentru Windows file si unixFile (asaugare '\r' pentru windows file)
     bool unixFile;
@@ -191,8 +193,8 @@ struct TextArea
     // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 };
 
-TextArea* initTextArea(Point topLeft, Point bottomRight);
-TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName);
+TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight);
+TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight, char *fileName);
 
 void updateCursorPosition(TextArea *ta, char deletedChar);
 void getCursorPositionInPiecetable(TextArea *ta, Point dest);
