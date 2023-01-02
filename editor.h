@@ -168,14 +168,16 @@ struct TextArea
 TextArea* initTextArea(Point topLeft, Point bottomRight);
 TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName);
 
-void updateCursorPosition(TextArea *ta, char deletedChar);
+void handleScroll(TextArea *ta);
+void moveCursor(TextArea *ta, Point dest);
+void moveCursorByArrow(TextArea *ta, char a);
+void updateCursorPosition(TextArea *ta);
 void getCursorPositionInPiecetable(TextArea *ta, Point dest);
+void drawCursorLine(TextArea *ta, bool white=false);
+
 void addCharToTextArea(TextArea *ta, char newLetter);
 void removeCharFromTextArea(TextArea *ta);
 void drawArea(TextArea *ta);
-void drawCursorLine(TextArea *ta, bool white=false);
-void moveCursor(TextArea *ta, Point dest);
-void moveCursorByArrow(TextArea *ta, char a);
 void openFile(TextArea *ta, char *fileName);
 void saveFile(TextArea *ta, char *fileName);
 void drawLines(TextArea *ta, int current_y, int end_y);
