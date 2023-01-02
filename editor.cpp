@@ -86,6 +86,7 @@
 #define MODAL2_HEIGHT 300
 #define MODAL2_WIDTH 800
 #define MODAL2_CHARS_BUTTON 10
+#define MODAL2_ERROR_MSG_COLOR {255, 45, 52}
 
 // Input modal2
 #define INPUT_MODAL2_MARGIN_COLOR {75, 75, 75}
@@ -566,7 +567,7 @@ void blabla(Editor* e)
 {
 }
 
-void blabla2(TextArea* e, char* x)
+bool blabla2(TextArea* e, char* x)
 {
 }
 //
@@ -1338,7 +1339,7 @@ void drawArea(TextArea *ta)
     drawCursorLine(ta);
 }
 
-void openFile(TextArea *ta, char *fileName)
+bool openFile(TextArea *ta, char *fileName)
 {
     FILE *file = fopen(fileName, "rb");
 
@@ -1346,7 +1347,7 @@ void openFile(TextArea *ta, char *fileName)
     {
         fclose(file);
         printf("Eroare la citirea fisierului!\n");
-        return;
+        return true;
     }
 
     strcpy(ta->fileName, fileName);
@@ -1493,9 +1494,10 @@ void openFile(TextArea *ta, char *fileName)
     ta->cursor->positionInNode = 0;
 
     fclose(file);
+    return false;
 }
 
-void saveFile(TextArea *ta, char *fileName)
+bool saveFile(TextArea *ta, char *fileName)
 {
     FILE *file = fopen(fileName, "wb");
 
@@ -1503,7 +1505,7 @@ void saveFile(TextArea *ta, char *fileName)
     {
         fclose(file);
         printf("Eroare la scrierea fisierului!\n");
-        return;
+        return true;
     }
     if(strlen(ta->fileName) == 0)
     {
@@ -1546,6 +1548,7 @@ void saveFile(TextArea *ta, char *fileName)
         }
     }
     fclose(file);
+    return false;
 }
 
 void drawEditor(Editor *e)
@@ -1842,12 +1845,14 @@ void deleteCharFromModal2Input(InputModal2* input)
     input->modal->changes = true;
 }
 
-Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, void (*action)(TextArea*, char*))
+Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, bool (*action)(TextArea*, char*))
 {
     e->modalOpen = true;
 
     Modal2 *m2 = new Modal2;
     e->m2 = m2;
+    m2->error = false;
+    m2->errorMessageChanges = false;
 
     m2->changes = true;
     m2->bkChanges = true;
@@ -1884,6 +1889,7 @@ void deleteModal2(Modal2 *m2)
 {
     free(m2->title);
     free(m2->description);
+    free(m2->errorMessage);
     m2->e->m2 = NULL;
     m2->e->modalOpen = false;
     m2->e->textArea->changes = true;
@@ -1929,12 +1935,28 @@ void drawModal2(Modal2 *m2)
         }
 
         m2->bkChanges = false;
+    }
 
+    if(m2->errorMessageChanges && m2->error) {
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL2_BK_NORMAL));
+        setbkcolor(convertToBGIColor(MODAL2_BK_NORMAL));
+        setcolor(convertToBGIColor(MODAL2_ERROR_MSG_COLOR));
+
+        bar(m2->iM->topLeft.x, m2->iM->topLeft.y - 2*CHAR_HEIGHT, m2->iM->bottomRight.x, m2->iM->topLeft.y - 1*CHAR_HEIGHT);
+        outtextxy(m2->iM->topLeft.x, m2->iM->topLeft.y - 2*CHAR_HEIGHT, m2->errorMessage);
     }
 
     drawButtonsList(m2->bl);
     drawInputModal2(m2->iM);
     m2->changes = false;
+}
+
+void setErrorMessageModal2(Modal2 *m2, char *message) {
+    m2->error = true;
+    m2->errorMessage= (char*) malloc(sizeof(char) * strlen(message));
+    strcpy(m2->errorMessage, message);
+    m2->errorMessageChanges = true;
+    m2->changes = true;
 }
 
 void handleClick(Modal2 *m2, int x, int y)
@@ -1950,10 +1972,19 @@ void handleClick(Modal2 *m2, int x, int y)
     {
         if(cursorInArea(currentButton, x, y) && currentButton->pressed == false)
         {
+            bool error = false;
             switch (currentButton->type)
             {
             case MODAL2_CONFIRM:
-                m2->action(m2->e->textArea, m2->iM->text);
+                error = m2->action(m2->e->textArea, m2->iM->text);
+                if(strlen(m2->iM->text) == 0) {
+                    setErrorMessageModal2(m2, "The input can't be empty!");
+                    return;
+                }
+                if(error) {
+                    setErrorMessageModal2(m2, "There was a problem with your input!");
+                    return;
+                }
                 cout<<"CONFIRMAT\n";
                 break;
             }

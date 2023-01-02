@@ -204,8 +204,8 @@ void drawArea(TextArea *ta);
 void drawCursorLine(TextArea *ta, bool white=false);
 void moveCursor(TextArea *ta, Point dest);
 void moveCursorByArrow(TextArea *ta, char a);
-void openFile(TextArea *ta, char *fileName);
-void saveFile(TextArea *ta, char *fileName);
+bool openFile(TextArea *ta, char *fileName);
+bool saveFile(TextArea *ta, char *fileName);
 void drawLines(TextArea *ta, int current_y, int end_y);
 
 struct Editor
@@ -295,17 +295,21 @@ struct Modal2
     char *title;
     char *description;
 
+    char *errorMessage;
+    bool error;
+    bool errorMessageChanges;
+
     Editor *e;
     InputModal2 *iM;
 
     ButtonsList *bl;
-    void (*action)(TextArea*, char*);
+    bool (*action)(TextArea*, char*);
 
     bool changes;
     bool bkChanges;
 };
 
-Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, void (*action)(TextArea*, char*));
+Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, bool (*action)(TextArea*, char*));
 void deleteModal2(Modal2 *m2);
 void drawModal2(Modal2 *m2);
 void handleClick(Modal2 *m2, int x, int y);
