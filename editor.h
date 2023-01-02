@@ -26,6 +26,9 @@ struct Modal2;
 enum ButtonType
 {
     FILE_ACTIONS,
+    MOVE,
+    GO_TO_LINE,
+    GO_TO_COLUMN,
     EDIT,
     FORMAT,
     NEW_FILE,
@@ -127,11 +130,15 @@ struct MenuArea
     Point bottomRight;
     unsigned int separatorLength;
 
+    bool fileStateChanged;
+
     ButtonsList* buttonsList;
     // Soon
 };
 
 MenuArea* initMenuArea(Point topLeft, Editor *e);
+void showFileActionsSubMenu(Button* b, MenuArea* ma);
+void showMoveSubMenu(Button* b, MenuArea* ma);
 void drawArea(MenuArea *ma);
 bool cursorInArea(MenuArea *ma, int x, int y);
 void handleHover(MenuArea *ma, int x, int y);
@@ -180,8 +187,17 @@ struct TextArea
 
     unsigned int maxLines;
     unsigned short int maxCharLine;
+
     Point topLeft;
     Point bottomRight;
+
+    Point topLeftNumbers;
+    Point bottomRightNumbers;
+    bool numbersDisplayed;
+
+
+    Point topLeftWindow;
+    Point bottomRightWindow;
 
     Cursor *cursor;
     // Absolute number of the first line to be displayed on screen
@@ -191,6 +207,8 @@ struct TextArea
     PieceTable *pieceTable;
     ScrollBarsArea *scrollBarsArea;
     // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
+
+    bool bkChanges;
 };
 
 TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight);

@@ -48,6 +48,7 @@
 // TextArea
 #define TEXTAREA_BK_NORMAL {100, 0, 100}
 #define TEXTAREA_FONT_NORMAL {124, 225, 255}
+#define TEXTAREA_NUMBERS_COLOR {0, 0, 0}
 
 // Modal1 - confirmation modal
 #define MODAL1_BK_NORMAL {150, 150, 150}
@@ -453,14 +454,15 @@ MenuArea* initMenuArea(Point topLeft, Editor *e)
     ma->bkChanges = true;
     ma->e = e;
     ma->separatorLength = 2;
+    ma->fileStateChanged = false;
 
     ma->topLeft = topLeft;
 
-    char buttonsNames[][MAX_NAMES_LEN] = {"File", "Edit", "Format"};
-    ButtonType types[] = {FILE_ACTIONS, EDIT, FORMAT};
-    ButtonStyle styles[] = {MENUBAR, MENUBAR, MENUBAR};
+    char buttonsNames[][MAX_NAMES_LEN] = {"File", "Move", "Edit", "Format"};
+    ButtonType types[] = {FILE_ACTIONS, MOVE, EDIT, FORMAT};
+    ButtonStyle styles[] = {MENUBAR, MENUBAR, MENUBAR, MENUBAR};
 
-    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 3, styles, MENUBAR_BL);
+    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 4, styles, MENUBAR_BL);
     ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 2*ma->buttonsList->first->paddingTopBottom};
 
     ma->changes = true;
@@ -471,6 +473,24 @@ void drawArea(MenuArea *ma)
 {
     if(ma->changes == false)
         return;
+
+
+    if(ma->fileStateChanged == true)
+    {
+        setbkcolor(convertToBGIColor(MENU_BAR_BK));
+        setcolor(convertToBGIColor(MENU_BAR_FONT));
+        if(ma->e->textArea->savedChanges == false)
+        {
+            outtextxy(ma->bottomRight.x - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, "*");
+        }
+        else
+        {
+            outtextxy(ma->bottomRight.x - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, " ");
+
+        }
+
+        ma->fileStateChanged = false;
+    }
 
 
     if(ma->bkChanges)
@@ -562,6 +582,15 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
     b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
 }
 
+void showMoveSubMenu(Button* b, MenuArea* ma)
+{
+    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column"};
+    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1};
+
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 2, styles, SUBMENU1_BL);
+}
+
 // test
 void blabla(Editor* e)
 {
@@ -614,6 +643,7 @@ bool handleClick(Editor *e, int x, int y)
                     currentButton->subMenu = NULL;
                     currentButton->pressed = false;
                     e->textArea->changes = true;
+                    e->textArea->bkChanges = true;
                     currentButton->changes = true;
                     subMenuButton->changes = true;
                     ma->changes = true;
@@ -628,6 +658,9 @@ bool handleClick(Editor *e, int x, int y)
             {
             case FILE_ACTIONS:
                 showFileActionsSubMenu(currentButton, ma);
+                break;
+            case MOVE:
+                showMoveSubMenu(currentButton, ma);
                 break;
             }
 
@@ -649,6 +682,7 @@ bool clearClick(Editor *e, int x, int y)
         {
             switch (currentButton->type)
             {
+            case MOVE:
             case FILE_ACTIONS:
                 if(currentButton->subMenu != NULL && cursorInArea(currentButton->subMenu, x, y))
                 {
@@ -660,6 +694,7 @@ bool clearClick(Editor *e, int x, int y)
                     currentButton->subMenu = NULL;
                     currentButton->pressed = false;
                     e->textArea->changes = true;
+                    e->textArea->bkChanges = true;
                 }
                 break;
             default:
@@ -698,9 +733,16 @@ TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
     ta->fileName[0]='\0';
     ta->unixFile = false;
     ta->savedChanges = true;
+    ta->bkChanges = true;
+    ta->numbersDisplayed = true;
 
-    ta->topLeft = topLeft;
+    ta->topLeftWindow = topLeft;
+    ta->bottomRightWindow = bottomRight;
+
+    ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_WIDTH/4};
     ta->bottomRight = bottomRight;
+
+
     ta->cursor = initCursor();
     ta->firstLine = 0;
     drawCursorLine(ta);
@@ -727,8 +769,13 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
     ta->unixFile = false;
     ta->changes = true;
     ta->firstLine = 0;
+    ta->bkChanges = true;
+    ta->numbersDisplayed = true;
 
-    ta->topLeft = topLeft;
+    ta->topLeftWindow = topLeft;
+    ta->bottomRightWindow = bottomRight;
+
+    ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_WIDTH/4};
     ta->bottomRight = bottomRight;
 
     ta->pieceTable = initPieceTable();
@@ -1330,6 +1377,43 @@ void drawArea(TextArea *ta)
     if(ta->changes==false)
         return;
 
+    if(ta->bkChanges)
+    {
+        setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+        bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
+
+
+        if(ta->numbersDisplayed)
+        {
+            setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+            setcolor(convertToBGIColor(TEXTAREA_NUMBERS_COLOR));
+
+            ta->topLeft.x = ta->topLeftWindow.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + CHAR_WIDTH/2 + 1;
+            ta->topLeftNumbers.x = CHAR_WIDTH/4 + ta->topLeftWindow.x;
+            ta->topLeftNumbers.y = ta->topLeft.y;
+            ta->bottomRightNumbers.x = ta->topLeftNumbers.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + 1;
+            ta->bottomRightNumbers.y = ta->bottomRight.y;
+
+            line(ta->bottomRightNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
+
+            int tmp = ta->firstLine;
+            int x = ta->topLeftNumbers.x;
+            int y = ta->topLeftNumbers.y;
+            int size_char = numberOfChar(ta->pieceTable->numberOfLines + 1);
+            while(tmp <= ta->pieceTable->numberOfLines && (ta->maxLines + ta->firstLine - tmp) > 0)
+            {
+                char *text = itoa(tmp + 1, size_char);
+
+                outtextxy(x, y, text);
+                free(text);
+                tmp+=1;
+                y+=CHAR_HEIGHT;
+            }
+        }
+
+        // ta->bkChanges = false;
+    }
+
     int current_y=ta->topLeft.y;
     long showedLines = 0;
     long currentLine = ta->firstLine;
@@ -1359,6 +1443,8 @@ bool openFile(TextArea *ta, char *fileName)
     }
 
     emptyPieceTable(ta->pieceTable);
+    ta->firstColumn = 0;
+    ta->firstLine = 0;
 
     bool unixFile = false;
     unsigned int readSize;
@@ -1507,16 +1593,18 @@ bool saveFile(TextArea *ta, char *fileName)
         printf("Eroare la scrierea fisierului!\n");
         return true;
     }
-    if(strlen(ta->fileName) == 0)
+
+
+    strcpy(ta->fileName, fileName);
+    ta->e->menuArea->bkChanges = true;
+    ta->e->menuArea->changes = true;
+    for(Button *b=ta->e->menuArea->buttonsList->first; b != NULL; b = b->next)
     {
-        strcpy(ta->fileName, fileName);
-        ta->e->menuArea->bkChanges = true;
-        ta->e->menuArea->changes = true;
-        for(Button *b=ta->e->menuArea->buttonsList->first; b != NULL; b = b->next)
-        {
-            b->changes = true;
-        }
+        b->changes = true;
     }
+    ta->savedChanges = true;
+    ta->e->menuArea->changes = true;
+    ta->e->menuArea->fileStateChanged = true;
 
     for(PieceTableNode *currentNode = ta->pieceTable->nodesList->first; currentNode != NULL; currentNode = currentNode->next)
     {
@@ -1937,7 +2025,8 @@ void drawModal2(Modal2 *m2)
         m2->bkChanges = false;
     }
 
-    if(m2->errorMessageChanges && m2->error) {
+    if(m2->errorMessageChanges && m2->error)
+    {
         setfillstyle(SOLID_FILL, convertToBGIColor(MODAL2_BK_NORMAL));
         setbkcolor(convertToBGIColor(MODAL2_BK_NORMAL));
         setcolor(convertToBGIColor(MODAL2_ERROR_MSG_COLOR));
@@ -1951,7 +2040,8 @@ void drawModal2(Modal2 *m2)
     m2->changes = false;
 }
 
-void setErrorMessageModal2(Modal2 *m2, char *message) {
+void setErrorMessageModal2(Modal2 *m2, char *message)
+{
     m2->error = true;
     m2->errorMessage= (char*) malloc(sizeof(char) * strlen(message));
     strcpy(m2->errorMessage, message);
@@ -1977,11 +2067,13 @@ void handleClick(Modal2 *m2, int x, int y)
             {
             case MODAL2_CONFIRM:
                 error = m2->action(m2->e->textArea, m2->iM->text);
-                if(strlen(m2->iM->text) == 0) {
+                if(strlen(m2->iM->text) == 0)
+                {
                     setErrorMessageModal2(m2, "The input can't be empty!");
                     return;
                 }
-                if(error) {
+                if(error)
+                {
                     setErrorMessageModal2(m2, "There was a problem with your input!");
                     return;
                 }

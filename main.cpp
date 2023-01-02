@@ -139,11 +139,17 @@ int main()
                 if(a == 8)
                 {
                     removeCharFromTextArea(e->textArea);
+                    e->textArea->savedChanges = false;
+                    e->menuArea->fileStateChanged = true;
+                    e->menuArea->changes = true;
                     e->textArea->changes = true;
                 }
                 if(ENTER_PRESSED)
                 {
                     addCharToTextArea(e->textArea,'\n');
+                    e->textArea->savedChanges = false;
+                    e->menuArea->fileStateChanged = true;
+                    e->menuArea->changes = true;
                     e->textArea->changes = true;
                 }
                 if(TAB_PRESSED)
@@ -152,6 +158,9 @@ int main()
                     addCharToTextArea(e->textArea,' ');
                     addCharToTextArea(e->textArea,' ');
                     addCharToTextArea(e->textArea,' ');
+                    e->textArea->savedChanges = false;
+                    e->menuArea->fileStateChanged = true;
+                    e->menuArea->changes = true;
                     e->textArea->changes = true;
                 }
                 // Test save file
@@ -164,6 +173,9 @@ int main()
                 if(isDisplayedChar(a))
                 {
                     addCharToTextArea(e->textArea,a);
+                    e->textArea->savedChanges = false;
+                    e->menuArea->fileStateChanged = true;
+                    e->menuArea->changes = true;
                     e->textArea->changes = true;
                 }
                 // e->textArea->changes = true;
