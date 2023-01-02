@@ -3,13 +3,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <ctime>
 
 #include "editor.h"
 #include "helpers.h"
 
 // MenuBar
 #define MENU_BAR_SEPARATOR_BAR {211, 211, 211}
-#define MENU_BAR_BK {0, 0, 0}
+#define MENU_BAR_BK {255, 255, 255}
+#define MENU_BAR_FONT {0, 0, 0}
 
 // Buttons menu bar
 #define PADDING_SIDES_MENU_BAR_BUTTON 10
@@ -28,6 +30,7 @@
 #define SUBMENU1_BK {100, 100, 100}
 #define SUBMENU1_SHADOW {200, 200, 200}
 #define SUBMENU1_SHADOW_OFF 7
+#define SUBMENU1_CHARS_BUTTON 20
 
 // Buttons submenu1
 #define PADDING_SIDES_SUBMENU1_BUTTON 20
@@ -45,6 +48,75 @@
 // TextArea
 #define TEXTAREA_BK_NORMAL {100, 0, 100}
 #define TEXTAREA_FONT_NORMAL {124, 225, 255}
+#define TEXTAREA_NUMBERS_COLOR {0, 0, 0}
+
+// Modal1 - confirmation modal
+#define MODAL1_BK_NORMAL {150, 150, 150}
+#define MODAL1_FONT_NORMAL {0, 0, 0}
+#define MODAL1_SHADOW {170, 170, 170}
+#define MODAL1_SHADOW_OFF 15
+#define MODAL1_PADDING 30
+#define MODAL1_HEIGHT 200
+#define MODAL1_WIDTH 600
+#define MODAL1_CHARS_BUTTON 10
+
+// Buttons modal1
+#define PADDING_SIDES_MODAL1_BTN 20
+#define PADDING_TOP_BOTTOM_MODAL1_BTN 10
+
+#define HOVER_BK_MODAL1_YES_BUTTON {41, 204, 82}
+#define HOVER_FONT_MODAL1_YES_BUTTON {0, 0, 0}
+#define NORMAL_BK_MODAL1_YES_BUTTON {52, 255, 104}
+#define NORMAL_FONT_MODAL1_YES_BUTTON {0, 0, 0}
+#define PRESS_BK_MODAL1_YES_BUTTON {41, 204, 82}
+#define PRESS_FONT_MODAL1_YES_BUTTON {0, 0, 0}
+
+#define HOVER_BK_MODAL1_NO_BUTTON {217, 61, 92}
+#define HOVER_FONT_MODAL1_NO_BUTTON {0, 0, 0}
+#define NORMAL_BK_MODAL1_NO_BUTTON {255, 71, 109}
+#define NORMAL_FONT_MODAL1_NO_BUTTON {0, 0, 0}
+#define PRESS_BK_MODAL1_NO_BUTTON {217, 61, 92}
+#define PRESS_FONT_MODAL1_NO_BUTTON {0, 0, 0}
+
+// Modal2 - input modal
+#define MODAL2_BK_NORMAL {150, 150, 150}
+#define MODAL2_FONT_NORMAL {0, 0, 0}
+#define MODAL2_SHADOW {170, 170, 170}
+#define MODAL2_SHADOW_OFF 15
+#define MODAL2_PADDING 30
+#define MODAL2_HEIGHT 300
+#define MODAL2_WIDTH 800
+#define MODAL2_CHARS_BUTTON 10
+#define MODAL2_ERROR_MSG_COLOR {255, 45, 52}
+
+// Input modal2
+#define INPUT_MODAL2_MARGIN_COLOR {75, 75, 75}
+#define INPUT_MODAL2_MARGIN_FOCUSED {0, 0, 0}
+#define INPUT_MODAL2_MARGIN_SIZE 3
+#define INPUT_MODAL2_PADDING 10
+#define INPUT_MODAL2_CURSOR_COLOR {0, 0, 0}
+#define INPUT_MODAL2_NORMAL_BK {175, 175, 175}
+#define INPUT_MODAL2_NORMAL_FONT {25, 25, 25}
+#define INPUT_MODAL2_FOCUSED_BK {255, 255, 255}
+#define INPUT_MODAL2_FOCUSED_FONT {0, 0, 0}
+
+// Buttons modal2
+#define PADDING_SIDES_MODAL2_BTN 20
+#define PADDING_TOP_BOTTOM_MODAL2_BTN 10
+
+#define HOVER_BK_MODAL2_YES_BUTTON {41, 204, 82}
+#define HOVER_FONT_MODAL2_YES_BUTTON {0, 0, 0}
+#define NORMAL_BK_MODAL2_YES_BUTTON {52, 255, 104}
+#define NORMAL_FONT_MODAL2_YES_BUTTON {0, 0, 0}
+#define PRESS_BK_MODAL2_YES_BUTTON {41, 204, 82}
+#define PRESS_FONT_MODAL2_YES_BUTTON {0, 0, 0}
+
+#define HOVER_BK_MODAL2_NO_BUTTON {217, 61, 92}
+#define HOVER_FONT_MODAL2_NO_BUTTON {0, 0, 0}
+#define NORMAL_BK_MODAL2_NO_BUTTON {255, 71, 109}
+#define NORMAL_FONT_MODAL2_NO_BUTTON {0, 0, 0}
+#define PRESS_BK_MODAL2_NO_BUTTON {217, 61, 92}
+#define PRESS_FONT_MODAL2_NO_BUTTON {0, 0, 0}
 
 // For debugging
 #include <iostream>
@@ -60,8 +132,9 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
 
     b->type = type;
     b->style = style;
-    if(b->style == MENUBAR)
+    switch (b->style)
     {
+    case MENUBAR:
         b->paddingSides = PADDING_SIDES_MENU_BAR_BUTTON;
         b->paddingTopBottom = PADDING_TOP_BOTTOM_MENU_BAR_BUTTON;
         b->hoverBK = HOVER_BK_MENU_BAR_BUTTON;
@@ -71,9 +144,8 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
         b->pressBK = PRESS_BK_MENU_BAR_BUTTON;
         b->pressFT = PRESS_FONT_MENU_BAR_BUTTON;
         b->lengthText = strlen(name) * CHAR_WIDTH;
-    }
-    else if(b->style == SUBMENU1)
-    {
+        break;
+    case SUBMENU1:
         b->paddingSides = PADDING_SIDES_SUBMENU1_BUTTON;
         b->paddingTopBottom = PADDING_TOP_BOTTOM_SUBMENU1_BUTTON;
         b->hoverBK = HOVER_BK_SUBMENU1_BUTTON;
@@ -82,7 +154,62 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
         b->normalFT = NORMAL_FONT_SUBMENU1_BUTTON;
         b->pressBK = PRESS_BK_SUBMENU1_BUTTON;
         b->pressFT = PRESS_FONT_SUBMENU1_BUTTON;
-        b->lengthText = 20 * CHAR_WIDTH;
+        b->lengthText = SUBMENU1_CHARS_BUTTON * CHAR_WIDTH;
+        break;
+    case MODAL1_CONFIRM_STYLE:
+        b->paddingSides = PADDING_SIDES_MODAL1_BTN;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MODAL1_BTN;
+
+        b->hoverBK = HOVER_BK_MODAL1_YES_BUTTON;
+        b->hoverFT = HOVER_FONT_MODAL1_YES_BUTTON;
+        b->normalBK = NORMAL_BK_MODAL1_YES_BUTTON;
+        b->normalFT = NORMAL_FONT_MODAL1_YES_BUTTON;
+        b->pressBK = PRESS_BK_MODAL1_YES_BUTTON;
+        b->pressFT = PRESS_FONT_MODAL1_YES_BUTTON;
+
+
+        b->lengthText = MODAL1_CHARS_BUTTON * CHAR_WIDTH;
+        break;
+    case MODAL1_CANCEL_STYLE:
+        b->paddingSides = PADDING_SIDES_MODAL1_BTN;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MODAL1_BTN;
+
+        b->hoverBK = HOVER_BK_MODAL1_NO_BUTTON;
+        b->hoverFT = HOVER_FONT_MODAL1_NO_BUTTON;
+        b->normalBK = NORMAL_BK_MODAL1_NO_BUTTON;
+        b->normalFT = NORMAL_FONT_MODAL1_NO_BUTTON;
+        b->pressBK = PRESS_BK_MODAL1_NO_BUTTON;
+        b->pressFT = PRESS_FONT_MODAL1_NO_BUTTON;
+
+        b->lengthText = MODAL1_CHARS_BUTTON * CHAR_WIDTH;
+        break;
+    case MODAL2_CONFIRM_STYLE:
+        b->paddingSides = PADDING_SIDES_MODAL2_BTN;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MODAL2_BTN;
+
+        b->hoverBK = HOVER_BK_MODAL2_YES_BUTTON;
+        b->hoverFT = HOVER_FONT_MODAL2_YES_BUTTON;
+        b->normalBK = NORMAL_BK_MODAL2_YES_BUTTON;
+        b->normalFT = NORMAL_FONT_MODAL2_YES_BUTTON;
+        b->pressBK = PRESS_BK_MODAL2_YES_BUTTON;
+        b->pressFT = PRESS_FONT_MODAL2_YES_BUTTON;
+
+
+        b->lengthText = max(int(strlen(name)), MODAL2_CHARS_BUTTON) * CHAR_WIDTH;
+        break;
+    case MODAL2_CANCEL_STYLE:
+        b->paddingSides = PADDING_SIDES_MODAL2_BTN;
+        b->paddingTopBottom = PADDING_TOP_BOTTOM_MODAL2_BTN;
+
+        b->hoverBK = HOVER_BK_MODAL2_NO_BUTTON;
+        b->hoverFT = HOVER_FONT_MODAL2_NO_BUTTON;
+        b->normalBK = NORMAL_BK_MODAL2_NO_BUTTON;
+        b->normalFT = NORMAL_FONT_MODAL2_NO_BUTTON;
+        b->pressBK = PRESS_BK_MODAL2_NO_BUTTON;
+        b->pressFT = PRESS_FONT_MODAL2_NO_BUTTON;
+
+        b->lengthText = MODAL2_CHARS_BUTTON * CHAR_WIDTH;
+        break;
     }
 
     b->next = NULL;
@@ -130,11 +257,26 @@ void drawButton(Button* b)
     }
 
     bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x, b->bottomRight.y);
-    outtextxy(b->topLeft.x + b->paddingSides, b->topLeft.y + b->paddingTopBottom, b->text);
+
+    int x;
+    switch (b->style)
+    {
+    // Center text in button for modal buttons
+    case MODAL1_CONFIRM_STYLE:
+    case MODAL1_CANCEL_STYLE:
+    case MODAL2_CONFIRM_STYLE:
+    case MODAL2_CANCEL_STYLE:
+        x = (b->topLeft.x + b->bottomRight.x - strlen(b->text)*CHAR_WIDTH) / 2;
+        outtextxy(x, b->topLeft.y + b->paddingTopBottom, b->text);
+        break;
+    default:
+        outtextxy(b->topLeft.x + b->paddingSides, b->topLeft.y + b->paddingTopBottom, b->text);
+        break;
+    }
     b->changes = false;
 }
 
-ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle style, ButtonListStyle styleBl)
+ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], ButtonType types[], unsigned int length, ButtonStyle styles[], ButtonListStyle styleBl)
 {
     ButtonsList* bl = new ButtonsList;
     bl->changes = true;
@@ -145,25 +287,27 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
     bl->bkChanged = true;
     bl->style = styleBl;
 
-    if(style == MENUBAR)
+    Button* b;
+
+    switch (styleBl)
     {
+    case MENUBAR_BL:
         for(int i=0; i<length; i++)
         {
-            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], styles[i]);
             addButtonToList(bl, b);
             topLeft.x = b->bottomRight.x;
             bl->bottomRight.x = b->bottomRight.x;
             bl->bottomRight.y = b->bottomRight.y;
         }
-    }
-    else if (style == SUBMENU1)
-    {
+        break;
+    case SUBMENU1_BL:
         topLeft.x += SUBMENU1_PADDING;
         topLeft.y += SUBMENU1_PADDING;
         int i;
         for(i=0; i<length-1; i++)
         {
-            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], styles[i]);
 
             addButtonToList(bl, b);
             topLeft.y = b->bottomRight.y + LENGTH_SEPARATOR_BUTTON_BOTTOM;
@@ -172,7 +316,7 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
         }
         if(length > 0)
         {
-            Button* b = initButton(buttonsNames[i], topLeft, types[i], style);
+            Button* b = initButton(buttonsNames[i], topLeft, types[i], styles[i]);
             addButtonToList(bl, b);
             topLeft.y = b->bottomRight.y;
             bl->bottomRight.x = b->bottomRight.x;
@@ -180,6 +324,27 @@ ButtonsList* initButtonsList(Point topLeft, char buttonsNames[][MAX_NAMES_LEN], 
         }
         bl->bottomRight.x += SUBMENU1_PADDING;
         bl->bottomRight.y += SUBMENU1_PADDING;
+        break;
+    case MODAL1_BL:
+        b = initButton(buttonsNames[0], topLeft, types[0], styles[0]);
+        addButtonToList(bl, b);
+
+        topLeft.x = (MAX_WIDTH + MODAL1_WIDTH) / 2 - MODAL1_PADDING - 2*PADDING_SIDES_MODAL1_BTN - CHAR_WIDTH * MODAL1_CHARS_BUTTON;
+        b = initButton(buttonsNames[1], topLeft, types[1], styles[1]);
+        addButtonToList(bl, b);
+
+        bl->bottomRight = b->bottomRight;
+        break;
+    case MODAL2_BL:
+        b = initButton(buttonsNames[0], topLeft, types[0], styles[0]);
+        addButtonToList(bl, b);
+
+        topLeft.x = (MAX_WIDTH + MODAL2_WIDTH) / 2 - MODAL2_PADDING - 2*PADDING_SIDES_MODAL2_BTN - CHAR_WIDTH * MODAL2_CHARS_BUTTON;
+        b = initButton(buttonsNames[1], topLeft, types[1], styles[1]);
+        addButtonToList(bl, b);
+
+        bl->bottomRight = b->bottomRight;
+        break;
     }
 
     return bl;
@@ -201,6 +366,7 @@ void removeLastButtonFromList(ButtonsList *bl)
         Button *aux = bl->last;
         bl->last = bl->last->prev;
         bl->last->next = NULL;
+        free(aux->text);
         delete aux;
         bl->length--;
     }
@@ -282,17 +448,21 @@ bool cursorInArea(Button* b, int x, int y)
     return b->topLeft.x < x && x < b->bottomRight.x && b->topLeft.y < y && y < b->bottomRight.y;
 }
 
-MenuArea* initMenuArea(Point topLeft)
+MenuArea* initMenuArea(Point topLeft, Editor *e)
 {
     MenuArea* ma = new MenuArea;
+    ma->bkChanges = true;
+    ma->e = e;
     ma->separatorLength = 2;
+    ma->fileStateChanged = false;
 
     ma->topLeft = topLeft;
 
-    char buttonsNames[][MAX_NAMES_LEN] = {"File", "Edit", "Format"};
-    ButtonType types[] = {FILE_ACTIONS, EDIT, FORMAT};
+    char buttonsNames[][MAX_NAMES_LEN] = {"File", "Move", "Edit", "Format"};
+    ButtonType types[] = {FILE_ACTIONS, MOVE, EDIT, FORMAT};
+    ButtonStyle styles[] = {MENUBAR, MENUBAR, MENUBAR, MENUBAR};
 
-    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 3, MENUBAR, MENUBAR_BL);
+    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 4, styles, MENUBAR_BL);
     ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 2*ma->buttonsList->first->paddingTopBottom};
 
     ma->changes = true;
@@ -303,6 +473,43 @@ void drawArea(MenuArea *ma)
 {
     if(ma->changes == false)
         return;
+
+
+    if(ma->fileStateChanged == true)
+    {
+        setbkcolor(convertToBGIColor(MENU_BAR_BK));
+        setcolor(convertToBGIColor(MENU_BAR_FONT));
+        if(ma->e->textArea->savedChanges == false)
+        {
+            outtextxy(ma->bottomRight.x - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, "*");
+        }
+        else
+        {
+            outtextxy(ma->bottomRight.x - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, " ");
+
+        }
+
+        ma->fileStateChanged = false;
+    }
+
+
+    if(ma->bkChanges)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(MENU_BAR_BK));
+        bar(ma->topLeft.x, ma->topLeft.y, ma->bottomRight.x, ma->bottomRight.y);
+        setbkcolor(convertToBGIColor(MENU_BAR_BK));
+        setcolor(convertToBGIColor(MENU_BAR_FONT));
+
+        if(strlen(ma->e->textArea->fileName) != 0)
+        {
+            outtextxy(ma->bottomRight.x - strlen(ma->e->textArea->fileName)*CHAR_WIDTH - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, ma->e->textArea->fileName);
+        }
+        else
+        {
+            outtextxy(ma->bottomRight.x - strlen("New file")*CHAR_WIDTH - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, "New file");
+        }
+        ma->bkChanges = false;
+    }
 
     setfillstyle(SOLID_FILL, convertToBGIColor(MENU_BAR_SEPARATOR_BAR));
     bar(ma->topLeft.x, ma->bottomRight.y - ma->separatorLength, ma->bottomRight.x, ma->bottomRight.y);
@@ -368,11 +575,31 @@ void clearHover(MenuArea *ma, int x, int y)
 
 void showFileActionsSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"New", "Save", "Save as..."};
-    ButtonType types[] = {NEW_FILE, SAVE_FILE, SAVE_AS_FILE};
+    char buttonsNames[][MAX_NAMES_LEN] = {"New", "Open file...", "Save", "Save as..."};
+    ButtonType types[] = {NEW_FILE, OPEN_FILE, SAVE_FILE, SAVE_AS_FILE};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 3, SUBMENU1, SUBMENU1_BL);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
 }
+
+void showMoveSubMenu(Button* b, MenuArea* ma)
+{
+    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column"};
+    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1};
+
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 2, styles, SUBMENU1_BL);
+}
+
+// test
+void blabla(Editor* e)
+{
+}
+
+bool blabla2(TextArea* e, char* x)
+{
+}
+//
 
 bool handleClick(Editor *e, int x, int y)
 {
@@ -386,24 +613,37 @@ bool handleClick(Editor *e, int x, int y)
                 if(cursorInArea(subMenuButton, x, y))
                 {
                     subMenuButton->pressed = true;
+                    Modal2 *m2;
                     switch (subMenuButton->type)
                     {
                     case SAVE_FILE:
-                        cout<<"Am salvat fisierul\n";
+                        if(strlen(e->textArea->fileName)==0)
+                        {
+                            m2 = initModal2(e, "Save the file on the disk", "This is a new file and in order to save it you\nmust provide a path:", "Save file as...", "Cancel", &saveFile);
+                        }
+                        else
+                        {
+                            saveFile(e->textArea, e->textArea->fileName);
+                        }
                         break;
                     case NEW_FILE:
+                        // TODO
                         cout<<"Fisier nou\n";
+                        initModal1(e, "Esti sigur ca vrei sa faci asta?", "bla bla bla\nalt text", &blabla);
                         break;
                     case SAVE_AS_FILE:
-                        cout<<"Salveaza fisier ca...\n";
+                        m2 = initModal2(e, "Save the file on the disk", "To save the file you must provide a path:", "Save file as...", "Cancel", &saveFile);
+                        break;
+                    case OPEN_FILE:
+                        m2 = initModal2(e, "Open a file on the disk", "You must provide the full path to the file:", "Open file", "Cancel", &openFile);
                         break;
                     }
 
                     deleteButtonsList(currentButton->subMenu);
                     currentButton->subMenu = NULL;
-
                     currentButton->pressed = false;
                     e->textArea->changes = true;
+                    e->textArea->bkChanges = true;
                     currentButton->changes = true;
                     subMenuButton->changes = true;
                     ma->changes = true;
@@ -418,6 +658,9 @@ bool handleClick(Editor *e, int x, int y)
             {
             case FILE_ACTIONS:
                 showFileActionsSubMenu(currentButton, ma);
+                break;
+            case MOVE:
+                showMoveSubMenu(currentButton, ma);
                 break;
             }
 
@@ -439,6 +682,7 @@ bool clearClick(Editor *e, int x, int y)
         {
             switch (currentButton->type)
             {
+            case MOVE:
             case FILE_ACTIONS:
                 if(currentButton->subMenu != NULL && cursorInArea(currentButton->subMenu, x, y))
                 {
@@ -450,6 +694,7 @@ bool clearClick(Editor *e, int x, int y)
                     currentButton->subMenu = NULL;
                     currentButton->pressed = false;
                     e->textArea->changes = true;
+                    e->textArea->bkChanges = true;
                 }
                 break;
             default:
@@ -481,14 +726,23 @@ Cursor *initCursor()
     return c;
 }
 
-TextArea* initTextArea(Point topLeft, Point bottomRight)
+TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
 {
     TextArea* ta = new TextArea;
+    ta->e = e;
+    ta->fileName[0]='\0';
     ta->unixFile = false;
     ta->savedChanges = true;
+    ta->bkChanges = true;
+    ta->numbersDisplayed = true;
 
-    ta->topLeft = topLeft;
+    ta->topLeftWindow = topLeft;
+    ta->bottomRightWindow = bottomRight;
+
+    ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_WIDTH/4};
     ta->bottomRight = bottomRight;
+
+
     ta->cursor = initCursor();
     ta->firstLine = 0;
     drawCursorLine(ta);
@@ -506,15 +760,22 @@ TextArea* initTextArea(Point topLeft, Point bottomRight)
     return ta;
 }
 
-TextArea* initTextArea(Point topLeft, Point bottomRight, char *fileName)
+TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileName)
 {
     TextArea* ta = new TextArea;
+    ta->e = e;
+    ta->fileName[0]='\0';
     ta->savedChanges = true;
     ta->unixFile = false;
     ta->changes = true;
     ta->firstLine = 0;
+    ta->bkChanges = true;
+    ta->numbersDisplayed = true;
 
-    ta->topLeft = topLeft;
+    ta->topLeftWindow = topLeft;
+    ta->bottomRightWindow = bottomRight;
+
+    ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_WIDTH/4};
     ta->bottomRight = bottomRight;
 
     ta->pieceTable = initPieceTable();
@@ -923,7 +1184,7 @@ Editor* initEditor()
     Point topLeft, bottomRight;
 
     topLeft= {0, 0};
-    e->menuArea = initMenuArea(topLeft);
+    e->menuArea = initMenuArea(topLeft, e);
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
@@ -935,14 +1196,11 @@ Editor* initEditor()
     topLeft= {0, e->menuArea->bottomRight.y};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!
-    // Citire din fisier
-    //cout<<"TOP LEFT: "<<topLeft.x<<" "<<topLeft.y<<'\n';
-    //cout<<"RIGHT BOTTOM: "<<bottomRight.x<<" "<<bottomRight.y<<'\n';
+    //e->textArea = initTextArea(e, topLeft, bottomRight, "textText.txt");
+    e->textArea = initTextArea(e, topLeft, bottomRight);
 
-
-    e->textArea = initTextArea(topLeft, bottomRight, "textText.txt");
-    //e->textArea = initTextArea(topLeft, bottomRight);
+    e->modalOpen = false;
+    e->m1 = NULL;
 
     return e;
 }
@@ -1075,7 +1333,6 @@ void drawLines(TextArea *ta, int current_y, int end_y)
     {
         PieceTableNode* lineNode;
         long indexOfLine;
-
         getWhereLineStarts(ta->pieceTable, currentLine, lineNode, indexOfLine);
         if(!lineNode)
         {
@@ -1095,6 +1352,43 @@ void drawArea(TextArea *ta)
     if(ta->changes==false)
         return;
 
+    if(ta->bkChanges)
+    {
+        setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+        bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
+
+
+        if(ta->numbersDisplayed)
+        {
+            setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+            setcolor(convertToBGIColor(TEXTAREA_NUMBERS_COLOR));
+
+            ta->topLeft.x = ta->topLeftWindow.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + CHAR_WIDTH/2 + 1;
+            ta->topLeftNumbers.x = CHAR_WIDTH/4 + ta->topLeftWindow.x;
+            ta->topLeftNumbers.y = ta->topLeft.y;
+            ta->bottomRightNumbers.x = ta->topLeftNumbers.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + 1;
+            ta->bottomRightNumbers.y = ta->bottomRight.y;
+
+            line(ta->bottomRightNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
+
+            int tmp = ta->firstLine;
+            int x = ta->topLeftNumbers.x;
+            int y = ta->topLeftNumbers.y;
+            int size_char = numberOfChar(ta->pieceTable->numberOfLines + 1);
+            while(tmp <= ta->pieceTable->numberOfLines && (ta->maxLines + ta->firstLine - tmp) > 0)
+            {
+                char *text = itoa(tmp + 1, size_char);
+
+                outtextxy(x, y, text);
+                free(text);
+                tmp+=1;
+                y+=CHAR_HEIGHT;
+            }
+        }
+
+        // ta->bkChanges = false;
+    }
+
     int current_y=ta->topLeft.y;
     long showedLines = 0;
     long currentLine = ta->firstLine;
@@ -1104,7 +1398,7 @@ void drawArea(TextArea *ta)
     drawCursorLine(ta);
 }
 
-void openFile(TextArea *ta, char *fileName)
+bool openFile(TextArea *ta, char *fileName)
 {
     FILE *file = fopen(fileName, "rb");
 
@@ -1112,16 +1406,27 @@ void openFile(TextArea *ta, char *fileName)
     {
         fclose(file);
         printf("Eroare la citirea fisierului!\n");
-        return;
+        return true;
+    }
+
+    strcpy(ta->fileName, fileName);
+    ta->e->menuArea->bkChanges = true;
+    ta->e->menuArea->changes = true;
+    for(Button *b=ta->e->menuArea->buttonsList->first; b != NULL; b = b->next)
+    {
+        b->changes = true;
     }
 
     emptyPieceTable(ta->pieceTable);
+    ta->firstColumn = 0;
+    ta->firstLine = 0;
 
     bool unixFile = false;
     unsigned int readSize;
     char lastAddedChar = '\0';
     int numberOfSpaces = 0;
     bool ok = false;
+    ta->pieceTable->numberOfLines = 0;
 
     do
     {
@@ -1131,8 +1436,7 @@ void openFile(TextArea *ta, char *fileName)
             last_x = '\0';
             readSize = 0;
         }
-
-        Buffer *newBuffer;
+        Buffer *newBuffer=NULL;
         if(numberOfSpaces > 0 || last_x != '\0')
         {
             newBuffer = initBuffer();
@@ -1184,7 +1488,7 @@ void openFile(TextArea *ta, char *fileName)
             newBuffer->length++;
         }
 
-        while((newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file))
+        while(newBuffer != NULL && (newBuffer->length < MAX_LENGTH_BUFFER) && fread(&x, sizeof(char), 1, file))
         {
             newBuffer->text[newBuffer->length] = x;
             if(x == '\n') numberNewLines++;
@@ -1221,6 +1525,7 @@ void openFile(TextArea *ta, char *fileName)
                 last_x = x;
             }
         }
+
         if(last_x != '\0' || ok)
         {
             PieceTableNode *newNode = initPieceTableNode(newBuffer, 0, newBuffer->length, numberNewLines);
@@ -1242,11 +1547,18 @@ void openFile(TextArea *ta, char *fileName)
     if(unixFile) ta->unixFile = true;
     Buffer *newBuffer = initBuffer();
     addBuffer(ta->pieceTable->buffersList, newBuffer);
+    PieceTableNode *newPtn = initPieceTableNode(newBuffer, 0, 0, 0);
+    addPieceTableNode(ta->pieceTable->nodesList, newPtn);
+
+    ta->cursor->position = {0, 0};
+    ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
+    ta->cursor->positionInNode = 0;
 
     fclose(file);
+    return false;
 }
 
-void saveFile(TextArea *ta, char *fileName)
+bool saveFile(TextArea *ta, char *fileName)
 {
     FILE *file = fopen(fileName, "wb");
 
@@ -1254,8 +1566,20 @@ void saveFile(TextArea *ta, char *fileName)
     {
         fclose(file);
         printf("Eroare la scrierea fisierului!\n");
-        return;
+        return true;
     }
+
+
+    strcpy(ta->fileName, fileName);
+    ta->e->menuArea->bkChanges = true;
+    ta->e->menuArea->changes = true;
+    for(Button *b=ta->e->menuArea->buttonsList->first; b != NULL; b = b->next)
+    {
+        b->changes = true;
+    }
+    ta->savedChanges = true;
+    ta->e->menuArea->changes = true;
+    ta->e->menuArea->fileStateChanged = true;
 
     for(PieceTableNode *currentNode = ta->pieceTable->nodesList->first; currentNode != NULL; currentNode = currentNode->next)
     {
@@ -1287,12 +1611,24 @@ void saveFile(TextArea *ta, char *fileName)
         }
     }
     fclose(file);
+    return false;
 }
 
 void drawEditor(Editor *e)
 {
     drawArea(e->textArea);
     drawArea(e->menuArea);
+    if(e->modalOpen)
+    {
+        if(e->m1 != NULL)
+        {
+            drawModal1(e->m1);
+        }
+        if(e->m2 != NULL)
+        {
+            drawModal2(e->m2);
+        }
+    }
     //drawArea(e->scrollBarsArea);
     e->textArea->changes = false;
 }
@@ -1303,3 +1639,464 @@ void stopEditor(Editor *e)
     closegraph();
     // TODO: Delete data from memory
 }
+
+Modal1* initModal1(Editor *e, char *title, char *description, void (*action)(Editor*))
+{
+    e->modalOpen = true;
+
+    Modal1 *m1 = new Modal1;
+    e->m1 = m1;
+    m1->changes = true;
+    m1->bkChanges = true;
+
+    m1->topLeft.x = (MAX_WIDTH - MODAL1_WIDTH) / 2;
+    m1->topLeft.y = (MAX_HEIGHT - MODAL1_HEIGHT) / 2;
+    m1->bottomRight.x = m1->topLeft.x + MODAL1_WIDTH;
+    m1->bottomRight.y = m1->topLeft.y + MODAL1_HEIGHT;
+
+    m1->title = (char*) malloc(sizeof(char) * strlen(title));
+    strcpy(m1->title, title);
+    m1->description = (char*) malloc(sizeof(char) * strlen(description));
+    strcpy(m1->description, description);
+
+    char buttonsNames[][MAX_NAMES_LEN] = {"Confirm", "Cancel"};
+    ButtonType types[] = {MODAL1_CONFIRM, MODAL1_CANCEL};
+    ButtonStyle styles[] = {MODAL1_CONFIRM_STYLE, MODAL1_CANCEL_STYLE};
+
+    m1->bl = initButtonsList({m1->topLeft.x + MODAL1_PADDING, m1->bottomRight.y - MODAL1_PADDING - CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL1_BTN},
+                             buttonsNames, types, 2, styles, MODAL1_BL);
+
+    m1->action = action;
+    m1->e = e;
+    return m1;
+}
+
+void deleteModal1(Modal1 *m1)
+{
+    free(m1->title);
+    free(m1->description);
+    m1->e->m1 = NULL;
+    m1->e->modalOpen = false;
+    m1->e->textArea->changes = true;
+    deleteButtonsList(m1->bl);
+    delete m1;
+}
+
+void drawModal1(Modal1 *m1)
+{
+    if(!m1->changes) return;
+
+    if(m1->bkChanges)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL1_SHADOW));
+        bar(m1->topLeft.x + MODAL1_SHADOW_OFF, m1->topLeft.y+ MODAL1_SHADOW_OFF, m1->bottomRight.x+ MODAL1_SHADOW_OFF, m1->bottomRight.y+ MODAL1_SHADOW_OFF);
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL1_BK_NORMAL));
+        bar(m1->topLeft.x, m1->topLeft.y, m1->bottomRight.x, m1->bottomRight.y);
+
+        Point topLeft = m1->topLeft;
+        topLeft.x += MODAL1_PADDING;
+        topLeft.y += MODAL1_PADDING;
+
+        setbkcolor(convertToBGIColor(MODAL1_BK_NORMAL));
+        setcolor(convertToBGIColor(MODAL1_FONT_NORMAL));
+
+        char *p = strtok(m1->title, "\n");
+        while(p)
+        {
+            outtextxy(topLeft.x, topLeft.y, p);
+            p = strtok(NULL, "\n");
+            topLeft.y += CHAR_HEIGHT;
+        }
+
+        topLeft.y += CHAR_HEIGHT;
+
+        p = strtok(m1->description, "\n");
+        while(p)
+        {
+            outtextxy(topLeft.x, topLeft.y, p);
+            p = strtok(NULL, "\n");
+            topLeft.y += CHAR_HEIGHT;
+        }
+
+        m1->bkChanges = false;
+    }
+
+    drawButtonsList(m1->bl);
+    m1->changes = false;
+}
+
+void handleClick(Modal1 *m1, int x, int y)
+{
+    for(Button* currentButton = m1->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->pressed == false)
+        {
+            switch (currentButton->type)
+            {
+            case MODAL1_CONFIRM:
+                cout<<"CONFIRMAT\n";
+                break;
+            }
+
+            deleteModal1(m1);
+            return;
+        }
+    }
+}
+
+void handleHover(Modal1 *m1, int x, int y)
+{
+    for(Button* currentButton = m1->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->hovered == false)
+        {
+            currentButton->hovered = true;
+            currentButton->changes = true;
+            m1->changes = true;
+        }
+    }
+}
+
+void clearHover(Modal1 *m1, int x, int y)
+{
+    for(Button* currentButton = m1->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+
+        if(!cursorInArea(currentButton, x, y) && currentButton->hovered == true)
+        {
+            currentButton->hovered = false;
+            currentButton->changes = true;
+            m1->changes = true;
+        }
+    }
+}
+
+CursorModal2* initCursorModal2(Point position, InputModal2 *input)
+{
+    CursorModal2 *cursor = new CursorModal2;
+    cursor->input = input;
+    cursor->position = position;
+    cursor->state = false;
+    cursor->lastUpdate = 0;
+    return cursor;
+}
+
+void deleteCursorModal2(CursorModal2* cursor)
+{
+    delete cursor;
+}
+
+void changeCursor(CursorModal2* cursor)
+{
+    if(cursor->state)
+    {
+        cursor->state = false;
+    }
+    else
+    {
+        cursor->state = true;
+    }
+
+    cursor->input->changes = true;
+    cursor->input->modal->changes = true;
+    cursor->lastUpdate = time(0);
+}
+
+void drawCursorModal2(CursorModal2 *cursor)
+{
+    if(cursor->state)
+    {
+        setcolor(convertToBGIColor(INPUT_MODAL2_CURSOR_COLOR));
+    }
+    else
+    {
+        setcolor(convertToBGIColor(INPUT_MODAL2_FOCUSED_BK));
+    }
+    line(cursor->position.x, cursor->position.y, cursor->position.x, cursor->position.y + CHAR_HEIGHT - 1);
+}
+
+InputModal2* initInputModal2(Point topLeft, Point bottomRight, Modal2* modal)
+{
+    InputModal2 *input = new InputModal2;
+    input->modal = modal;
+    input->topLeft = topLeft;
+    input->bottomRight = bottomRight;
+    input->changes = true;
+    input->state = false;
+    input->text[0] = '\0';
+    input->cursor = initCursorModal2({topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING}, input);
+    return input;
+}
+
+void deleteInputModal2(InputModal2* input)
+{
+    deleteCursorModal2(input->cursor);
+    delete input;
+}
+
+void drawInputModal2(InputModal2 *input)
+{
+    if(!input->changes) return;
+
+    if(input->state)
+    {
+        // Draw the margins
+        setfillstyle(1, convertToBGIColor(INPUT_MODAL2_MARGIN_FOCUSED));
+        bar(input->topLeft.x, input->topLeft.y, input->bottomRight.x, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE);
+        bar(input->topLeft.x, input->topLeft.y, input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y);
+        bar(input->bottomRight.x, input->topLeft.y, input->bottomRight.x - INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y);
+        bar(input->topLeft.x, input->bottomRight.y, input->bottomRight.x, input->bottomRight.y - INPUT_MODAL2_MARGIN_SIZE);
+
+        setfillstyle(1, convertToBGIColor(INPUT_MODAL2_FOCUSED_BK));
+        bar(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.x - INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y - INPUT_MODAL2_MARGIN_SIZE);
+
+        setbkcolor(convertToBGIColor(INPUT_MODAL2_FOCUSED_BK));
+        setcolor(convertToBGIColor(INPUT_MODAL2_FOCUSED_FONT));
+        outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
+
+        drawCursorModal2(input->cursor);
+    }
+    else
+    {
+        // Draw the margins
+        setfillstyle(1, convertToBGIColor(INPUT_MODAL2_MARGIN_COLOR));
+        bar(input->topLeft.x, input->topLeft.y, input->bottomRight.x, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE);
+        bar(input->topLeft.x, input->topLeft.y, input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y);
+        bar(input->bottomRight.x, input->topLeft.y, input->bottomRight.x - INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y);
+        bar(input->topLeft.x, input->bottomRight.y, input->bottomRight.x, input->bottomRight.y - INPUT_MODAL2_MARGIN_SIZE);
+
+        setfillstyle(1, convertToBGIColor(INPUT_MODAL2_NORMAL_BK));
+        bar(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.x - INPUT_MODAL2_MARGIN_SIZE, input->bottomRight.y - INPUT_MODAL2_MARGIN_SIZE);
+
+        setbkcolor(convertToBGIColor(INPUT_MODAL2_NORMAL_BK));
+        setcolor(convertToBGIColor(INPUT_MODAL2_NORMAL_FONT));
+        outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
+
+    }
+    input->changes = false;
+}
+
+bool cursorInArea(InputModal2* input, int x, int y)
+{
+    return input->topLeft.x < x && x < input->bottomRight.x && input->topLeft.y < y && y < input->bottomRight.y;
+}
+
+void addCharToModal2Input(InputModal2* input, char x)
+{
+    unsigned int lg = strlen(input->text);
+    if(lg >= MAX_CHAR_MODAL2_INPUT) return;
+
+    input->text[lg] = x;
+    input->text[lg+1] = '\0';
+    input->cursor->position.x += CHAR_WIDTH;
+    input->cursor->state = true;
+    input->cursor->lastUpdate = time(0);
+    input->changes = true;
+    input->modal->changes = true;
+}
+
+void deleteCharFromModal2Input(InputModal2* input)
+{
+    unsigned int lg = strlen(input->text);
+    if(lg == 0) return;
+
+    input->text[lg-1] = '\0';
+    input->cursor->position.x -= CHAR_WIDTH;
+    input->cursor->state = true;
+    input->cursor->lastUpdate = time(0);
+    input->changes = true;
+    input->modal->changes = true;
+}
+
+Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, bool (*action)(TextArea*, char*))
+{
+    e->modalOpen = true;
+
+    Modal2 *m2 = new Modal2;
+    e->m2 = m2;
+    m2->error = false;
+    m2->errorMessageChanges = false;
+
+    m2->changes = true;
+    m2->bkChanges = true;
+
+    m2->topLeft.x = (MAX_WIDTH - MODAL2_WIDTH) / 2;
+    m2->topLeft.y = (MAX_HEIGHT - MODAL2_HEIGHT) / 2;
+    m2->bottomRight.x = m2->topLeft.x + MODAL2_WIDTH;
+    m2->bottomRight.y = m2->topLeft.y + MODAL2_HEIGHT;
+
+    m2->title = (char*) malloc(sizeof(char) * strlen(title));
+    strcpy(m2->title, title);
+    m2->description = (char*) malloc(sizeof(char) * strlen(description));
+    strcpy(m2->description, description);
+
+    char buttonsNames[2][MAX_NAMES_LEN];
+    strcpy(buttonsNames[0], buttonNameYes);
+    strcpy(buttonsNames[1], buttonNameNo);
+
+    ButtonType types[] = {MODAL2_CONFIRM, MODAL2_CANCEL};
+    ButtonStyle styles[] = {MODAL2_CONFIRM_STYLE, MODAL2_CANCEL_STYLE};
+
+    m2->bl = initButtonsList({(MAX_WIDTH + MODAL2_WIDTH) / 2 - MODAL2_PADDING - 4*PADDING_SIDES_MODAL2_BTN - CHAR_WIDTH * max((int)strlen(buttonsNames[1]),MODAL2_CHARS_BUTTON) - 2*CHAR_WIDTH - CHAR_WIDTH * max((int)strlen(buttonsNames[0]),MODAL2_CHARS_BUTTON),
+                              m2->bottomRight.y - MODAL2_PADDING - CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN},
+                             buttonsNames, types, 2, styles, MODAL2_BL);
+    m2->iM = initInputModal2({m2->topLeft.x + MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 3*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN - 2*INPUT_MODAL2_PADDING - 2*INPUT_MODAL2_MARGIN_SIZE},
+    {m2->bottomRight.x - MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 2*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN}, m2);
+
+    m2->action = action;
+    m2->e = e;
+    return m2;
+}
+
+void deleteModal2(Modal2 *m2)
+{
+    free(m2->title);
+    free(m2->description);
+    free(m2->errorMessage);
+    m2->e->m2 = NULL;
+    m2->e->modalOpen = false;
+    m2->e->textArea->changes = true;
+    deleteButtonsList(m2->bl);
+    deleteInputModal2(m2->iM);
+    delete m2;
+}
+
+void drawModal2(Modal2 *m2)
+{
+    if(!m2->changes) return;
+
+    if(m2->bkChanges)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL2_SHADOW));
+        bar(m2->topLeft.x + MODAL2_SHADOW_OFF, m2->topLeft.y+ MODAL2_SHADOW_OFF, m2->bottomRight.x+ MODAL2_SHADOW_OFF, m2->bottomRight.y+ MODAL2_SHADOW_OFF);
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL2_BK_NORMAL));
+        bar(m2->topLeft.x, m2->topLeft.y, m2->bottomRight.x, m2->bottomRight.y);
+
+        Point topLeft = m2->topLeft;
+        topLeft.x += MODAL2_PADDING;
+        topLeft.y += MODAL2_PADDING;
+
+        setbkcolor(convertToBGIColor(MODAL2_BK_NORMAL));
+        setcolor(convertToBGIColor(MODAL2_FONT_NORMAL));
+
+        char *p = strtok(m2->title, "\n");
+        while(p)
+        {
+            outtextxy(topLeft.x, topLeft.y, p);
+            p = strtok(NULL, "\n");
+            topLeft.y += CHAR_HEIGHT;
+        }
+
+        topLeft.y += CHAR_HEIGHT;
+
+        p = strtok(m2->description, "\n");
+        while(p)
+        {
+            outtextxy(topLeft.x, topLeft.y, p);
+            p = strtok(NULL, "\n");
+            topLeft.y += CHAR_HEIGHT;
+        }
+
+        m2->bkChanges = false;
+    }
+
+    if(m2->errorMessageChanges && m2->error)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(MODAL2_BK_NORMAL));
+        setbkcolor(convertToBGIColor(MODAL2_BK_NORMAL));
+        setcolor(convertToBGIColor(MODAL2_ERROR_MSG_COLOR));
+
+        bar(m2->iM->topLeft.x, m2->iM->topLeft.y - 2*CHAR_HEIGHT, m2->iM->bottomRight.x, m2->iM->topLeft.y - 1*CHAR_HEIGHT);
+        outtextxy(m2->iM->topLeft.x, m2->iM->topLeft.y - 2*CHAR_HEIGHT, m2->errorMessage);
+    }
+
+    drawButtonsList(m2->bl);
+    drawInputModal2(m2->iM);
+    m2->changes = false;
+}
+
+void setErrorMessageModal2(Modal2 *m2, char *message)
+{
+    m2->error = true;
+    m2->errorMessage= (char*) malloc(sizeof(char) * strlen(message));
+    strcpy(m2->errorMessage, message);
+    m2->errorMessageChanges = true;
+    m2->changes = true;
+}
+
+void handleClick(Modal2 *m2, int x, int y)
+{
+    if(cursorInArea(m2->iM, x, y) && m2->iM->state == false)
+    {
+        m2->iM->state = true;
+        m2->iM->changes = true;
+        m2->changes = true;
+    }
+
+    for(Button* currentButton = m2->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->pressed == false)
+        {
+            bool error = false;
+            switch (currentButton->type)
+            {
+            case MODAL2_CONFIRM:
+                error = m2->action(m2->e->textArea, m2->iM->text);
+                if(strlen(m2->iM->text) == 0)
+                {
+                    setErrorMessageModal2(m2, "The input can't be empty!");
+                    return;
+                }
+                if(error)
+                {
+                    setErrorMessageModal2(m2, "There was a problem with your input!");
+                    return;
+                }
+                cout<<"CONFIRMAT\n";
+                break;
+            }
+
+            deleteModal2(m2);
+            return;
+        }
+    }
+}
+
+
+void handleHover(Modal2 *m2, int x, int y)
+{
+    for(Button* currentButton = m2->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+        if(cursorInArea(currentButton, x, y) && currentButton->hovered == false)
+        {
+            currentButton->hovered = true;
+            currentButton->changes = true;
+            m2->changes = true;
+        }
+    }
+}
+
+void clearHover(Modal2 *m2, int x, int y)
+{
+    for(Button* currentButton = m2->bl->first; currentButton != NULL; currentButton = currentButton->next)
+    {
+
+        if(!cursorInArea(currentButton, x, y) && currentButton->hovered == true)
+        {
+            currentButton->hovered = false;
+            currentButton->changes = true;
+            m2->changes = true;
+        }
+    }
+}
+
+void clearClick(Modal2 *m2, int x, int y)
+{
+    if(!cursorInArea(m2->iM, x, y) && m2->iM->state == true)
+    {
+        m2->iM->state = false;
+        m2->iM->changes = true;
+        m2->changes = true;
+    }
+}
+
