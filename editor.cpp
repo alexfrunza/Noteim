@@ -740,7 +740,7 @@ TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
     ta->bottomRightWindow = bottomRight;
 
     ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_WIDTH/4};
-    ta->bottomRight = bottomRight;
+    ta->bottomRight = {bottomRight.x, bottomRight.y};
 
 
     ta->cursor = initCursor();
@@ -754,8 +754,8 @@ TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
     PieceTableNode *firstNode = initPieceTableNode(ta->pieceTable->buffersList->first,0,0,0);
     addPieceTableNode(ta->pieceTable->nodesList,firstNode);
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
-    ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
-    ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
+    ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
+    ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x) / CHAR_WIDTH;
 
     return ta;
 }
@@ -954,9 +954,8 @@ void updateCursorPosition(TextArea *ta)
             if(ptn!=NULL)
                 i = ptn->length;
         }
-        else
-            if(ptn->buffer->text[ptn->start+i]!='\n')
-                dest.x++;
+        else if(ptn->buffer->text[ptn->start+i]!='\n')
+            dest.x++;
         i--;
     }
 
@@ -1174,7 +1173,7 @@ void removeCharFromTextArea(TextArea *ta)
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
-    settextstyle(0, HORIZ_DIR, 1);
+    settextstyle(0, HORIZ_DIR, 2);
 
     setbkcolor(WHITE);
     setcolor(BLACK);
@@ -1362,6 +1361,7 @@ void drawArea(TextArea *ta)
 
         if(ta->numbersDisplayed)
         {
+            ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x - numberOfChar(ta->pieceTable->numberOfLines + 1)) / CHAR_WIDTH;
             setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
             setcolor(convertToBGIColor(TEXTAREA_NUMBERS_COLOR));
 
