@@ -1,8 +1,4 @@
 #include "piecetable.h"
-#include <cstdio>
-
-#include <iostream>
-using namespace std;
 
 bool bufferIsFull(Buffer *b)
 {

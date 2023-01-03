@@ -180,7 +180,7 @@ struct TextArea
 {
     Editor* e;
     bool changes;
-    // De implementat la salvare, corespunzator pentru Windows file si unixFile (asaugare '\r' pentru windows file)
+    // De implementat la salvare, corespunzator pentru Windows file si unixFile (adaugare '\r' pentru windows file)
     bool unixFile;
     bool savedChanges;
     char fileName[500];
@@ -200,7 +200,6 @@ struct TextArea
     Point bottomRightWindow;
 
     Cursor *cursor;
-    // Absolute number of the first line to be displayed on screen
     unsigned int firstLine;
     unsigned int firstColumn;
 
@@ -214,8 +213,10 @@ struct TextArea
 TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight);
 TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight, char *fileName);
 
-void updateCursorPosition(TextArea *ta, char deletedChar);
+void handleScroll(TextArea *ta);
+void updateCursorPosition(TextArea *ta);
 void getCursorPositionInPiecetable(TextArea *ta, Point dest);
+
 void addCharToTextArea(TextArea *ta, char newLetter);
 void removeCharFromTextArea(TextArea *ta);
 void drawArea(TextArea *ta);
