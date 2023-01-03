@@ -481,11 +481,11 @@ void drawArea(MenuArea *ma)
         setcolor(convertToBGIColor(MENU_BAR_FONT));
         if(ma->e->textArea->savedChanges == false)
         {
-            outtextxy(ma->bottomRight.x - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, "*");
+            outtextxy(ma->bottomRight.x - 30, ma->topLeft.y +  PADDING_TOP_BOTTOM_MENU_BAR_BUTTON, "*");
         }
         else
         {
-            outtextxy(ma->bottomRight.x - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, " ");
+            outtextxy(ma->bottomRight.x - 30, ma->topLeft.y +  PADDING_TOP_BOTTOM_MENU_BAR_BUTTON, " ");
 
         }
 
@@ -502,11 +502,11 @@ void drawArea(MenuArea *ma)
 
         if(strlen(ma->e->textArea->fileName) != 0)
         {
-            outtextxy(ma->bottomRight.x - strlen(ma->e->textArea->fileName)*CHAR_WIDTH - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, ma->e->textArea->fileName);
+            outtextxy(ma->bottomRight.x - strlen(ma->e->textArea->fileName)*CHAR_WIDTH - 30, ma->topLeft.y +  PADDING_TOP_BOTTOM_MENU_BAR_BUTTON, ma->e->textArea->fileName);
         }
         else
         {
-            outtextxy(ma->bottomRight.x - strlen("New file")*CHAR_WIDTH - 30, (ma->topLeft.y + CHAR_HEIGHT)/2, "New file");
+            outtextxy(ma->bottomRight.x - strlen("New file")*CHAR_WIDTH - 30, ma->topLeft.y + PADDING_TOP_BOTTOM_MENU_BAR_BUTTON, "New file");
         }
         ma->bkChanges = false;
     }
@@ -619,7 +619,7 @@ bool handleClick(Editor *e, int x, int y)
                     case SAVE_FILE:
                         if(strlen(e->textArea->fileName)==0)
                         {
-                            m2 = initModal2(e, "Save the file on the disk", "This is a new file and in order to save it you\nmust provide a path:", "Save file as...", "Cancel", &saveFile);
+                            m2 = initModal2(e, "Save the file on the disk", "This is a new file and in order to save it you\nmust provide a path:", "Save file as...", "Cancel", SAVE_FILE);
                         }
                         else
                         {
@@ -629,13 +629,13 @@ bool handleClick(Editor *e, int x, int y)
                     case NEW_FILE:
                         // TODO
                         cout<<"Fisier nou\n";
-                        initModal1(e, "Esti sigur ca vrei sa faci asta?", "bla bla bla\nalt text", &blabla);
+                        initModal1(e, "Esti sigur ca vrei sa faci asta?", "bla bla bla\nalt text", NEW_FILE);
                         break;
                     case SAVE_AS_FILE:
-                        m2 = initModal2(e, "Save the file on the disk", "To save the file you must provide a path:", "Save file as...", "Cancel", &saveFile);
+                        m2 = initModal2(e, "Save the file on the disk", "To save the file you must provide a path:", "Save file as...", "Cancel", SAVE_AS_FILE);
                         break;
                     case OPEN_FILE:
-                        m2 = initModal2(e, "Open a file on the disk", "You must provide the full path to the file:", "Open file", "Cancel", &openFile);
+                        m2 = initModal2(e, "Open a file on the disk", "You must provide the full path to the file:", "Open file", "Cancel", OPEN_FILE);
                         break;
                     }
 
@@ -1203,7 +1203,7 @@ void removeCharFromTextArea(TextArea *ta)
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
-    settextstyle(0, HORIZ_DIR, 1);
+    settextstyle(0, HORIZ_DIR, 2);
 
     setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
     setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
@@ -1227,8 +1227,8 @@ Editor* initEditor()
     topLeft= {0, e->menuArea->bottomRight.y};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
-    e->textArea = initTextArea(e, topLeft, bottomRight, "textText.txt");
-    // e->textArea = initTextArea(e, topLeft, bottomRight);
+    //e->textArea = initTextArea(e, topLeft, bottomRight, "textText.txt");
+    e->textArea = initTextArea(e, topLeft, bottomRight);
 
     e->modalOpen = false;
     e->m1 = NULL;
@@ -1416,7 +1416,6 @@ void drawArea(TextArea *ta)
                 y+=CHAR_HEIGHT;
             }
         }
-
         // ta->bkChanges = false;
     }
 
@@ -1673,7 +1672,7 @@ void stopEditor(Editor *e)
     // TODO: Delete data from memory
 }
 
-Modal1* initModal1(Editor *e, char *title, char *description, void (*action)(Editor*))
+Modal1* initModal1(Editor *e, char *title, char *description, ButtonType buttonType)
 {
     e->modalOpen = true;
 
@@ -1681,6 +1680,7 @@ Modal1* initModal1(Editor *e, char *title, char *description, void (*action)(Edi
     e->m1 = m1;
     m1->changes = true;
     m1->bkChanges = true;
+    m1->buttonType = buttonType;
 
     m1->topLeft.x = (MAX_WIDTH - MODAL1_WIDTH) / 2;
     m1->topLeft.y = (MAX_HEIGHT - MODAL1_HEIGHT) / 2;
@@ -1699,7 +1699,6 @@ Modal1* initModal1(Editor *e, char *title, char *description, void (*action)(Edi
     m1->bl = initButtonsList({m1->topLeft.x + MODAL1_PADDING, m1->bottomRight.y - MODAL1_PADDING - CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL1_BTN},
                              buttonsNames, types, 2, styles, MODAL1_BL);
 
-    m1->action = action;
     m1->e = e;
     return m1;
 }
@@ -1767,6 +1766,9 @@ void handleClick(Modal1 *m1, int x, int y)
             switch (currentButton->type)
             {
             case MODAL1_CONFIRM:
+                if(m1->buttonType) {
+                }
+
                 cout<<"CONFIRMAT\n";
                 break;
             }
@@ -1941,7 +1943,7 @@ void deleteCharFromModal2Input(InputModal2* input)
     input->modal->changes = true;
 }
 
-Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, bool (*action)(TextArea*, char*))
+Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, ButtonType buttonType)
 {
     e->modalOpen = true;
 
@@ -1949,6 +1951,7 @@ Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYe
     e->m2 = m2;
     m2->error = false;
     m2->errorMessageChanges = false;
+    m2->buttonType = buttonType;
 
     m2->changes = true;
     m2->bkChanges = true;
@@ -1976,7 +1979,6 @@ Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYe
     m2->iM = initInputModal2({m2->topLeft.x + MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 3*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN - 2*INPUT_MODAL2_PADDING - 2*INPUT_MODAL2_MARGIN_SIZE},
     {m2->bottomRight.x - MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 2*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN}, m2);
 
-    m2->action = action;
     m2->e = e;
     return m2;
 }
@@ -2074,12 +2076,23 @@ void handleClick(Modal2 *m2, int x, int y)
             switch (currentButton->type)
             {
             case MODAL2_CONFIRM:
-                error = m2->action(m2->e->textArea, m2->iM->text);
                 if(strlen(m2->iM->text) == 0)
                 {
                     setErrorMessageModal2(m2, "The input can't be empty!");
                     return;
                 }
+
+                switch(m2->buttonType) {
+                case SAVE_AS_FILE:
+                case SAVE_FILE:
+                    error = saveFile(m2->e->textArea, m2->iM->text);
+                    break;
+                case OPEN_FILE:
+                    error = openFile(m2->e->textArea, m2->iM->text);
+                    break;
+                }
+
+
                 if(error)
                 {
                     setErrorMessageModal2(m2, "There was a problem with your input!");
