@@ -720,10 +720,31 @@ void drawArea(ScrollBarsArea *sba)
 Cursor *initCursor()
 {
     Cursor* c = new Cursor;
+    c->lastBlip = time(0);
+    c->visibleState = true;
     c->position = {0,0};
     c->positionInNode = 0;
 
     return c;
+}
+
+void blipCursor(TextArea *ta)
+{
+    unsigned int newTime = time(0);
+    if(newTime-ta->cursor->lastBlip>0)
+    {
+        if(ta->cursor->visibleState)
+        {
+            drawCursorLine(ta);
+            ta->cursor->visibleState = false;
+        }
+        else
+        {
+            drawCursorLine(ta,true);
+            ta->cursor->visibleState = true;
+        }
+        ta->cursor->lastBlip = newTime;
+    }
 }
 
 TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
@@ -790,14 +811,15 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
     return ta;
 }
 
-void drawCursorLine(TextArea *ta, bool white)
+void drawCursorLine(TextArea *ta, bool background)
 {
-    if(white==true)
+    if(background==true)
         setcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    else
+        setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
     int x = ta->cursor->position.x*CHAR_WIDTH + ta->topLeft.x;
     int y = ta->cursor->position.y*CHAR_HEIGHT + ta->topLeft.y;
     line(x,y,x,y+CHAR_HEIGHT-1);
-    setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
 }
 
 void handleScroll(TextArea *ta)
@@ -917,7 +939,6 @@ void moveCursor(TextArea *ta, Point dest)
 
     drawCursorLine(ta,true);
     getCursorPositionInPiecetable(ta,dest);
-    drawCursorLine(ta);
 }
 
 void moveCursorByArrow(TextArea *ta, char a)
@@ -1175,8 +1196,8 @@ Editor* initEditor()
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
     settextstyle(0, HORIZ_DIR, 2);
 
-    setbkcolor(WHITE);
-    setcolor(BLACK);
+    setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
     cleardevice();
 
     Editor *e = new Editor;
@@ -1631,6 +1652,8 @@ void drawEditor(Editor *e)
             drawModal2(e->m2);
         }
     }
+    else
+        blipCursor(e->textArea);
     //drawArea(e->scrollBarsArea);
     e->textArea->changes = false;
 }

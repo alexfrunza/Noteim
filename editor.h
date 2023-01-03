@@ -167,6 +167,8 @@ void drawArea(ScrollBarsArea *sba);
 struct Cursor
 {
     Point position;
+    unsigned int lastBlip;
+    bool visibleState;
 
     unsigned int positionInPieceTable;
 
@@ -220,7 +222,7 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest);
 void addCharToTextArea(TextArea *ta, char newLetter);
 void removeCharFromTextArea(TextArea *ta);
 void drawArea(TextArea *ta);
-void drawCursorLine(TextArea *ta, bool white=false);
+void drawCursorLine(TextArea *ta, bool background=false);
 void moveCursor(TextArea *ta, Point dest);
 void moveCursorByArrow(TextArea *ta, char a);
 bool openFile(TextArea *ta, char *fileName);
