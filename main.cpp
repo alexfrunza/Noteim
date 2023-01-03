@@ -138,11 +138,17 @@ int main()
                 // Must add Delete Deletion
                 if(a == 8)
                 {
+                    int prevNumberOfLines = e->textArea->pieceTable->numberOfLines;
                     removeCharFromTextArea(e->textArea);
+                    if(e->textArea->changes==true)
+                        drawArea(e->textArea);
+                    else if(prevNumberOfLines-e->textArea->pieceTable->numberOfLines!=0)
+                            drawLines(e->textArea,e->textArea->topLeft.y+c->position.y*CHAR_HEIGHT,e->textArea->bottomRight.y);
+                        else
+                            drawLines(e->textArea,e->textArea->topLeft.y+c->position.y*CHAR_HEIGHT,e->textArea->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
-                    e->textArea->changes = true;
                 }
                 if(ENTER_PRESSED)
                 {
@@ -173,10 +179,15 @@ int main()
                 if(isDisplayedChar(a))
                 {
                     addCharToTextArea(e->textArea,a);
+                        if(e->textArea->changes==true)
+                            drawArea(e->textArea);
+                        else if(a=='\n')
+                                drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y-1)*CHAR_HEIGHT,e->textArea->bottomRight.y);
+                             else
+                                drawLines(e->textArea,e->textArea->topLeft.y+c->position.y*CHAR_HEIGHT,e->textArea->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
-                    e->textArea->changes = true;
                 }
                 // e->textArea->changes = true;
                 // Logging pentru nodurile din tabel
