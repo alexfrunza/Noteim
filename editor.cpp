@@ -720,10 +720,31 @@ void drawArea(ScrollBarsArea *sba)
 Cursor *initCursor()
 {
     Cursor* c = new Cursor;
+    c->lastBlip = time(0);
+    c->visibleState = true;
     c->position = {0,0};
     c->positionInNode = 0;
 
     return c;
+}
+
+void blipCursor(TextArea *ta)
+{
+    unsigned int newTime = time(0);
+    if(newTime-ta->cursor->lastBlip>0)
+    {
+        if(ta->cursor->visibleState)
+        {
+            drawCursorLine(ta);
+            ta->cursor->visibleState = false;
+        }
+        else
+        {
+            drawCursorLine(ta,true);
+            ta->cursor->visibleState = true;
+        }
+        ta->cursor->lastBlip = newTime;
+    }
 }
 
 TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
@@ -793,14 +814,15 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
     return ta;
 }
 
-void drawCursorLine(TextArea *ta, bool white)
+void drawCursorLine(TextArea *ta, bool background)
 {
-    if(white==true)
+    if(background==true)
         setcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    else
+        setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
     int x = ta->cursor->position.x*CHAR_WIDTH + ta->topLeft.x;
     int y = ta->cursor->position.y*CHAR_HEIGHT + ta->topLeft.y;
     line(x,y,x,y+CHAR_HEIGHT-1);
-    setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
 }
 
 void handleScroll(TextArea *ta)
@@ -832,6 +854,9 @@ void handleScroll(TextArea *ta)
         ta->cursor->position.y = ta->maxLines-1;
         ta->changes = true;
     }
+    ta->cursor->lastBlip = time(0);
+    ta->cursor->visibleState = true;
+    drawCursorLine(ta);
 }
 
 void getCursorPositionInPiecetable(TextArea *ta, Point dest)
@@ -920,7 +945,6 @@ void moveCursor(TextArea *ta, Point dest)
 
     drawCursorLine(ta,true);
     getCursorPositionInPiecetable(ta,dest);
-    drawCursorLine(ta);
 }
 
 void moveCursorByArrow(TextArea *ta, char a)
@@ -1113,7 +1137,10 @@ void removeCharFromTextArea(TextArea *ta)
     c->positionInNode--;
     deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start+c->positionInNode];
     if(deletedChar=='\n')
+    {
+        c->pieceTableNode->numberNewLines--;
         ta->pieceTable->numberOfLines--;
+    }
 
     if(c->positionInNode==c->pieceTableNode->length-1)
     {
@@ -1149,7 +1176,7 @@ void removeCharFromTextArea(TextArea *ta)
     }
 
     {
-        PieceTableNode *rightSide = initPieceTableNode(c->pieceTableNode->buffer,c->pieceTableNode->start+c->positionInNode+1,c->pieceTableNode->length-c->positionInNode+1,0);
+        PieceTableNode *rightSide = initPieceTableNode(c->pieceTableNode->buffer,c->pieceTableNode->start+c->positionInNode+1,c->pieceTableNode->length-c->positionInNode-1,0);
         for(i=c->positionInNode+1; i<c->pieceTableNode->length; i++)
             if(c->pieceTableNode->buffer->text[c->pieceTableNode->start+i]=='\n')
                 rightSide->numberNewLines++;
@@ -1176,10 +1203,10 @@ void removeCharFromTextArea(TextArea *ta)
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
-    settextstyle(0, HORIZ_DIR, 2);
+    settextstyle(0, HORIZ_DIR, 1);
 
-    setbkcolor(WHITE);
-    setcolor(BLACK);
+    setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
     cleardevice();
 
     Editor *e = new Editor;
@@ -1360,7 +1387,6 @@ void drawArea(TextArea *ta)
     {
         setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
         bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
-
 
         if(ta->numbersDisplayed)
         {
@@ -1634,6 +1660,8 @@ void drawEditor(Editor *e)
             drawModal2(e->m2);
         }
     }
+    else
+        blipCursor(e->textArea);
     //drawArea(e->scrollBarsArea);
     e->textArea->changes = false;
 }

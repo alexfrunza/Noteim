@@ -30,6 +30,20 @@ void logPieceTableNodes(PieceTable *pt)
 
 }
 
+void handleDelete(TextArea *ta)
+{
+    Cursor *c = ta->cursor;
+    int prevNumberOfLines = ta->pieceTable->numberOfLines;
+    removeCharFromTextArea(ta);
+    if(ta->changes==true)
+        drawArea(ta);
+    else if(prevNumberOfLines-ta->pieceTable->numberOfLines!=0)
+            drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->bottomRight.y);
+        else
+            drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
+
+}
+
 int main()
 {
     Editor* e = initEditor();
@@ -131,18 +145,30 @@ int main()
             {
                 if(ARROW_PRESSED)
                 {
-                    moveCursorByArrow(e->textArea,getch());
+                    a = getch();
+                    if(a==83)
+                    {
+                        if(c->positionInNode<c->pieceTableNode->length)
+                            c->positionInNode++;
+                        else if(c->pieceTableNode->next!=NULL)
+                        {
+                            c->pieceTableNode = c->pieceTableNode->next;
+                            c->positionInNode = 1;
+                        }
+                        handleDelete(e->textArea);
+                    }
+                    else
+                        moveCursorByArrow(e->textArea,a);
                     continue;
                 }
                 drawCursorLine(e->textArea,true);
                 // Must add Delete Deletion
                 if(a == 8)
                 {
-                    removeCharFromTextArea(e->textArea);
+                    handleDelete(e->textArea);
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
-                    e->textArea->changes = true;
                 }
                 if(ENTER_PRESSED)
                 {
@@ -173,10 +199,15 @@ int main()
                 if(isDisplayedChar(a))
                 {
                     addCharToTextArea(e->textArea,a);
+                        if(e->textArea->changes==true)
+                            drawArea(e->textArea);
+                        else if(a=='\n')
+                                drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y-1)*CHAR_HEIGHT,e->textArea->bottomRight.y);
+                             else
+                                drawLines(e->textArea,e->textArea->topLeft.y+c->position.y*CHAR_HEIGHT,e->textArea->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
-                    e->textArea->changes = true;
                 }
                 // e->textArea->changes = true;
                 // Logging pentru nodurile din tabel
