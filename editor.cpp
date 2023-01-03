@@ -745,6 +745,7 @@ TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
 
     ta->cursor = initCursor();
     ta->firstLine = 0;
+    ta->firstColumn = 0;
     drawCursorLine(ta);
 
     ta->changes = true;
@@ -769,6 +770,7 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
     ta->unixFile = false;
     ta->changes = true;
     ta->firstLine = 0;
+    ta->firstColumn = 0;
     ta->bkChanges = true;
     ta->numbersDisplayed = true;
 
@@ -780,13 +782,14 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
 
     ta->pieceTable = initPieceTable();
 
-    ta->maxLines = abs(bottomRight.y - topLeft.y) / CHAR_HEIGHT;
-    ta->maxCharLine = abs(bottomRight.x - topLeft.x) / CHAR_WIDTH;
+    ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
+    ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x) / CHAR_WIDTH;
 
-    openFile(ta, fileName);
     ta->cursor = initCursor();
     drawCursorLine(ta);
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
+    openFile(ta, fileName);
+
     return ta;
 }
 
@@ -1195,8 +1198,8 @@ Editor* initEditor()
     topLeft= {0, e->menuArea->bottomRight.y};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
-    //e->textArea = initTextArea(e, topLeft, bottomRight, "textText.txt");
-    e->textArea = initTextArea(e, topLeft, bottomRight);
+    e->textArea = initTextArea(e, topLeft, bottomRight, "textText.txt");
+    // e->textArea = initTextArea(e, topLeft, bottomRight);
 
     e->modalOpen = false;
     e->m1 = NULL;
