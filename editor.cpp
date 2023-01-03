@@ -888,6 +888,8 @@ void getCursorPositionInPiecetable(TextArea *ta, Point dest)
     if(currentXInLine==dest.x)
     {
         ta->cursor->position = {dest.x - ta->firstColumn, dest.y - ta->firstLine};
+        if(ptn==NULL)
+            ptn = ta->pieceTable->nodesList->last;
         ta->cursor->pieceTableNode = ptn;
         ta->cursor->positionInNode = i-ptn->start;
     }
