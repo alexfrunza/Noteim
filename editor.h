@@ -31,8 +31,9 @@ enum ButtonType
     GO_TO_COLUMN,
     GO_TO_END_LINE,
     GO_TO_START_LINE,
-    EDIT,
-    FORMAT,
+    OPTIONS,
+    SHOW_LINES,
+    HIDE_LINES,
     NEW_FILE,
     SAVE_FILE,
     SAVE_AS_FILE,
@@ -67,6 +68,7 @@ struct Button
     ButtonType type;
     ButtonStyle style;
 
+    bool active;
 
     bool hovered;
     bool changes;

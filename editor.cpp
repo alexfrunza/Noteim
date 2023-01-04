@@ -46,6 +46,9 @@
 #define PRESS_BK_SUBMENU1_BUTTON {145, 201, 247}
 #define PRESS_FONT_SUBMENU1_BUTTON {0, 0, 0}
 
+#define INACTIVE_BUTTON_BK {242, 242, 242}
+#define INACTIVE_BUTTON_FONT {100, 100, 100}
+
 // TextArea
 #define TEXTAREA_BK_NORMAL {100, 0, 100}
 #define TEXTAREA_FONT_NORMAL {124, 225, 255}
@@ -129,6 +132,7 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
     Button *b = new Button;
     b->subMenu = NULL;
     b->pressed = false;
+    b->active = true;
 
 
     b->type = type;
@@ -237,6 +241,17 @@ void drawButton(Button* b)
 
     if(b->changes == false)
         return;
+
+    if(!b->active)
+    {
+        setfillstyle(SOLID_FILL, convertToBGIColor(INACTIVE_BUTTON_BK));
+        setbkcolor(convertToBGIColor(INACTIVE_BUTTON_BK));
+        setcolor(convertToBGIColor(INACTIVE_BUTTON_FONT));
+        bar(b->topLeft.x, b->topLeft.y,  b->bottomRight.x, b->bottomRight.y);
+        outtextxy(b->topLeft.x + b->paddingSides, b->topLeft.y + b->paddingTopBottom, b->text);
+        b->changes = false;
+        return;
+    }
 
     if(b->pressed == true)
     {
@@ -459,11 +474,11 @@ MenuArea* initMenuArea(Point topLeft, Editor *e)
 
     ma->topLeft = topLeft;
 
-    char buttonsNames[][MAX_NAMES_LEN] = {"File", "Move", "Edit", "Format"};
-    ButtonType types[] = {FILE_ACTIONS, MOVE, EDIT, FORMAT};
-    ButtonStyle styles[] = {MENUBAR, MENUBAR, MENUBAR, MENUBAR};
+    char buttonsNames[][MAX_NAMES_LEN] = {"File", "Move", "Options"};
+    ButtonType types[] = {FILE_ACTIONS, MOVE, OPTIONS};
+    ButtonStyle styles[] = {MENUBAR, MENUBAR, MENUBAR};
 
-    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 4, styles, MENUBAR_BL);
+    ma->buttonsList = initButtonsList({0, 0}, buttonsNames, types, 3, styles, MENUBAR_BL);
     ma->bottomRight = {MAX_WIDTH, CHAR_HEIGHT + ma->separatorLength + 2*ma->buttonsList->first->paddingTopBottom};
 
     ma->changes = true;
@@ -592,15 +607,23 @@ void showMoveSubMenu(Button* b, MenuArea* ma)
     b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
 }
 
-// test
-void blabla(Editor* e)
+void showOptionsSubMenu(Button* b, MenuArea* ma)
 {
-}
+    char buttonsNames[][MAX_NAMES_LEN] = {"Show lines", "Hide lines"};
+    ButtonType types[] = {SHOW_LINES, HIDE_LINES};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1};
 
-bool blabla2(TextArea* e, char* x)
-{
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 2, styles, SUBMENU1_BL);
+
+    if(ma->e->textArea->numbersDisplayed == true)
+    {
+        b->subMenu->first->active = false;
+    }
+    else
+    {
+        b->subMenu->first->next->active = false;
+    }
 }
-//
 
 bool handleClick(Editor *e, int x, int y)
 {
@@ -611,7 +634,7 @@ bool handleClick(Editor *e, int x, int y)
         {
             for(Button* subMenuButton = currentButton->subMenu->first; subMenuButton != NULL; subMenuButton = subMenuButton->next)
             {
-                if(cursorInArea(subMenuButton, x, y))
+                if(cursorInArea(subMenuButton, x, y) && subMenuButton->active)
                 {
                     subMenuButton->pressed = true;
                     Modal2 *m2;
@@ -650,6 +673,16 @@ bool handleClick(Editor *e, int x, int y)
                     case GO_TO_START_LINE:
                         getCursorPositionInPiecetable(e->textArea, {0 - e->textArea->firstColumn, e->textArea->cursor->position.y});
                         break;
+                    case SHOW_LINES:
+                        e->textArea->numbersDisplayed = true;
+                        e->textArea->changes = true;
+                        e->textArea->bkChanges = true;
+                        break;
+                    case HIDE_LINES:
+                        e->textArea->numbersDisplayed = false;
+                        e->textArea->changes = true;
+                        e->textArea->bkChanges = true;
+                        break;
                     }
 
                     deleteButtonsList(currentButton->subMenu);
@@ -675,6 +708,9 @@ bool handleClick(Editor *e, int x, int y)
             case MOVE:
                 showMoveSubMenu(currentButton, ma);
                 break;
+            case OPTIONS:
+                showOptionsSubMenu(currentButton, ma);
+                break;
             }
 
             currentButton->changes = true;
@@ -696,6 +732,7 @@ bool clearClick(Editor *e, int x, int y)
             switch (currentButton->type)
             {
             case MOVE:
+            case OPTIONS:
             case FILE_ACTIONS:
                 if(currentButton->subMenu != NULL && cursorInArea(currentButton->subMenu, x, y))
                 {
@@ -773,7 +810,7 @@ TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
     ta->topLeftWindow = topLeft;
     ta->bottomRightWindow = bottomRight;
 
-    ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_WIDTH/4};
+    ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_HEIGHT/4};
     ta->bottomRight = {bottomRight.x, bottomRight.y};
 
 
@@ -811,7 +848,7 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
     ta->topLeftWindow = topLeft;
     ta->bottomRightWindow = bottomRight;
 
-    ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_WIDTH/4};
+    ta->topLeft = {topLeft.x + CHAR_WIDTH/4, topLeft.y+ CHAR_HEIGHT/4};
     ta->bottomRight = bottomRight;
 
     ta->pieceTable = initPieceTable();
@@ -1398,12 +1435,20 @@ void drawArea(TextArea *ta)
 
     if(ta->bkChanges)
     {
-        setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
-        bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
+        if(!ta->numbersDisplayed)
+        {
+            ta->topLeft.x = ta->topLeftWindow.x + CHAR_WIDTH/4;
+            ta->topLeft.y = ta->topLeftWindow.y + CHAR_HEIGHT/4;
+            ta->bottomRight = ta->bottomRightWindow;
+            ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x - numberOfChar(ta->pieceTable->numberOfLines + 1)) / CHAR_WIDTH;
+
+            setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+            bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
+
+        }
 
         if(ta->numbersDisplayed)
         {
-            ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x - numberOfChar(ta->pieceTable->numberOfLines + 1)) / CHAR_WIDTH;
             setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
             setcolor(convertToBGIColor(TEXTAREA_NUMBERS_COLOR));
 
@@ -1412,6 +1457,12 @@ void drawArea(TextArea *ta)
             ta->topLeftNumbers.y = ta->topLeft.y;
             ta->bottomRightNumbers.x = ta->topLeftNumbers.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + 1;
             ta->bottomRightNumbers.y = ta->bottomRight.y;
+            ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x - numberOfChar(ta->pieceTable->numberOfLines + 1)) / CHAR_WIDTH;
+
+
+            setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+            bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
+
 
             line(ta->bottomRightNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
 
@@ -1779,7 +1830,8 @@ void handleClick(Modal1 *m1, int x, int y)
             switch (currentButton->type)
             {
             case MODAL1_CONFIRM:
-                if(m1->buttonType) {
+                if(m1->buttonType)
+                {
                 }
 
                 cout<<"CONFIRMAT\n";
@@ -2095,7 +2147,8 @@ void handleClick(Modal2 *m2, int x, int y)
                     return;
                 }
 
-                switch(m2->buttonType) {
+                switch(m2->buttonType)
+                {
                 case SAVE_AS_FILE:
                 case SAVE_FILE:
                     error = saveFile(m2->e->textArea, m2->iM->text);
