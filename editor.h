@@ -29,6 +29,8 @@ enum ButtonType
     MOVE,
     GO_TO_LINE,
     GO_TO_COLUMN,
+    GO_TO_END_LINE,
+    GO_TO_START_LINE,
     EDIT,
     FORMAT,
     NEW_FILE,
@@ -331,6 +333,7 @@ struct Modal2
 };
 
 Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, ButtonType buttonType);
+void setErrorMessageModal2(Modal2 *m2, char *message);
 void deleteModal2(Modal2 *m2);
 void drawModal2(Modal2 *m2);
 void handleClick(Modal2 *m2, int x, int y);

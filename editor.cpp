@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include <ctime>
+#include <cstdlib>
 
 #include "editor.h"
 #include "helpers.h"
@@ -584,11 +585,11 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
 
 void showMoveSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column"};
-    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN};
-    ButtonStyle styles[] = {SUBMENU1, SUBMENU1};
+    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column", "Go to end of line", "Go to start of line"};
+    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN, GO_TO_END_LINE, GO_TO_START_LINE};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 2, styles, SUBMENU1_BL);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
 }
 
 // test
@@ -636,6 +637,18 @@ bool handleClick(Editor *e, int x, int y)
                         break;
                     case OPEN_FILE:
                         m2 = initModal2(e, "Open a file on the disk", "You must provide the full path to the file:", "Open file", "Cancel", OPEN_FILE);
+                        break;
+                    case GO_TO_LINE:
+                        m2 = initModal2(e, "Go to a line", "Which line do you want to go?", "Go to line", "Cancel", GO_TO_LINE);
+                        break;
+                    case GO_TO_COLUMN:
+                        m2 = initModal2(e, "Go to a column", "Which column do you want to go?", "Go to column", "Cancel", GO_TO_COLUMN);
+                        break;
+                    case GO_TO_END_LINE:
+                        getCursorPositionInPiecetable(e->textArea, {2000000000, e->textArea->cursor->position.y});
+                        break;
+                    case GO_TO_START_LINE:
+                        getCursorPositionInPiecetable(e->textArea, {0 - e->textArea->firstColumn, e->textArea->cursor->position.y});
                         break;
                     }
 
@@ -2089,6 +2102,12 @@ void handleClick(Modal2 *m2, int x, int y)
                     break;
                 case OPEN_FILE:
                     error = openFile(m2->e->textArea, m2->iM->text);
+                    break;
+                case GO_TO_LINE:
+                    getCursorPositionInPiecetable(m2->e->textArea, {0 - m2->e->textArea->firstColumn, atoi(m2->iM->text) - 1 - m2->e->textArea->firstLine});
+                    break;
+                case GO_TO_COLUMN:
+                    getCursorPositionInPiecetable(m2->e->textArea, {atoi(m2->iM->text) - m2->e->textArea->firstColumn, m2->e->textArea->cursor->position.y});
                     break;
                 }
 

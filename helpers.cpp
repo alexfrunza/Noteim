@@ -6,6 +6,10 @@ bool isDisplayedChar(char x)
     return x>=32 && x<=126;
 }
 
+bool isNumber(char x) {
+    return '0' <= x && x <= '9';
+}
+
 int numberOfChar(int x) {
     if(x == 0) return 1;
     int res = 0;
