@@ -822,7 +822,7 @@ void drawCursorLine(TextArea *ta, bool background)
         setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
     int x = ta->cursor->position.x*CHAR_WIDTH + ta->topLeft.x;
     int y = ta->cursor->position.y*CHAR_HEIGHT + ta->topLeft.y;
-    line(x,y,x,y+CHAR_HEIGHT-1);
+    line(x-1,y,x-1,y+CHAR_HEIGHT-1);
 }
 
 void handleScroll(TextArea *ta)
@@ -1203,7 +1203,7 @@ void removeCharFromTextArea(TextArea *ta)
 Editor* initEditor()
 {
     initwindow(MAX_WIDTH,MAX_HEIGHT,"Notepad Improved");
-    settextstyle(0, HORIZ_DIR, 1);
+    settextstyle(0, HORIZ_DIR, 7);
 
     setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
     setcolor(convertToBGIColor(TEXTAREA_FONT_NORMAL));
