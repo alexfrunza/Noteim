@@ -8,6 +8,7 @@ struct Point
 };
 
 bool isDisplayedChar(char x);
+bool isNumber(char x);
 int numberOfChar(int x);
 char* itoa(int x, int size_char);
 
