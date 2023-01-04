@@ -38,9 +38,9 @@ void handleDelete(TextArea *ta)
     if(ta->changes==true)
         drawArea(ta);
     else if(prevNumberOfLines-ta->pieceTable->numberOfLines!=0)
-            drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->bottomRight.y);
-        else
-            drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
+        drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->bottomRight.y);
+    else
+        drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
 
 }
 
@@ -130,9 +130,21 @@ int main()
                 {
                     if(e->m2->iM->state)
                     {
-                        if(isDisplayedChar(a))
+                        if(e->m2->buttonType == GO_TO_LINE || e->m2->buttonType == GO_TO_COLUMN)
                         {
-                            addCharToModal2Input(e->m2->iM, a);
+                            if(isNumber(a))
+                            {
+                                addCharToModal2Input(e->m2->iM, a);
+                            } else {
+                                setErrorMessageModal2(e->m2, "You can insert only numbers!");
+                            }
+                        }
+                        else
+                        {
+                            if(isDisplayedChar(a))
+                            {
+                                addCharToModal2Input(e->m2->iM, a);
+                            }
                         }
                         if(a == 8)
                         {
@@ -199,12 +211,12 @@ int main()
                 if(isDisplayedChar(a))
                 {
                     addCharToTextArea(e->textArea,a);
-                        if(e->textArea->changes==true)
-                            drawArea(e->textArea);
-                        else if(a=='\n')
-                                drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y-1)*CHAR_HEIGHT,e->textArea->bottomRight.y);
-                             else
-                                drawLines(e->textArea,e->textArea->topLeft.y+c->position.y*CHAR_HEIGHT,e->textArea->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
+                    if(e->textArea->changes==true)
+                        drawArea(e->textArea);
+                    else if(a=='\n')
+                        drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y-1)*CHAR_HEIGHT,e->textArea->bottomRight.y);
+                    else
+                        drawLines(e->textArea,e->textArea->topLeft.y+c->position.y*CHAR_HEIGHT,e->textArea->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;

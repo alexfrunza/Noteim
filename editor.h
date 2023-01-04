@@ -29,8 +29,11 @@ enum ButtonType
     MOVE,
     GO_TO_LINE,
     GO_TO_COLUMN,
-    EDIT,
-    FORMAT,
+    GO_TO_END_LINE,
+    GO_TO_START_LINE,
+    OPTIONS,
+    SHOW_LINES,
+    HIDE_LINES,
     NEW_FILE,
     SAVE_FILE,
     SAVE_AS_FILE,
@@ -65,6 +68,7 @@ struct Button
     ButtonType type;
     ButtonStyle style;
 
+    bool active;
 
     bool hovered;
     bool changes;
@@ -257,13 +261,13 @@ struct Modal1
     Editor *e;
 
     ButtonsList *bl;
-    void (*action)(Editor*);
+    ButtonType buttonType;
 
     bool changes;
     bool bkChanges;
 };
 
-Modal1* initModal1(Editor *e, char *title, char *description, void (*action)(Editor*));
+Modal1* initModal1(Editor *e, char *title, char *description, ButtonType buttonType);
 void deleteModal1(Modal1 *m1);
 void drawModal1(Modal1 *m1);
 void openModal1(Editor *e, Modal1 *m1);
@@ -324,13 +328,14 @@ struct Modal2
     InputModal2 *iM;
 
     ButtonsList *bl;
-    bool (*action)(TextArea*, char*);
+    ButtonType buttonType;
 
     bool changes;
     bool bkChanges;
 };
 
-Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, bool (*action)(TextArea*, char*));
+Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYes, char *buttonNameNo, ButtonType buttonType);
+void setErrorMessageModal2(Modal2 *m2, char *message);
 void deleteModal2(Modal2 *m2);
 void drawModal2(Modal2 *m2);
 void handleClick(Modal2 *m2, int x, int y);
