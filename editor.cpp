@@ -591,8 +591,8 @@ void clearHover(MenuArea *ma, int x, int y)
 
 void showFileActionsSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"New", "Open file...", "Save", "Save as..."};
-    ButtonType types[] = {NEW_FILE, OPEN_FILE, SAVE_FILE, SAVE_AS_FILE};
+    char buttonsNames[][MAX_NAMES_LEN] = {"New window", "Open file...", "Save", "Save as..."};
+    ButtonType types[] = {NEW_WINDOW, OPEN_FILE, SAVE_FILE, SAVE_AS_FILE};
     ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
     b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
@@ -600,20 +600,20 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
 
 void showMoveSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column", "Go to end of line", "Go to start of line"};
-    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN, GO_TO_END_LINE, GO_TO_START_LINE};
-    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
+    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column", "Go to end of line", "Go to start of line", "Move text area up", "Move text area down", "Move text area right", "Move test area left"};
+    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN, GO_TO_END_LINE, GO_TO_START_LINE, MOVE_TA_UP, MOVE_TA_DOWN, MOVE_TA_RIGHT, MOVE_TA_LEFT};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 8, styles, SUBMENU1_BL);
 }
 
 void showOptionsSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"Show lines", "Hide lines"};
-    ButtonType types[] = {SHOW_LINES, HIDE_LINES};
-    ButtonStyle styles[] = {SUBMENU1, SUBMENU1};
+    char buttonsNames[][MAX_NAMES_LEN] = {"Show lines", "Hide lines", "Change to vertical", "Change to horizontal"};
+    ButtonType types[] = {SHOW_LINES, HIDE_LINES, SWITCH_ORIENTATION_V, SWITCH_ORIENTATION_H};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 2, styles, SUBMENU1_BL);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
 
     if(ma->e->textArea->numbersDisplayed == true)
     {
@@ -638,6 +638,10 @@ bool handleClick(Editor *e, int x, int y)
                 {
                     subMenuButton->pressed = true;
                     Modal2 *m2;
+                    int positionInTantl;
+                    TextAreaNodeTree *newNodeTantl;
+                    TextArea *newTa;
+
                     switch (subMenuButton->type)
                     {
                     case SAVE_FILE:
@@ -650,10 +654,13 @@ bool handleClick(Editor *e, int x, int y)
                             saveFile(e->textArea, e->textArea->fileName);
                         }
                         break;
-                    case NEW_FILE:
-                        // TODO
-                        cout<<"Fisier nou\n";
-                        initModal1(e, "Esti sigur ca vrei sa faci asta?", "bla bla bla\nalt text", NEW_FILE);
+                    case NEW_WINDOW:
+                        positionInTantl = getNodePositionInTANTL(e->textArea->node->parentList, e->textArea->node);
+                        newTa = initTextArea(e, {0, 0}, {0, 0});
+                        newNodeTantl = initTextAreaNodeTree(e, newTa);
+                        addNodeToTANTL(e->textArea->node->parentList, positionInTantl + 1, newNodeTantl);
+                        e->textArea = newTa;
+                        e->root->changes = true;
                         break;
                     case SAVE_AS_FILE:
                         m2 = initModal2(e, "Save the file on the disk", "To save the file you must provide a path:", "Save file as...", "Cancel", SAVE_AS_FILE);
@@ -721,6 +728,43 @@ bool handleClick(Editor *e, int x, int y)
     return false;
 }
 
+void handleClickChangeTextArea(Editor *e, int x, int y)
+{
+    if(cursorInTextSpace(e, x, y))
+    {
+        changeFocusedTextArea(e->root, x, y);
+    }
+}
+
+void changeFocusedTextArea(TextAreaNodeTree *root, int x, int y)
+{
+    if(root->type == ORIENTATION)
+    {
+        for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
+        {
+            changeFocusedTextArea(current, x, y);
+        }
+
+    }
+    else if(root->type == LEAF_NODE)
+    {
+        if(cursorInArea(root->ta, x, y))
+        {
+            root->e->textArea = root->ta;
+        }
+    }
+}
+
+bool cursorInArea(TextArea *ta, int x, int y)
+{
+    return ta->topLeftWindow.x < x && x < ta->bottomRightWindow.x && ta->topLeftWindow.y < y && y < ta->bottomRightWindow.y;
+}
+
+bool cursorInTextSpace(Editor *e, int x, int y)
+{
+    return e->topLeftTextArea.x < x && x < e->bottomRightTextArea.x && e->topLeftTextArea.y < y && y < e->bottomRightTextArea.y;
+}
+
 bool clearClick(Editor *e, int x, int y)
 {
     MenuArea *ma = e->menuArea;
@@ -743,8 +787,7 @@ bool clearClick(Editor *e, int x, int y)
                     deleteButtonsList(currentButton->subMenu);
                     currentButton->subMenu = NULL;
                     currentButton->pressed = false;
-                    e->textArea->changes = true;
-                    e->textArea->bkChanges = true;
+                    e->root->changes = true;
                 }
                 break;
             default:
@@ -1269,21 +1312,207 @@ Editor* initEditor()
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
-
-    //
     // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     // De mutat in initTextArea
 
     topLeft= {0, e->menuArea->bottomRight.y};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
-    //e->textArea = initTextArea(e, topLeft, bottomRight, "textText.txt");
+
+    e->topLeftTextArea = topLeft;
+    e->bottomRightTextArea = bottomRight;
+
+    // e->textArea = initTextArea(e, topLeft, bottomRight, "textText.txt");
     e->textArea = initTextArea(e, topLeft, bottomRight);
+    e->root = initTextAreaNodeTree(e, HORIZONTAL);
+
+    TextAreaNodeTree* tan = initTextAreaNodeTree(e, e->textArea);
+    addNodeToTANTL(e->root->tantl, 0, tan);
 
     e->modalOpen = false;
     e->m1 = NULL;
+    e->m2 = NULL;
 
     return e;
+}
+
+void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
+{
+    if(root->e->root == root)
+    {
+        root->topLeft = root->e->topLeftTextArea;
+        root->bottomRight = root->e->bottomRightTextArea;
+        //cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<'\n';
+    }
+
+    if(root->type == ORIENTATION)
+    {
+        Point topLeft = root->topLeft;
+        Point bottomRight;
+        int modifier;
+
+        switch (root->orientation)
+        {
+        case HORIZONTAL:
+            modifier = (root->bottomRight.x - root->topLeft.x) / (int)root->tantl->length;
+            bottomRight = {root->topLeft.x, root->bottomRight.y};
+
+            cout<<"LENGTH LIST: "<<root->tantl->length<<"\n";
+            for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
+            {
+                current->topLeft = topLeft;
+                bottomRight.x = topLeft.x + modifier;
+                current->bottomRight = bottomRight;
+                topLeft.x = bottomRight.x;
+                //cout<<current->topLeft.x<<" "<<current->topLeft.y<<" "<<current->bottomRight.x<< " "<<current->bottomRight.y<<'\n';
+
+                calculateDimensionsForTextAreas(current);
+            }
+            break;
+        case VERTICAL:
+            modifier = (root->bottomRight.y - root->topLeft.y) / (int)root->tantl->length;
+            bottomRight = {root->bottomRight.x, root->topLeft.y};
+
+            for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
+            {
+                current->topLeft = topLeft;
+                bottomRight.y = topLeft.y + modifier;
+                current->bottomRight = bottomRight;
+                topLeft.y = bottomRight.y;
+
+                calculateDimensionsForTextAreas(current);
+            }
+            break;
+        }
+    }
+    else if(root->type == LEAF_NODE)
+    {
+        cout<<"BOO\n";
+        root->ta->topLeftWindow = root->topLeft;
+        root->ta->bottomRightWindow = root->bottomRight;
+        cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<'\n';
+
+        root->ta->changes = true;
+        root->ta->bkChanges = true;
+        drawArea(root->ta);
+    }
+}
+
+TextAreaNodeTree* initTextAreaNodeTree(Editor *e, Orientation orientation)
+{
+    TextAreaNodeTree *node = new TextAreaNodeTree;
+    node->changes = true;
+    node->e = e;
+    node->next = NULL;
+    node->prev = NULL;
+    node->parentList = NULL;
+    node->tantl = initTextAreaNodeTreeList(e);
+    node->orientation = orientation;
+    node->ta = NULL;
+    node->type = ORIENTATION;
+
+    return node;
+}
+
+TextAreaNodeTree* initTextAreaNodeTree(Editor *e, TextArea *ta)
+{
+    TextAreaNodeTree *node = new TextAreaNodeTree;
+    node->changes = true;
+    node->e = e;
+    node->next = NULL;
+    node->prev = NULL;
+    node->parentList = NULL;
+    node->tantl = NULL;
+
+    node->ta = ta;
+    node->type = LEAF_NODE;
+
+    return node;
+}
+
+TextAreaNodeTreeList* initTextAreaNodeTreeList(Editor *e)
+{
+    TextAreaNodeTreeList *tantl = new TextAreaNodeTreeList;
+    tantl->e = e;
+    tantl->length = 0;
+    tantl->first = NULL;
+    tantl->last = NULL;
+    tantl->parent = NULL;
+
+    return tantl;
+}
+
+// If node is not in the list will return the length of the list
+int getNodePositionInTANTL(TextAreaNodeTreeList *tantl, TextAreaNodeTree *node)
+{
+    int res = 0;
+    for(TextAreaNodeTree *current = tantl->first; current != NULL; current = current->next)
+    {
+        if(current == node) break;
+        res++;
+    }
+    return res;
+}
+
+void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree *node)
+{
+    if(position < 0 || position > (int)tantl->length)
+    {
+        cerr<<"Invalid Position to add in text area node tree list!";
+        exit(1);
+    }
+
+    switch(node->type)
+    {
+    case LEAF_NODE:
+        node->ta->node = node;
+        break;
+    }
+    node->parentList = tantl;
+
+    if(tantl->length == 0)
+    {
+        tantl->first = node;
+        tantl->last = node;
+        tantl->length = 1;
+        return;
+    }
+
+    if(position == 0)
+    {
+        node->next = tantl->first;
+        tantl->first->prev = node;
+        tantl->first = node;
+        tantl->length++;
+        return;
+    }
+    if(position == (int)tantl->length)
+    {
+        node->prev = tantl->last;
+        tantl->last->next = node;
+        tantl->last = node;
+        tantl->length++;
+        return;
+    }
+
+
+    TextAreaNodeTree *current = tantl->first;
+    for(int i=0; i < position; i++, current = current->next);
+
+    current->next->prev = node;
+    node->next = current->next;
+    current->next = node;
+    node->prev = current;
+    tantl->length++;
+}
+
+void drawTextAreaTree(TextAreaNodeTree *root)
+{
+    if(root->changes == false) return;
+
+    cout<<"schimbare\n";
+    calculateDimensionsForTextAreas(root);
+    root->changes = false;
 }
 
 void drawCharsInGui(Buffer* b, int x, int y, long index, long endOfDisplayedLine)
@@ -1435,45 +1664,51 @@ void drawArea(TextArea *ta)
 
     if(ta->bkChanges)
     {
+        ta->bottomRight = ta->bottomRightWindow;
+
         if(!ta->numbersDisplayed)
         {
             ta->topLeft.x = ta->topLeftWindow.x + CHAR_WIDTH/4;
             ta->topLeft.y = ta->topLeftWindow.y + CHAR_HEIGHT/4;
             ta->bottomRight = ta->bottomRightWindow;
             ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x - numberOfChar(ta->pieceTable->numberOfLines + 1)) / CHAR_WIDTH;
+            ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
 
             setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
             bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
 
         }
-
+        // cout<<"DRAW TEXT AREA: "<<ta->topLeftWindow.x<<" "<<ta->topLeftWindow.y<<" "<<ta->bottomRightWindow.x<<" "<<ta->bottomRightWindow.y<<'\n';
         if(ta->numbersDisplayed)
         {
             setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
             setcolor(convertToBGIColor(TEXTAREA_NUMBERS_COLOR));
 
             ta->topLeft.x = ta->topLeftWindow.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + CHAR_WIDTH/2 + 1;
+            ta->topLeft.y = ta->topLeftWindow.y + CHAR_HEIGHT/4;
             ta->topLeftNumbers.x = CHAR_WIDTH/4 + ta->topLeftWindow.x;
             ta->topLeftNumbers.y = ta->topLeft.y;
             ta->bottomRightNumbers.x = ta->topLeftNumbers.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + 1;
             ta->bottomRightNumbers.y = ta->bottomRight.y;
             ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x - numberOfChar(ta->pieceTable->numberOfLines + 1)) / CHAR_WIDTH;
+            ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
 
 
             setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
             bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
 
-
+            // cout<<"DRAW TEXT AREA: "<<ta->bottomRightNumbers.x<<" "<<ta->topLeftNumbers.y<<" "<<ta->bottomRightNumbers.x<<" "<<ta->bottomRightNumbers.y<<'\n';
             line(ta->bottomRightNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
 
             int tmp = ta->firstLine;
             int x = ta->topLeftNumbers.x;
             int y = ta->topLeftNumbers.y;
             int size_char = numberOfChar(ta->pieceTable->numberOfLines + 1);
+
+            cout<<"DRAW TEXT AREA: "<<x<<" "<<y<<" "<<tmp<<" "<<((ta->maxLines + ta->firstLine - tmp) > 0)<<'\n';
             while(tmp <= ta->pieceTable->numberOfLines && (ta->maxLines + ta->firstLine - tmp) > 0)
             {
                 char *text = itoa(tmp + 1, size_char);
-
                 outtextxy(x, y, text);
                 free(text);
                 tmp+=1;
@@ -1710,7 +1945,7 @@ bool saveFile(TextArea *ta, char *fileName)
 
 void drawEditor(Editor *e)
 {
-    drawArea(e->textArea);
+    drawTextAreaTree(e->root);
     drawArea(e->menuArea);
     if(e->modalOpen)
     {
@@ -1726,7 +1961,6 @@ void drawEditor(Editor *e)
     else
         blipCursor(e->textArea);
     //drawArea(e->scrollBarsArea);
-    e->textArea->changes = false;
 }
 
 void stopEditor(Editor *e)
