@@ -42,6 +42,8 @@ enum ButtonType
     OPTIONS,
     SHOW_LINES,
     HIDE_LINES,
+    CLOSE_WINDOW,
+    STOP_EDITOR,
     NEW_WINDOW,
     SAVE_FILE,
     SAVE_AS_FILE,
@@ -218,7 +220,7 @@ struct TextArea
     unsigned int firstColumn;
 
     PieceTable *pieceTable;
-    ScrollBarsArea *scrollBarsArea;
+    // ScrollBarsArea *scrollBarsArea;
     // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 
     bool bkChanges;
