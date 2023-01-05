@@ -695,6 +695,7 @@ bool handleClick(Editor *e, int x, int y)
                     deleteButtonsList(currentButton->subMenu);
                     currentButton->subMenu = NULL;
                     currentButton->pressed = false;
+                    e->root->changes = true;
                     e->textArea->changes = true;
                     e->textArea->bkChanges = true;
                     currentButton->changes = true;
@@ -2090,6 +2091,7 @@ void handleClick(Modal1 *m1, int x, int y)
                 break;
             }
 
+            m1->e->root->changes = true;
             deleteModal1(m1);
             return;
         }
@@ -2433,6 +2435,7 @@ void handleClick(Modal2 *m2, int x, int y)
             }
 
             deleteModal2(m2);
+            m2->e->root->changes = true;
             return;
         }
     }
@@ -2475,4 +2478,3 @@ void clearClick(Modal2 *m2, int x, int y)
         m2->changes = true;
     }
 }
-
