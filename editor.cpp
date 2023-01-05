@@ -486,24 +486,6 @@ void drawArea(MenuArea *ma)
         return;
 
 
-    if(ma->fileStateChanged == true)
-    {
-        setbkcolor(convertToBGIColor(MENU_BAR_BK));
-        setcolor(convertToBGIColor(MENU_BAR_FONT));
-        if(ma->e->textArea->savedChanges == false)
-        {
-            outtextxy(ma->bottomRight.x - 30, ma->topLeft.y +  PADDING_TOP_BOTTOM_MENU_BAR_BUTTON, "*");
-        }
-        else
-        {
-            outtextxy(ma->bottomRight.x - 30, ma->topLeft.y +  PADDING_TOP_BOTTOM_MENU_BAR_BUTTON, " ");
-
-        }
-
-        ma->fileStateChanged = false;
-    }
-
-
     if(ma->bkChanges)
     {
         setfillstyle(SOLID_FILL, convertToBGIColor(MENU_BAR_BK));
@@ -524,6 +506,24 @@ void drawArea(MenuArea *ma)
 
     setfillstyle(SOLID_FILL, convertToBGIColor(MENU_BAR_SEPARATOR_BAR));
     bar(ma->topLeft.x, ma->bottomRight.y - ma->separatorLength, ma->bottomRight.x, ma->bottomRight.y);
+
+
+    if(ma->fileStateChanged == true)
+    {
+        setbkcolor(convertToBGIColor(MENU_BAR_BK));
+        setcolor(convertToBGIColor(MENU_BAR_FONT));
+        if(ma->e->textArea->savedChanges == false)
+        {
+            outtextxy(ma->bottomRight.x - 30, ma->topLeft.y +  PADDING_TOP_BOTTOM_MENU_BAR_BUTTON, "*");
+        }
+        else
+        {
+            outtextxy(ma->bottomRight.x - 30, ma->topLeft.y +  PADDING_TOP_BOTTOM_MENU_BAR_BUTTON, " ");
+
+        }
+
+        ma->fileStateChanged = false;
+    }
 
     drawButtonsList(ma->buttonsList);
     ma->changes = false;
@@ -586,11 +586,11 @@ void clearHover(MenuArea *ma, int x, int y)
 
 void showFileActionsSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"New window", "Open file...", "Save", "Save as..."};
-    ButtonType types[] = {NEW_WINDOW, OPEN_FILE, SAVE_FILE, SAVE_AS_FILE};
-    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
+    char buttonsNames[][MAX_NAMES_LEN] = {"Close window", "New window", "Open file...", "Save", "Save as..."};
+    ButtonType types[] = {CLOSE_WINDOW, NEW_WINDOW, OPEN_FILE, SAVE_FILE, SAVE_AS_FILE};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 5, styles, SUBMENU1_BL);
 }
 
 void showMoveSubMenu(Button* b, MenuArea* ma)
@@ -617,6 +617,68 @@ void showOptionsSubMenu(Button* b, MenuArea* ma)
     else
     {
         b->subMenu->first->next->active = false;
+    }
+}
+
+void deleteTextArea(TextArea *ta)
+{
+    emptyPieceTable(ta->pieceTable);
+    delete ta->cursor;
+    delete ta;
+}
+
+void closeWindowEditor(TextArea *ta)
+{
+    TextAreaNodeTreeList *parentList = ta->node->parentList;
+    if(parentList->length == 1)
+    {
+        if(parentList->parent == ta->e->root)
+        {
+            initModal1(ta->e, "Close editor", "This is the last window and editor\nwill be closed", STOP_EDITOR);
+        }
+    }
+    else
+    {
+        if(getNodePositionInTANTL(parentList, ta->node) == 0)
+        {
+            TextAreaNodeTree *next = ta->node->next;
+            parentList->first = parentList->first->next;
+            delete ta->node;
+            if(next->type == LEAF_NODE) parentList->e->textArea = next->ta;
+            else
+            {
+                parentList->e->textArea = next->tantl->first->ta;
+            }
+            deleteTextArea(ta);
+            parentList->length--;
+            parentList->e->root->changes = true;
+
+            if(parentList->length == 1)
+            {
+                parentList->first = next;
+            }
+        }
+        else
+        {
+            TextAreaNodeTree *prev = ta->node->prev;
+            ta->node->prev->next = ta->node->next;
+            if(ta->node->next) ta->node->next->prev = ta->node->prev;
+            delete ta->node;
+
+            if(prev->type == LEAF_NODE) parentList->e->textArea = prev->ta;
+            else
+            {
+                parentList->e->textArea = prev->tantl->first->ta;
+            }
+            deleteTextArea(ta);
+            parentList->length--;
+            parentList->e->root->changes = true;
+
+            if(prev->next == NULL)
+            {
+                parentList->last = prev;
+            }
+        }
     }
 }
 
@@ -649,6 +711,9 @@ bool handleClick(Editor *e, int x, int y)
                             saveFile(e->textArea, e->textArea->fileName);
                         }
                         break;
+                    case CLOSE_WINDOW:
+                        closeWindowEditor(e->textArea);
+                        break;
                     case NEW_WINDOW:
                         positionInTantl = getNodePositionInTANTL(e->textArea->node->parentList, e->textArea->node);
                         newTa = initTextArea(e, {0, 0}, {0, 0});
@@ -656,6 +721,14 @@ bool handleClick(Editor *e, int x, int y)
                         addNodeToTANTL(e->textArea->node->parentList, positionInTantl + 1, newNodeTantl);
                         e->textArea = newTa;
                         e->root->changes = true;
+
+                        e->menuArea->fileStateChanged = true;
+                        for(Button *b=e->menuArea->buttonsList->first; b != NULL; b = b->next)
+                        {
+                            b->changes = true;
+                        }
+                        e->menuArea->bkChanges = true;
+                        e->menuArea->changes = true;
                         break;
                     case SAVE_AS_FILE:
                         m2 = initModal2(e, "Save the file on the disk", "To save the file you must provide a path:", "Save file as...", "Cancel", SAVE_AS_FILE);
@@ -747,6 +820,13 @@ void changeFocusedTextArea(TextAreaNodeTree *root, int x, int y)
         if(cursorInArea(root->ta, x, y))
         {
             root->e->textArea = root->ta;
+            root->e->menuArea->fileStateChanged = true;
+            for(Button *b=root->e->menuArea->buttonsList->first; b != NULL; b = b->next)
+            {
+                b->changes = true;
+            }
+            root->e->menuArea->bkChanges = true;
+            root->e->menuArea->changes = true;
         }
     }
 }
@@ -1421,6 +1501,7 @@ TextAreaNodeTree* initTextAreaNodeTree(Editor *e, Orientation orientation)
     node->prev = NULL;
     node->parentList = NULL;
     node->tantl = initTextAreaNodeTreeList(e);
+    node->tantl->parent = node;
     node->orientation = orientation;
     node->ta = NULL;
     node->type = ORIENTATION;
@@ -2068,10 +2149,12 @@ void handleClick(Modal1 *m1, int x, int y)
             switch (currentButton->type)
             {
             case MODAL1_CONFIRM:
-                if(m1->buttonType)
+                switch (m1->buttonType)
                 {
+                case STOP_EDITOR:
+                    m1->e->running = false;
+                    break;
                 }
-
                 break;
             }
 
