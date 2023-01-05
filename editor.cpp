@@ -921,6 +921,7 @@ void drawCursorLine(TextArea *ta, bool background)
 
 void handleScroll(TextArea *ta)
 {
+    ta->changes = false;
     if(ta->cursor->position.x<0)
     {
         ta->firstColumn += ta->cursor->position.x;
