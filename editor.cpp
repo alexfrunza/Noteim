@@ -1266,7 +1266,8 @@ void removeCharFromTextArea(TextArea *ta)
     if(c->positionInNode==0)
     {
         c->pieceTableNode->start++;
-        c->pieceTableNode->length--;if(c->pieceTableNode->length==0 && c->pieceTableNode->prev!=NULL)
+        c->pieceTableNode->length--;
+        if(c->pieceTableNode->length==0 && c->pieceTableNode->prev!=NULL)
         {
             ta->pieceTable->nodesList->length--;
             ptn = c->pieceTableNode;
@@ -1677,6 +1678,28 @@ void drawLines(TextArea *ta, int current_y, int end_y)
     }
 }
 
+void drawLinesNumber(TextArea *ta)
+{
+    setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+    bar(ta->topLeftNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
+
+    line(ta->bottomRightNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
+    int tmp = ta->firstLine;
+    int x = ta->topLeftNumbers.x;
+    int y = ta->topLeftNumbers.y;
+    int size_char = numberOfChar(ta->pieceTable->numberOfLines + 1);
+
+    // cout<<"DRAW TEXT AREA: "<<x<<" "<<y<<" "<<tmp<<" "<<((ta->maxLines + ta->firstLine - tmp) > 0)<<'\n';
+    while(tmp <= ta->pieceTable->numberOfLines && (ta->maxLines + ta->firstLine - tmp) > 0)
+    {
+        char *text = itoa(tmp + 1, size_char);
+        outtextxy(x, y, text);
+        free(text);
+        tmp+=1;
+        y+=CHAR_HEIGHT;
+    }
+}
+
 void drawArea(TextArea *ta)
 {
     if(ta->changes==false)
@@ -1696,7 +1719,6 @@ void drawArea(TextArea *ta)
 
             setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
             bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
-
         }
         // cout<<"DRAW TEXT AREA: "<<ta->topLeftWindow.x<<" "<<ta->topLeftWindow.y<<" "<<ta->bottomRightWindow.x<<" "<<ta->bottomRightWindow.y<<'\n';
         if(ta->numbersDisplayed)
@@ -1718,22 +1740,7 @@ void drawArea(TextArea *ta)
             bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
 
             // cout<<"DRAW TEXT AREA: "<<ta->bottomRightNumbers.x<<" "<<ta->topLeftNumbers.y<<" "<<ta->bottomRightNumbers.x<<" "<<ta->bottomRightNumbers.y<<'\n';
-            line(ta->bottomRightNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
-
-            int tmp = ta->firstLine;
-            int x = ta->topLeftNumbers.x;
-            int y = ta->topLeftNumbers.y;
-            int size_char = numberOfChar(ta->pieceTable->numberOfLines + 1);
-
-            cout<<"DRAW TEXT AREA: "<<x<<" "<<y<<" "<<tmp<<" "<<((ta->maxLines + ta->firstLine - tmp) > 0)<<'\n';
-            while(tmp <= ta->pieceTable->numberOfLines && (ta->maxLines + ta->firstLine - tmp) > 0)
-            {
-                char *text = itoa(tmp + 1, size_char);
-                outtextxy(x, y, text);
-                free(text);
-                tmp+=1;
-                y+=CHAR_HEIGHT;
-            }
+            drawLinesNumber(ta);
         }
         // ta->bkChanges = false;
     }
@@ -2088,7 +2095,6 @@ void handleClick(Modal1 *m1, int x, int y)
                 {
                 }
 
-                //cout<<"CONFIRMAT\n";
                 break;
             }
 
