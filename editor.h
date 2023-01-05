@@ -21,6 +21,8 @@ struct Modal1;
 struct CursorModal2;
 struct InputModal2;
 struct Modal2;
+struct TextAreaNodeTreeList;
+struct TextAreaNodeTree;
 
 
 enum ButtonType
@@ -31,10 +33,16 @@ enum ButtonType
     GO_TO_COLUMN,
     GO_TO_END_LINE,
     GO_TO_START_LINE,
+    MOVE_TA_UP,
+    MOVE_TA_DOWN,
+    MOVE_TA_RIGHT,
+    MOVE_TA_LEFT,
+    SWITCH_ORIENTATION_V,
+    SWITCH_ORIENTATION_H,
     OPTIONS,
     SHOW_LINES,
     HIDE_LINES,
-    NEW_FILE,
+    NEW_WINDOW,
     SAVE_FILE,
     SAVE_AS_FILE,
     OPEN_FILE,
@@ -214,6 +222,8 @@ struct TextArea
     // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 
     bool bkChanges;
+
+    TextAreaNodeTree *node;
 };
 
 TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight);
@@ -232,6 +242,10 @@ void moveCursorByArrow(TextArea *ta, char a);
 bool openFile(TextArea *ta, char *fileName);
 bool saveFile(TextArea *ta, char *fileName);
 void drawLines(TextArea *ta, int current_y, int end_y);
+void changeFocusedTextArea(TextAreaNodeTree *root, int x, int y);
+
+void deleteTextArea(TextArea *ta);
+bool cursorInArea(TextArea *ta, int x, int y);
 
 struct Editor
 {
@@ -241,6 +255,9 @@ struct Editor
     Modal2 *m2;
     MenuArea *menuArea;
     TextArea *textArea;
+    TextAreaNodeTree *root;
+    Point topLeftTextArea;
+    Point bottomRightTextArea;
 };
 
 Editor* initEditor();
@@ -248,7 +265,8 @@ void drawEditor(Editor *e);
 void stopEditor(Editor *e);
 bool handleClick(Editor *e, int x, int y);
 bool clearClick(Editor *e, int x, int y);
-
+bool cursorInTextSpace(Editor *e, int x, int y);
+void handleClickChangeTextArea(Editor *e, int x, int y);
 
 // This modal is to confirm actions
 struct Modal1
@@ -342,5 +360,67 @@ void handleClick(Modal2 *m2, int x, int y);
 void handleHover(Modal2 *m2, int x, int y);
 void clearHover(Modal2 *m2, int x, int y);
 void clearClick(Modal2 *m2, int x, int y);
+
+enum TextAreaNodeTreeType
+{
+    ORIENTATION,
+    LEAF_NODE,
+};
+
+enum Orientation
+{
+    HORIZONTAL,
+    VERTICAL
+};
+
+enum DirectionTextArea
+{
+    D_UP,
+    D_DOWN,
+    D_RIGHT,
+    D_LEFT
+};
+
+struct TextAreaNodeTree
+{
+    bool changes;
+    Editor *e;
+    Point topLeft;
+    Point bottomRight;
+
+    TextAreaNodeTreeType type;
+
+    TextArea *ta;
+    Orientation orientation;
+    TextAreaNodeTreeList *tantl;
+    TextAreaNodeTreeList *parentList;
+
+    TextAreaNodeTree *next;
+    TextAreaNodeTree *prev;
+};
+
+void calculateDimensionsForTextAreas(TextAreaNodeTree *root);
+TextAreaNodeTree* initTextAreaNodeTree(Editor *e, Orientation orientation);
+TextAreaNodeTree* initTextAreaNodeTree(Editor *e, TextArea *ta);
+void drawTextAreaTree(TextAreaNodeTree *root);
+void moveTextArea(TextAreaNodeTree *tant, TextArea *ta, DirectionTextArea direction);
+// TODO
+void deleteTANT(TextAreaNodeTree *tant);
+
+struct TextAreaNodeTreeList
+{
+    Editor *e;
+    TextAreaNodeTree *first;
+    TextAreaNodeTree *last;
+    TextAreaNodeTree *parent;
+
+    unsigned int length;
+};
+
+TextAreaNodeTreeList* initTextAreaNodeTreeList(Editor *e);
+int getNodePositionInTANTL(TextAreaNodeTreeList *tantl, TextAreaNodeTree *node);
+void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree *node);
+// TODO
+void deleteTANTL(TextAreaNodeTreeList *tantl);
 
 #endif // NOTEIM_EDITOR_H

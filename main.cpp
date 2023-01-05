@@ -100,6 +100,9 @@ int main()
                 pressed = handleClick(e, x, y);
                 pressed = clearClick(e, x, y) || pressed;
                 ///
+                if(!pressed) {
+                    handleClickChangeTextArea(e, x, y);
+                }
 
                 if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&
                         y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
