@@ -191,10 +191,11 @@ int main()
                 if(ENTER_PRESSED)
                 {
                     addCharToTextArea(e->textArea,'\n');
+                    if(e->textArea->changes==false)
+                        drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y-1)*CHAR_HEIGHT,e->textArea->bottomRight.y);
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
-                    e->textArea->changes = true;
                 }
                 if(TAB_PRESSED)
                 {
@@ -219,8 +220,6 @@ int main()
                     addCharToTextArea(e->textArea,a);
                     if(e->textArea->changes==true)
                         drawArea(e->textArea);
-                    else if(a=='\n')
-                        drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y-1)*CHAR_HEIGHT,e->textArea->bottomRight.y);
                     else
                         drawLines(e->textArea,e->textArea->topLeft.y+c->position.y*CHAR_HEIGHT,e->textArea->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
                     e->textArea->savedChanges = false;
@@ -229,7 +228,7 @@ int main()
                 }
                 // e->textArea->changes = true;
                 // Logging pentru nodurile din tabel
-                 //logPieceTableNodes(e->textArea->pieceTable);
+                // logPieceTableNodes(e->textArea->pieceTable);
             }
         }
         drawEditor(e);
