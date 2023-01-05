@@ -135,7 +135,8 @@ int main()
                             if(isNumber(a))
                             {
                                 addCharToModal2Input(e->m2->iM, a);
-                            } else {
+                            } else
+                            {
                                 setErrorMessageModal2(e->m2, "You can insert only numbers!");
                             }
                         }

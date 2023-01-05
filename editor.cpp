@@ -1834,7 +1834,7 @@ void handleClick(Modal1 *m1, int x, int y)
                 {
                 }
 
-                cout<<"CONFIRMAT\n";
+                //cout<<"CONFIRMAT\n";
                 break;
             }
 
@@ -2157,10 +2157,16 @@ void handleClick(Modal2 *m2, int x, int y)
                     error = openFile(m2->e->textArea, m2->iM->text);
                     break;
                 case GO_TO_LINE:
-                    getCursorPositionInPiecetable(m2->e->textArea, {0 - m2->e->textArea->firstColumn, atoi(m2->iM->text) - 1 - m2->e->textArea->firstLine});
+                    if(atoi(m2->iM->text)!=0)
+                        getCursorPositionInPiecetable(m2->e->textArea, {-m2->e->textArea->firstColumn, atoi(m2->iM->text) - 1 - m2->e->textArea->firstLine});
+                    else
+                        getCursorPositionInPiecetable(m2->e->textArea, {-m2->e->textArea->firstColumn, -m2->e->textArea->firstLine});
                     break;
                 case GO_TO_COLUMN:
-                    getCursorPositionInPiecetable(m2->e->textArea, {atoi(m2->iM->text) - m2->e->textArea->firstColumn, m2->e->textArea->cursor->position.y});
+                    if(atoi(m2->iM->text)!=0)
+                        getCursorPositionInPiecetable(m2->e->textArea, {atoi(m2->iM->text) - 1 - m2->e->textArea->firstColumn, m2->e->textArea->cursor->position.y});
+                    else
+                        getCursorPositionInPiecetable(m2->e->textArea, {-m2->e->textArea->firstColumn, m2->e->textArea->cursor->position.y});
                     break;
                 }
 
@@ -2170,7 +2176,7 @@ void handleClick(Modal2 *m2, int x, int y)
                     setErrorMessageModal2(m2, "There was a problem with your input!");
                     return;
                 }
-                cout<<"CONFIRMAT\n";
+                //cout<<"CONFIRMAT\n";
                 break;
             }
 
