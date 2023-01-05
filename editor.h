@@ -145,7 +145,6 @@ struct MenuArea
     bool fileStateChanged;
 
     ButtonsList* buttonsList;
-    // Soon
 };
 
 MenuArea* initMenuArea(Point topLeft, Editor *e);
@@ -194,7 +193,6 @@ struct TextArea
 {
     Editor* e;
     bool changes;
-    // De implementat la salvare, corespunzator pentru Windows file si unixFile (adaugare '\r' pentru windows file)
     bool unixFile;
     bool savedChanges;
     char fileName[500];
@@ -219,7 +217,6 @@ struct TextArea
 
     PieceTable *pieceTable;
     ScrollBarsArea *scrollBarsArea;
-    // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 
     bool bkChanges;
 

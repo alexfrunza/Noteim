@@ -122,11 +122,6 @@
 #define PRESS_BK_MODAL2_NO_BUTTON {217, 61, 92}
 #define PRESS_FONT_MODAL2_NO_BUTTON {0, 0, 0}
 
-// For debugging
-#include <iostream>
-using namespace std;
-//
-
 Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style)
 {
     Button *b = new Button;
@@ -873,6 +868,7 @@ TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
     ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x) / CHAR_WIDTH;
 
+    // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     return ta;
 }
 
@@ -905,6 +901,7 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     openFile(ta, fileName);
 
+    // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     return ta;
 }
 
@@ -1333,8 +1330,6 @@ Editor* initEditor()
 
     topLeft= {0,0};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
-    // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
-    // De mutat in initTextArea
 
     topLeft= {0, e->menuArea->bottomRight.y};
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
@@ -1363,7 +1358,6 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
     {
         root->topLeft = root->e->topLeftTextArea;
         root->bottomRight = root->e->bottomRightTextArea;
-        //cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<'\n';
     }
 
     if(root->type == ORIENTATION)
@@ -1385,7 +1379,6 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
                 bottomRight.x = topLeft.x + modifier;
                 current->bottomRight = bottomRight;
                 topLeft.x = bottomRight.x;
-                //cout<<current->topLeft.x<<" "<<current->topLeft.y<<" "<<current->bottomRight.x<< " "<<current->bottomRight.y<<'\n';
 
                 calculateDimensionsForTextAreas(current);
             }
@@ -1568,14 +1561,11 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
         {
             char aux = ptn->buffer->text[endOfDisplayedLine];
             ptn->buffer->text[endOfDisplayedLine] = '\0';
-            //cout<<"END from skipped: "<<endOfDisplayedLine<<'\n';
             char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
             ptn->buffer->text[endOfDisplayedLine] = aux;
 
-            // cout<<"START: "<<indexOfLine<<" "<<endOfDisplayedLine<<'\n';
             if(newLineInNode)
             {
-                //cout<<"SKIPPED: "<<skippedChars<<'\n';
                 if((void*)newLineInNode <= (void*)ptn->buffer->text + indexOfLine + skippedChars) break;
 
                 indexOfLine += skippedChars;
@@ -1596,11 +1586,7 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
                     skippedChars = 0;
                 }
             }
-            // //cout<<"start: "<<indexOfLine<<" end: "<<endOfDisplayedLine<<'\n';
-            // cout<<"numberOfCharsFromNode: "<<numberOfCharsFromNode<<'\n';
-            //cout<<"SKIPPEd: "<<skippedChars<<'\n';
         }
-        // end
 
         if(numberOfCharsFromNode <= spaceRemainedOnScreen && !skippedNode)
         {
@@ -1608,9 +1594,7 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
 
             char aux = ptn->buffer->text[endOfDisplayedLine];
             ptn->buffer->text[endOfDisplayedLine] = '\0';
-            //cout<<"END: "<<endOfDisplayedLine<<'\n';
             char *newLineInNode = strchr(ptn->buffer->text + indexOfLine, '\n');
-            //cout<<"POINTER NEW LINE: "<<(void*)newLineInNode<<'\n';
             ptn->buffer->text[endOfDisplayedLine] = aux;
 
             if(newLineInNode)
@@ -1618,10 +1602,8 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
                 numberOfCharsFromNode -= endOfDisplayedLine - (newLineInNode - ptn->buffer->text + 1);
                 endOfDisplayedLine = newLineInNode - ptn->buffer->text + 1;
                 lineEnded = true;
-                //cout<<"INDEXXXX: "<<indexOfLine<<" "<<endOfDisplayedLine<<endl;
             }
 
-            //cout<<"DE la caracter mai mic: "<<indexOfLine<<" "<<endOfDisplayedLine<<endl;
             spaceRemainedOnScreen -= numberOfCharsFromNode;
             drawCharsInGui(ptn->buffer, current_x, y, indexOfLine, endOfDisplayedLine);
             current_x += numberOfCharsFromNode * CHAR_WIDTH;
@@ -1641,7 +1623,6 @@ void showALine(int y, TextArea* ta, PieceTableNode* ptn, long indexOfLine)
                 lineEnded = true;
             }
 
-            //cout<<"DE la caracter mai mare: "<<indexOfLine<<" "<<endOfDisplayedLine<<endl;
             drawCharsInGui(ptn->buffer, current_x, y, indexOfLine, endOfDisplayedLine);
             lineEnded = true;
         }
@@ -1689,7 +1670,6 @@ void drawLinesNumber(TextArea *ta)
     int y = ta->topLeftNumbers.y;
     int size_char = numberOfChar(ta->pieceTable->numberOfLines + 1);
 
-    // cout<<"DRAW TEXT AREA: "<<x<<" "<<y<<" "<<tmp<<" "<<((ta->maxLines + ta->firstLine - tmp) > 0)<<'\n';
     while(tmp <= ta->pieceTable->numberOfLines && (ta->maxLines + ta->firstLine - tmp) > 0)
     {
         char *text = itoa(tmp + 1, size_char);
@@ -1720,7 +1700,6 @@ void drawArea(TextArea *ta)
             setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
             bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
         }
-        // cout<<"DRAW TEXT AREA: "<<ta->topLeftWindow.x<<" "<<ta->topLeftWindow.y<<" "<<ta->bottomRightWindow.x<<" "<<ta->bottomRightWindow.y<<'\n';
         if(ta->numbersDisplayed)
         {
             setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
@@ -1739,7 +1718,6 @@ void drawArea(TextArea *ta)
             setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
             bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
 
-            // cout<<"DRAW TEXT AREA: "<<ta->bottomRightNumbers.x<<" "<<ta->topLeftNumbers.y<<" "<<ta->bottomRightNumbers.x<<" "<<ta->bottomRightNumbers.y<<'\n';
             drawLinesNumber(ta);
         }
         // ta->bkChanges = false;
@@ -1888,7 +1866,6 @@ bool openFile(TextArea *ta, char *fileName)
             addPieceTableNode(ta->pieceTable->nodesList, newNode);
             ta->pieceTable->numberOfLines += numberNewLines;
 
-            //cout<<"lungimE buffer: "<<newBuffer->length<<"CARACTER: *"<<(int)newBuffer->text[0]<<"*"<<endl;
             lastAddedChar = newBuffer->text[newBuffer->length-1];
             readSize = newBuffer->length;
 
@@ -2437,7 +2414,6 @@ void handleClick(Modal2 *m2, int x, int y)
                     setErrorMessageModal2(m2, "There was a problem with your input!");
                     return;
                 }
-                //cout<<"CONFIRMAT\n";
                 break;
             }
 
