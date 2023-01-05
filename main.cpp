@@ -41,7 +41,6 @@ void handleDelete(TextArea *ta)
         drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->bottomRight.y);
     else
         drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
-
 }
 
 int main()
@@ -162,13 +161,16 @@ int main()
                     if(a==83)
                     {
                         if(c->positionInNode<c->pieceTableNode->length)
+                        {
                             c->positionInNode++;
+                            handleDelete(e->textArea);
+                        }
                         else if(c->pieceTableNode->next!=NULL)
                         {
                             c->pieceTableNode = c->pieceTableNode->next;
                             c->positionInNode = 1;
+                            handleDelete(e->textArea);
                         }
-                        handleDelete(e->textArea);
                     }
                     else
                         moveCursorByArrow(e->textArea,a);
@@ -224,7 +226,7 @@ int main()
                 }
                 // e->textArea->changes = true;
                 // Logging pentru nodurile din tabel
-                // logPieceTableNodes(e->textArea->pieceTable);
+                 //logPieceTableNodes(e->textArea->pieceTable);
             }
         }
         drawEditor(e);

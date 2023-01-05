@@ -1188,6 +1188,7 @@ void removeCharFromTextArea(TextArea *ta)
     deletedChar = c->pieceTableNode->buffer->text[c->pieceTableNode->start+c->positionInNode];
     if(deletedChar=='\n')
     {
+        ta->bkChanges = true;
         c->pieceTableNode->numberNewLines--;
         ta->pieceTable->numberOfLines--;
     }
@@ -1195,7 +1196,6 @@ void removeCharFromTextArea(TextArea *ta)
     if(c->positionInNode==c->pieceTableNode->length-1)
     {
         c->pieceTableNode->length--;
-        updateCursorPosition(ta);
         if(c->pieceTableNode->length==0 && c->pieceTableNode->prev!=NULL)
         {
             ta->pieceTable->nodesList->length--;
@@ -1214,13 +1214,31 @@ void removeCharFromTextArea(TextArea *ta)
             c->positionInNode = c->pieceTableNode->length;
             delete ptn;
         }
+        updateCursorPosition(ta);
         return;
     }
 
     if(c->positionInNode==0)
     {
         c->pieceTableNode->start++;
-        c->pieceTableNode->length--;
+        c->pieceTableNode->length--;if(c->pieceTableNode->length==0 && c->pieceTableNode->prev!=NULL)
+        {
+            ta->pieceTable->nodesList->length--;
+            ptn = c->pieceTableNode;
+            if(c->pieceTableNode==ta->pieceTable->nodesList->last)
+            {
+                ta->pieceTable->nodesList->last = c->pieceTableNode->prev;
+                c->pieceTableNode->prev->next = NULL;
+            }
+            else
+            {
+                c->pieceTableNode->prev->next = c->pieceTableNode->next;
+                c->pieceTableNode->next->prev = c->pieceTableNode->prev;
+            }
+            c->pieceTableNode = c->pieceTableNode->prev;
+            c->positionInNode = c->pieceTableNode->length;
+            delete ptn;
+        }
         updateCursorPosition(ta);
         return;
     }
