@@ -147,7 +147,6 @@ struct MenuArea
     bool fileStateChanged;
 
     ButtonsList* buttonsList;
-    // Soon
 };
 
 MenuArea* initMenuArea(Point topLeft, Editor *e);
@@ -196,7 +195,6 @@ struct TextArea
 {
     Editor* e;
     bool changes;
-    // De implementat la salvare, corespunzator pentru Windows file si unixFile (adaugare '\r' pentru windows file)
     bool unixFile;
     bool savedChanges;
     char fileName[500];
@@ -220,8 +218,8 @@ struct TextArea
     unsigned int firstColumn;
 
     PieceTable *pieceTable;
-    // ScrollBarsArea *scrollBarsArea;
-    // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
+    //ScrollBarsArea *scrollBarsArea;
+    //Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 
     bool bkChanges;
 
@@ -239,6 +237,7 @@ void addCharToTextArea(TextArea *ta, char newLetter);
 void removeCharFromTextArea(TextArea *ta);
 void drawArea(TextArea *ta);
 void drawCursorLine(TextArea *ta, bool background=false);
+void blipCursor(TextArea *ta);
 void moveCursor(TextArea *ta, Point dest);
 void moveCursorByArrow(TextArea *ta, char a);
 bool openFile(TextArea *ta, char *fileName);

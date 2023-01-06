@@ -51,7 +51,6 @@ int main()
     Cursor *c = e->textArea->cursor;
     while(e->running)
     {
-        // cout<<mousex()<<" "<<mousey()<<'\n';
         int mx = mousex();
         int my = mousey();
 
@@ -180,7 +179,6 @@ int main()
                     continue;
                 }
                 drawCursorLine(e->textArea,true);
-                // Must add Delete Deletion
                 if(a == 8)
                 {
                     handleDelete(e->textArea);
@@ -191,7 +189,9 @@ int main()
                 if(ENTER_PRESSED)
                 {
                     addCharToTextArea(e->textArea,'\n');
-                    if(e->textArea->changes==false)
+                    if(e->textArea->changes==true)
+                        drawArea(e->textArea);
+                    else
                         drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y-1)*CHAR_HEIGHT,e->textArea->bottomRight.y);
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
@@ -206,15 +206,8 @@ int main()
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
-                    e->textArea->changes = true;
+                    drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y)*CHAR_HEIGHT,e->textArea->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
                 }
-                // Test save file
-                /*
-                if(a == 's') {
-                        saveFile(e->textArea, "C:\\Users\\Alex\\Noteim\\foobar.txt");
-                } else
-                */
-
                 if(isDisplayedChar(a))
                 {
                     addCharToTextArea(e->textArea,a);
@@ -226,8 +219,6 @@ int main()
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
                 }
-                // e->textArea->changes = true;
-                // Logging pentru nodurile din tabel
                 // logPieceTableNodes(e->textArea->pieceTable);
             }
         }
