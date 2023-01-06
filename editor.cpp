@@ -748,6 +748,8 @@ bool handleClick(Editor *e, int x, int y)
 
                         setcolor(convertToBGIColor(TEXTAREA_MARGINS_NORMAL));
                         drawBorderTextArea(e->textArea);
+                        drawCursorLine(e->textArea, true);
+                        e->textArea->cursor->visibleState = false;
 
                         e->textArea = newTa;
                         e->root->changes = true;
@@ -858,6 +860,10 @@ void changeFocusedTextArea(TextAreaNodeTree *root, int x, int y)
             // Change border old focused
             setcolor(convertToBGIColor(TEXTAREA_MARGINS_NORMAL));
             drawBorderTextArea(root->e->textArea);
+
+            drawCursorLine(root->e->textArea, true);
+            root->e->textArea->cursor->visibleState = false;
+
             root->e->textArea = root->ta;
             setcolor(convertToBGIColor(TEXTAREA_MARGINS_FOCUS));
             drawBorderTextArea(root->e->textArea);
@@ -1036,6 +1042,7 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
 
 void drawCursorLine(TextArea *ta, bool background)
 {
+    if(ta != ta->e->textArea) return;
     if(background==true)
         setcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
     else
