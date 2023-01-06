@@ -171,6 +171,13 @@ int main()
             }
             else
             {
+                if(a==1)
+                    selectAll(e->clipboard,e->textArea);
+                if(a==3)
+                {
+                    copyToClipboard(e->clipboard,e->textArea);
+                    logPieceTableNodes(e->clipboard->pieceTable);
+                }
                 if(ARROW_PRESSED)
                 {
                     a = getch();

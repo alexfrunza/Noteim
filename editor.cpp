@@ -1242,7 +1242,7 @@ void updateCursorPosition(TextArea *ta)
         ptn = ptn->prev;
     }
     ta->cursor->position = {dest.x - (int)ta->firstColumn, dest.y - (int)ta->firstLine};
-    handleScroll(ta);
+    //handleScroll(ta);
 }
 
 void addCharToTextArea(TextArea *ta, char newLetter)
@@ -1271,6 +1271,7 @@ void addCharToTextArea(TextArea *ta, char newLetter)
             ta->pieceTable->numberOfLines++;
         }
         updateCursorPosition(ta);
+        handleScroll(ta);
         return;
     }
 
@@ -1294,6 +1295,7 @@ void addCharToTextArea(TextArea *ta, char newLetter)
         c->pieceTableNode = newNode;
         c->positionInNode = 1;
         updateCursorPosition(ta);
+        handleScroll(ta);
         return;
     }
 
@@ -1315,6 +1317,7 @@ void addCharToTextArea(TextArea *ta, char newLetter)
         c->pieceTableNode = newNode;
         c->positionInNode = 1;
         updateCursorPosition(ta);
+        handleScroll(ta);
         return;
     }
 
@@ -1346,6 +1349,7 @@ void addCharToTextArea(TextArea *ta, char newLetter)
         c->positionInNode = 1;
         ta->pieceTable->nodesList->length+=2;
         updateCursorPosition(ta);
+        handleScroll(ta);
         return;
     }
 }
@@ -1397,6 +1401,7 @@ void removeCharFromTextArea(TextArea *ta)
             delete ptn;
         }
         updateCursorPosition(ta);
+        handleScroll(ta);
         return;
     }
 
@@ -1423,6 +1428,7 @@ void removeCharFromTextArea(TextArea *ta)
             delete ptn;
         }
         updateCursorPosition(ta);
+        handleScroll(ta);
         return;
     }
 
@@ -1447,8 +1453,83 @@ void removeCharFromTextArea(TextArea *ta)
         rightSide->prev = c->pieceTableNode;
         ta->pieceTable->nodesList->length++;
         updateCursorPosition(ta);
+        handleScroll(ta);
         return;
     }
+}
+
+Clipboard* initClipboard()
+{
+    Clipboard *newC = new Clipboard;
+
+    newC->start = new Cursor;
+    newC->start->pieceTableNode = NULL;
+    newC->finish = new Cursor;
+    newC->start->pieceTableNode = NULL;
+
+    newC->pieceTable = initPieceTable();
+    return newC;
+}
+
+void selectAll(Clipboard *c, TextArea *ta)
+{
+    c->start->pieceTableNode = ta->pieceTable->nodesList->first;
+    c->start->positionInNode = 0;
+    c->start->position = {0,0};
+
+    c->finish->pieceTableNode = ta->pieceTable->nodesList->last;
+    c->finish->positionInNode = c->finish->pieceTableNode->length-1;
+
+    Cursor* prevCursor = new Cursor;
+    ta->cursor = c->finish;
+    updateCursorPosition(ta);
+    c->finish = ta->cursor;
+    ta->cursor = prevCursor;
+}
+
+void copyToClipboard(Clipboard *c, TextArea *ta)
+{
+    PieceTableNode *sourcePTN = c->start->pieceTableNode;
+    PieceTableNode *destPTN;
+    unsigned int numberNewLines;
+    unsigned int i;
+
+    if(c->start->pieceTableNode==c->finish->pieceTableNode)
+    {
+        numberNewLines = 0;
+        for(i=c->start->positionInNode; i<=c->finish->positionInNode; i++)
+            if(sourcePTN->buffer->text[sourcePTN->start+i]=='\n')
+                numberNewLines++;
+        destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start+c->start->positionInNode,c->finish->positionInNode-c->start->positionInNode+1,numberNewLines);
+        addPieceTableNode(c->pieceTable->nodesList,destPTN);
+        c->pieceTable->numberOfLines += numberNewLines;
+        return;
+    }
+
+    numberNewLines = 0;
+    for(i=c->start->positionInNode; i<c->start->pieceTableNode->length; i++)
+        if(sourcePTN->buffer->text[sourcePTN->start+i]=='\n')
+            numberNewLines++;
+    destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start+c->start->positionInNode,sourcePTN->length-c->start->positionInNode,numberNewLines);
+    addPieceTableNode(c->pieceTable->nodesList,destPTN);
+    c->pieceTable->numberOfLines += numberNewLines;
+    sourcePTN = sourcePTN->next;
+
+    while(sourcePTN!=c->finish->pieceTableNode)
+    {
+        destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start,sourcePTN->length,sourcePTN->numberNewLines);
+        addPieceTableNode(c->pieceTable->nodesList,destPTN);
+        c->pieceTable->numberOfLines += destPTN->numberNewLines;
+    }
+
+    numberNewLines = 0;
+    for(i=0; i<=c->finish->positionInNode; i++)
+        if(sourcePTN->buffer->text[sourcePTN->start+i]=='\n')
+            numberNewLines++;
+    destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start,c->finish->positionInNode+1,numberNewLines);
+    addPieceTableNode(c->pieceTable->nodesList,destPTN);
+    c->pieceTable->numberOfLines += numberNewLines;
+    sourcePTN = sourcePTN->next;
 }
 
 Editor* initEditor()
@@ -1484,6 +1565,8 @@ Editor* initEditor()
 
     TextAreaNodeTree* tan = initTextAreaNodeTree(e, e->textArea);
     addNodeToTANTL(e->root->tantl, 0, tan);
+
+    e->clipboard = initClipboard();
 
     e->modalOpen = false;
     e->m1 = NULL;
