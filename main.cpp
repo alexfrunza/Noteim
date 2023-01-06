@@ -6,6 +6,8 @@
 
 #define ARROW_PRESSED a==0
 #define ESC_PRESSED a==27
+#define BACKSPACE_PRESSED a==8
+#define DELETE_PRESSED a==83
 #define ENTER_PRESSED a=='\r'
 #define TAB_PRESSED a=='\t'
 
@@ -60,9 +62,9 @@ int main()
     Editor* e = initEditor();
     char a;
     int x, y;
-    Cursor *c = e->textArea->cursor;
     while(e->running)
     {
+        Cursor *c = e->textArea->cursor;
         int mx = mousex();
         int my = mousey();
 
@@ -172,7 +174,7 @@ int main()
                 if(ARROW_PRESSED)
                 {
                     a = getch();
-                    if(a==83)
+                    if(DELETE_PRESSED)
                     {
                         if(c->positionInNode<c->pieceTableNode->length)
                         {
@@ -191,7 +193,7 @@ int main()
                     continue;
                 }
                 drawCursorLine(e->textArea,true);
-                if(a == 8)
+                if(BACKSPACE_PRESSED)
                 {
                     handleDelete(e->textArea);
                     e->textArea->savedChanges = false;
