@@ -899,6 +899,13 @@ Cursor *initCursor()
 
 void blipCursor(TextArea *ta)
 {
+    Button *btn = ta->e->menuArea->buttonsList->first;
+    while(btn!=NULL)
+    {
+        if(btn->pressed)
+            return;
+        btn = btn->next;
+    }
     unsigned int newTime = time(0);
     if(newTime-ta->cursor->lastBlip>0)
     {
