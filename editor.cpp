@@ -53,6 +53,8 @@
 #define TEXTAREA_BK_NORMAL {100, 0, 100}
 #define TEXTAREA_FONT_NORMAL {124, 225, 255}
 #define TEXTAREA_NUMBERS_COLOR {0, 0, 0}
+#define TEXTAREA_MARGINS_NORMAL {0, 0, 0}
+#define TEXTAREA_MARGINS_FOCUS {240, 248, 255}
 
 // Modal1 - confirmation modal
 #define MODAL1_BK_NORMAL {150, 150, 150}
@@ -685,11 +687,15 @@ void closeWindowEditor(TextArea *ta)
     }
 }
 
-void switchOrientation(Editor *e, Orientation orientation) {
+void switchOrientation(Editor *e, Orientation orientation)
+{
     TextAreaNodeTree *node = e->textArea->node;
-    if(node->parentList->length == 1) {
+    if(node->parentList->length == 1)
+    {
         node->parentList->parent->orientation = orientation;
-    } else {
+    }
+    else
+    {
         TextAreaNodeTree *newParentNode = initTextAreaNodeTree(e, orientation);
         newParentNode->next = node->next;
         newParentNode->prev = node->prev;
@@ -845,7 +851,13 @@ void changeFocusedTextArea(TextAreaNodeTree *root, int x, int y)
     {
         if(cursorInArea(root->ta, x, y))
         {
+            // Change border old focused
+            setcolor(convertToBGIColor(TEXTAREA_MARGINS_NORMAL));
+            drawBorderTextArea(root->e->textArea);
             root->e->textArea = root->ta;
+            setcolor(convertToBGIColor(TEXTAREA_MARGINS_FOCUS));
+            drawBorderTextArea(root->e->textArea);
+
             root->e->menuArea->fileStateChanged = true;
             for(Button *b=root->e->menuArea->buttonsList->first; b != NULL; b = b->next)
             {
@@ -1449,7 +1461,7 @@ Editor* initEditor()
     bottomRight = {MAX_WIDTH,MAX_HEIGHT};
 
     topLeft= {0, e->menuArea->bottomRight.y};
-    bottomRight = {MAX_WIDTH,MAX_HEIGHT};
+    bottomRight = {MAX_WIDTH - 1,MAX_HEIGHT - 1};
 
 
     e->topLeftTextArea = topLeft;
@@ -1476,12 +1488,8 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
         root->topLeft = root->e->topLeftTextArea;
         root->bottomRight = root->e->bottomRightTextArea;
     }
-    cout<<"TIP: "<<root->type<<" ";
-    cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<"\n";
-
     if(root->type == ORIENTATION)
     {
-       // cout<<"ORIENTATION type: "<<root->orientation<<"\n";
         Point topLeft = root->topLeft;
         Point bottomRight;
         int modifier;
@@ -1494,6 +1502,7 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
 
             for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
             {
+                topLeft.x += 1;
                 current->topLeft = topLeft;
                 bottomRight.x = topLeft.x + modifier;
                 current->bottomRight = bottomRight;
@@ -1508,6 +1517,7 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
 
             for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
             {
+                topLeft.y += 1;
                 current->topLeft = topLeft;
                 bottomRight.y = topLeft.y + modifier;
                 current->bottomRight = bottomRight;
@@ -1522,12 +1532,31 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
     {
         root->ta->topLeftWindow = root->topLeft;
         root->ta->bottomRightWindow = root->bottomRight;
-       // cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<<" "<<root->bottomRight.y<<"\n";
 
         root->ta->changes = true;
         root->ta->bkChanges = true;
+
         drawArea(root->ta);
+
+        if(root->ta == root->e->textArea)
+        {
+            setcolor(convertToBGIColor(TEXTAREA_MARGINS_FOCUS));
+        }
+        else
+        {
+            setcolor(convertToBGIColor(TEXTAREA_MARGINS_NORMAL));
+        }
+
+        drawBorderTextArea(root->ta);
     }
+}
+
+void drawBorderTextArea(TextArea *ta)
+{
+    line(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->topLeftWindow.y);
+    line(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->topLeftWindow.x, ta->bottomRightWindow.y);
+    line(ta->bottomRightWindow.x, ta->bottomRightWindow.y, ta->bottomRightWindow.x, ta->topLeftWindow.y);
+    line(ta->bottomRightWindow.x, ta->bottomRightWindow.y, ta->topLeftWindow.x, ta->bottomRightWindow.y);
 }
 
 TextAreaNodeTree* initTextAreaNodeTree(Editor *e, Orientation orientation)
@@ -1839,6 +1868,7 @@ void drawArea(TextArea *ta)
 
             drawLinesNumber(ta);
         }
+
         // ta->bkChanges = false;
     }
 
