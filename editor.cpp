@@ -1502,23 +1502,11 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
         root->topLeft = root->e->topLeftTextArea;
         root->bottomRight = root->e->bottomRightTextArea;
     }
-    /*
-    cout<<"address: "<<root<< " ";
-    cout<<"TYPE: "<<root->type<<" ";
-    if(root->e->root != root) {
-    cout<<"parent: "<<root->parentList<< " ";
-    cout<<"parent node: "<<root->parentList->parent<< " ";
-    cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<'\n';
-    }
-    */
-
     if(root->type == ORIENTATION)
     {
         Point topLeft = root->topLeft;
         Point bottomRight;
         int modifier;
-        cout<<"SIU "<<root<<"\n";
-        cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<'\n';
 
         switch (root->orientation)
         {
@@ -1537,8 +1525,6 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
                 topLeft.x = bottomRight.x;
 
                 calculateDimensionsForTextAreas(current);
-
-                cout<<current->topLeft.x<<" "<<current->topLeft.y<<" "<<current->bottomRight.x<< " "<<current->bottomRight.y<<" "<<current->parentList->parent<<'\n';
             }
             break;
         case VERTICAL:
@@ -1555,8 +1541,6 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
                 topLeft.y = bottomRight.y;
 
                 calculateDimensionsForTextAreas(current);
-
-                cout<<current->topLeft.x<<" "<<current->topLeft.y<<" "<<current->bottomRight.x<< " "<<current->bottomRight.y<<" "<<current->parentList->parent<<'\n';
             }
             break;
         }
