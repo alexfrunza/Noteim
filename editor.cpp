@@ -122,6 +122,9 @@
 #define PRESS_BK_MODAL2_NO_BUTTON {217, 61, 92}
 #define PRESS_FONT_MODAL2_NO_BUTTON {0, 0, 0}
 
+#include <iostream>
+using namespace std;
+
 Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style)
 {
     Button *b = new Button;
@@ -682,6 +685,23 @@ void closeWindowEditor(TextArea *ta)
     }
 }
 
+void switchOrientation(Editor *e, Orientation orientation) {
+    TextAreaNodeTree *node = e->textArea->node;
+    if(node->parentList->length == 1) {
+        node->parentList->parent->orientation = orientation;
+    } else {
+        TextAreaNodeTree *newParentNode = initTextAreaNodeTree(e, orientation);
+        newParentNode->next = node->next;
+        newParentNode->prev = node->prev;
+        newParentNode->parentList = node->parentList;
+        if(node->prev) node->prev->next = newParentNode;
+        if(node->next) node->next->prev = newParentNode;
+        if(node == node->parentList->last) node->parentList->last = newParentNode;
+        if(node == node->parentList->first) node->parentList->first = newParentNode;
+        addNodeToTANTL(newParentNode->tantl, 0, node);
+    }
+}
+
 bool handleClick(Editor *e, int x, int y)
 {
     MenuArea *ma = e->menuArea;
@@ -757,6 +777,12 @@ bool handleClick(Editor *e, int x, int y)
                         e->textArea->numbersDisplayed = false;
                         e->textArea->changes = true;
                         e->textArea->bkChanges = true;
+                        break;
+                    case SWITCH_ORIENTATION_V:
+                        switchOrientation(e, VERTICAL);
+                        break;
+                    case SWITCH_ORIENTATION_H:
+                        switchOrientation(e, HORIZONTAL);
                         break;
                     }
 
@@ -1450,9 +1476,12 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
         root->topLeft = root->e->topLeftTextArea;
         root->bottomRight = root->e->bottomRightTextArea;
     }
+    cout<<"TIP: "<<root->type<<" ";
+    cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<"\n";
 
     if(root->type == ORIENTATION)
     {
+       // cout<<"ORIENTATION type: "<<root->orientation<<"\n";
         Point topLeft = root->topLeft;
         Point bottomRight;
         int modifier;
@@ -1493,6 +1522,7 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
     {
         root->ta->topLeftWindow = root->topLeft;
         root->ta->bottomRightWindow = root->bottomRight;
+       // cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<<" "<<root->bottomRight.y<<"\n";
 
         root->ta->changes = true;
         root->ta->bkChanges = true;
