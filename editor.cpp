@@ -1074,6 +1074,7 @@ void handleScroll(TextArea *ta)
         ta->firstLine += ta->cursor->position.y;
         ta->cursor->position.y = 0;
         ta->changes = true;
+        ta->bkChanges = true;
     }
 
     if(ta->cursor->position.y>=ta->maxLines)
@@ -1081,12 +1082,10 @@ void handleScroll(TextArea *ta)
         ta->firstLine += ta->cursor->position.y - ta->maxLines + 1;
         ta->cursor->position.y = ta->maxLines-1;
         ta->changes = true;
+        ta->bkChanges = true;
     }
     if(ta->changes)
-    {
-        ta->bkChanges = true;
         drawArea(ta);
-    }
 }
 
 void getCursorPositionInPiecetable(TextArea *ta, Point dest)
@@ -1823,6 +1822,8 @@ void drawLines(TextArea *ta, int current_y, int end_y)
 void drawLinesNumber(TextArea *ta)
 {
     setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
+    setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    setcolor(convertToBGIColor(TEXTAREA_NUMBERS_COLOR));
     bar(ta->topLeftNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
 
     line(ta->bottomRightNumbers.x, ta->topLeftWindow.y + 1, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
@@ -1863,6 +1864,7 @@ void drawArea(TextArea *ta)
         }
         if(ta->numbersDisplayed)
         {
+            setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
             setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
             setcolor(convertToBGIColor(TEXTAREA_NUMBERS_COLOR));
 

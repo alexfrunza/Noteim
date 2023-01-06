@@ -38,9 +38,21 @@ void handleDelete(TextArea *ta)
     if(ta->changes==true)
         drawArea(ta);
     else if(prevNumberOfLines-ta->pieceTable->numberOfLines!=0)
-        drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->bottomRight.y);
-    else
-        drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
+         {
+            if(ta->pieceTable->numberOfLines<=ta->maxLines+ta->firstLine)
+            {
+                if(numberOfChar(ta->pieceTable->numberOfLines)!=numberOfChar(ta->pieceTable->numberOfLines+2))
+                    {
+                        ta->changes = true;
+                        drawArea(ta);
+                    }
+                else
+                    drawLinesNumber(ta);
+            }
+                drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->bottomRight.y);
+         }
+        else
+            drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
 }
 
 int main()
@@ -193,6 +205,14 @@ int main()
                         drawArea(e->textArea);
                     else
                         drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y-1)*CHAR_HEIGHT,e->textArea->bottomRight.y);
+                    if(e->textArea->pieceTable->numberOfLines<=e->textArea->maxLines+e->textArea->firstLine)
+                        if(numberOfChar(e->textArea->pieceTable->numberOfLines)==numberOfChar(e->textArea->pieceTable->numberOfLines+1))
+                            drawLinesNumber(e->textArea);
+                        else
+                        {
+                            e->textArea->changes = true;
+                            drawArea(e->textArea);
+                        }
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
