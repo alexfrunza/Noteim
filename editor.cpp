@@ -1033,6 +1033,11 @@ void handleScroll(TextArea *ta)
         ta->cursor->position.y = ta->maxLines-1;
         ta->changes = true;
     }
+    if(ta->changes)
+    {
+        ta->bkChanges = true;
+        drawArea(ta);
+    }
 }
 
 void getCursorPositionInPiecetable(TextArea *ta, Point dest)
@@ -1142,6 +1147,7 @@ void moveCursorByArrow(TextArea *ta, char a)
         dest.x++;
     }
     moveCursor(ta,dest);
+    printf("%d %d\n",ta->firstColumn,ta->firstLine);
 }
 
 void updateCursorPosition(TextArea *ta)

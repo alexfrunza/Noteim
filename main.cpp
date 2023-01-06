@@ -41,7 +41,6 @@ void handleDelete(TextArea *ta)
         drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->bottomRight.y);
     else
         drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
-    logPieceTableNodes(ta->pieceTable);
 }
 
 int main()
@@ -207,7 +206,7 @@ int main()
                     e->textArea->savedChanges = false;
                     e->menuArea->fileStateChanged = true;
                     e->menuArea->changes = true;
-                    e->textArea->changes = true;
+                    drawLines(e->textArea,e->textArea->topLeft.y+(c->position.y)*CHAR_HEIGHT,e->textArea->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
                 }
                 if(isDisplayedChar(a))
                 {
