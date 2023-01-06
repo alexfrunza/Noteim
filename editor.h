@@ -244,6 +244,7 @@ bool openFile(TextArea *ta, char *fileName);
 bool saveFile(TextArea *ta, char *fileName);
 void drawLines(TextArea *ta, int current_y, int end_y);
 void drawLinesNumber(TextArea *ta);
+bool requiresNewNumbersIndent(TextArea *ta);
 void changeFocusedTextArea(TextAreaNodeTree *root, int x, int y);
 
 void deleteTextArea(TextArea *ta);
