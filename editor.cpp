@@ -195,7 +195,7 @@ Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style
         b->pressFT = PRESS_FONT_MODAL2_YES_BUTTON;
 
 
-        b->lengthText = max(int(strlen(name)), MODAL2_CHARS_BUTTON) * CHAR_WIDTH;
+        b->lengthText = std::max(int(strlen(name)), MODAL2_CHARS_BUTTON) * CHAR_WIDTH;
         break;
     case MODAL2_CANCEL_STYLE:
         b->paddingSides = PADDING_SIDES_MODAL2_BTN;
@@ -1452,7 +1452,6 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
             modifier = (root->bottomRight.x - root->topLeft.x) / (int)root->tantl->length;
             bottomRight = {root->topLeft.x, root->bottomRight.y};
 
-            cout<<"LENGTH LIST: "<<root->tantl->length<<"\n";
             for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
             {
                 current->topLeft = topLeft;
@@ -1481,10 +1480,8 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
     }
     else if(root->type == LEAF_NODE)
     {
-        cout<<"BOO\n";
         root->ta->topLeftWindow = root->topLeft;
         root->ta->bottomRightWindow = root->bottomRight;
-        cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<'\n';
 
         root->ta->changes = true;
         root->ta->bkChanges = true;
@@ -1552,10 +1549,7 @@ int getNodePositionInTANTL(TextAreaNodeTreeList *tantl, TextAreaNodeTree *node)
 void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree *node)
 {
     if(position < 0 || position > (int)tantl->length)
-    {
-        cerr<<"Invalid Position to add in text area node tree list!";
         exit(1);
-    }
 
     switch(node->type)
     {
@@ -1605,7 +1599,6 @@ void drawTextAreaTree(TextAreaNodeTree *root)
 {
     if(root->changes == false) return;
 
-    cout<<"schimbare\n";
     calculateDimensionsForTextAreas(root);
     root->changes = false;
 }
@@ -1738,6 +1731,10 @@ void drawLines(TextArea *ta, int current_y, int end_y)
         currentLine++;
         showedLines++;
     }
+
+    ta->cursor->lastBlip = time(0);
+    ta->cursor->visibleState = true;
+    drawCursorLine(ta);
 }
 
 void drawLinesNumber(TextArea *ta)
@@ -2359,7 +2356,7 @@ Modal2* initModal2(Editor *e, char *title, char *description, char *buttonNameYe
     ButtonType types[] = {MODAL2_CONFIRM, MODAL2_CANCEL};
     ButtonStyle styles[] = {MODAL2_CONFIRM_STYLE, MODAL2_CANCEL_STYLE};
 
-    m2->bl = initButtonsList({(MAX_WIDTH + MODAL2_WIDTH) / 2 - MODAL2_PADDING - 4*PADDING_SIDES_MODAL2_BTN - CHAR_WIDTH * max((int)strlen(buttonsNames[1]),MODAL2_CHARS_BUTTON) - 2*CHAR_WIDTH - CHAR_WIDTH * max((int)strlen(buttonsNames[0]),MODAL2_CHARS_BUTTON),
+    m2->bl = initButtonsList({(MAX_WIDTH + MODAL2_WIDTH) / 2 - MODAL2_PADDING - 4*PADDING_SIDES_MODAL2_BTN - CHAR_WIDTH * std::max((int)strlen(buttonsNames[1]),MODAL2_CHARS_BUTTON) - 2*CHAR_WIDTH - CHAR_WIDTH * std::max((int)strlen(buttonsNames[0]),MODAL2_CHARS_BUTTON),
                               m2->bottomRight.y - MODAL2_PADDING - CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN},
                              buttonsNames, types, 2, styles, MODAL2_BL);
     m2->iM = initInputModal2({m2->topLeft.x + MODAL2_PADDING, m2->bottomRight.y - MODAL2_PADDING - 3*CHAR_HEIGHT - 2*PADDING_TOP_BOTTOM_MODAL2_BTN - 2*INPUT_MODAL2_PADDING - 2*INPUT_MODAL2_MARGIN_SIZE},

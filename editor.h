@@ -218,12 +218,8 @@ struct TextArea
     unsigned int firstColumn;
 
     PieceTable *pieceTable;
-<<<<<<< HEAD
-    ScrollBarsArea *scrollBarsArea;
-=======
-    // ScrollBarsArea *scrollBarsArea;
-    // Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
->>>>>>> 62abb8d9337102c717d492f6bc449fef11850fe8
+    //ScrollBarsArea *scrollBarsArea;
+    //Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 
     bool bkChanges;
 
@@ -241,6 +237,7 @@ void addCharToTextArea(TextArea *ta, char newLetter);
 void removeCharFromTextArea(TextArea *ta);
 void drawArea(TextArea *ta);
 void drawCursorLine(TextArea *ta, bool background=false);
+void blipCursor(TextArea *ta);
 void moveCursor(TextArea *ta, Point dest);
 void moveCursorByArrow(TextArea *ta, char a);
 bool openFile(TextArea *ta, char *fileName);
