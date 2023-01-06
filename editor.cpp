@@ -745,6 +745,12 @@ bool handleClick(Editor *e, int x, int y)
                         newTa = initTextArea(e, {0, 0}, {0, 0});
                         newNodeTantl = initTextAreaNodeTree(e, newTa);
                         addNodeToTANTL(e->textArea->node->parentList, positionInTantl + 1, newNodeTantl);
+
+                        setcolor(convertToBGIColor(TEXTAREA_MARGINS_NORMAL));
+                        drawBorderTextArea(e->textArea);
+                        drawCursorLine(e->textArea, true);
+                        e->textArea->cursor->visibleState = false;
+
                         e->textArea = newTa;
                         e->root->changes = true;
 
@@ -854,6 +860,10 @@ void changeFocusedTextArea(TextAreaNodeTree *root, int x, int y)
             // Change border old focused
             setcolor(convertToBGIColor(TEXTAREA_MARGINS_NORMAL));
             drawBorderTextArea(root->e->textArea);
+
+            drawCursorLine(root->e->textArea, true);
+            root->e->textArea->cursor->visibleState = false;
+
             root->e->textArea = root->ta;
             setcolor(convertToBGIColor(TEXTAREA_MARGINS_FOCUS));
             drawBorderTextArea(root->e->textArea);
@@ -1032,6 +1042,7 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
 
 void drawCursorLine(TextArea *ta, bool background)
 {
+    if(ta != ta->e->textArea) return;
     if(background==true)
         setcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
     else
@@ -1502,9 +1513,10 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
 
             for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
             {
-                topLeft.x += 1;
+                if(current != root->tantl->first) topLeft.x += 1;
                 current->topLeft = topLeft;
                 bottomRight.x = topLeft.x + modifier;
+                if(current == root->tantl->last) bottomRight.x -= (root->tantl->length - 1);
                 current->bottomRight = bottomRight;
                 topLeft.x = bottomRight.x;
 
@@ -1517,9 +1529,10 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
 
             for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
             {
-                topLeft.y += 1;
+                if(current != root->tantl->first) topLeft.y += 1;
                 current->topLeft = topLeft;
                 bottomRight.y = topLeft.y + modifier;
+                if(current == root->tantl->last) bottomRight.y -= (root->tantl->length - 1);
                 current->bottomRight = bottomRight;
                 topLeft.y = bottomRight.y;
 
@@ -1812,7 +1825,7 @@ void drawLinesNumber(TextArea *ta)
     setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
     bar(ta->topLeftNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
 
-    line(ta->bottomRightNumbers.x, ta->topLeftNumbers.y, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
+    line(ta->bottomRightNumbers.x, ta->topLeftWindow.y + 1, ta->bottomRightNumbers.x, ta->bottomRightNumbers.y);
     int tmp = ta->firstLine;
     int x = ta->topLeftNumbers.x;
     int y = ta->topLeftNumbers.y;
@@ -1840,13 +1853,13 @@ void drawArea(TextArea *ta)
         if(!ta->numbersDisplayed)
         {
             ta->topLeft.x = ta->topLeftWindow.x + CHAR_WIDTH/4;
-            ta->topLeft.y = ta->topLeftWindow.y + CHAR_HEIGHT/4;
+            ta->topLeft.y = ta->topLeftWindow.y + CHAR_HEIGHT/4 - 1;
             ta->bottomRight = ta->bottomRightWindow;
             ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x - numberOfChar(ta->pieceTable->numberOfLines + 1)) / CHAR_WIDTH;
             ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
 
             setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
-            bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
+            bar(ta->topLeftWindow.x + 1, ta->topLeftWindow.y + 1, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
         }
         if(ta->numbersDisplayed)
         {
@@ -1854,17 +1867,17 @@ void drawArea(TextArea *ta)
             setcolor(convertToBGIColor(TEXTAREA_NUMBERS_COLOR));
 
             ta->topLeft.x = ta->topLeftWindow.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + CHAR_WIDTH/2 + 1;
-            ta->topLeft.y = ta->topLeftWindow.y + CHAR_HEIGHT/4;
-            ta->topLeftNumbers.x = CHAR_WIDTH/4 + ta->topLeftWindow.x;
-            ta->topLeftNumbers.y = ta->topLeft.y;
+            ta->topLeft.y = ta->topLeftWindow.y + CHAR_HEIGHT/4 - 1;
+            ta->topLeftNumbers.x = CHAR_WIDTH/4 + ta->topLeftWindow.x + 1;
+            ta->topLeftNumbers.y = ta->topLeft.y - 1;
             ta->bottomRightNumbers.x = ta->topLeftNumbers.x + numberOfChar(ta->pieceTable->numberOfLines + 1) * CHAR_WIDTH + 1;
-            ta->bottomRightNumbers.y = ta->bottomRight.y;
+            ta->bottomRightNumbers.y = ta->bottomRight.y - 1;
             ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x - numberOfChar(ta->pieceTable->numberOfLines + 1)) / CHAR_WIDTH;
             ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
 
 
             setfillstyle(1, convertToBGIColor(TEXTAREA_BK_NORMAL));
-            bar(ta->topLeftWindow.x, ta->topLeftWindow.y, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
+            bar(ta->topLeftWindow.x + 1, ta->topLeftWindow.y + 1, ta->bottomRightWindow.x, ta->bottomRightWindow.y);
 
             drawLinesNumber(ta);
         }
