@@ -699,12 +699,15 @@ void switchOrientation(Editor *e, Orientation orientation)
         TextAreaNodeTree *newParentNode = initTextAreaNodeTree(e, orientation);
         newParentNode->next = node->next;
         newParentNode->prev = node->prev;
-        newParentNode->parentList = node->parentList;
         if(node->prev) node->prev->next = newParentNode;
         if(node->next) node->next->prev = newParentNode;
         if(node == node->parentList->last) node->parentList->last = newParentNode;
         if(node == node->parentList->first) node->parentList->first = newParentNode;
         addNodeToTANTL(newParentNode->tantl, 0, node);
+        node->next = NULL;
+        node->prev = NULL;
+
+        newParentNode->parentList = node->parentList;
     }
 }
 
@@ -1510,6 +1513,7 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
             modifier = (root->bottomRight.x - root->topLeft.x) / (int)root->tantl->length;
             bottomRight = {root->topLeft.x, root->bottomRight.y};
 
+
             for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
             {
                 if(current != root->tantl->first) topLeft.x += 1;
@@ -1648,7 +1652,6 @@ void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree 
         tantl->length = 1;
         return;
     }
-
     if(position == 0)
     {
         node->next = tantl->first;
@@ -1666,9 +1669,8 @@ void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree 
         return;
     }
 
-
     TextAreaNodeTree *current = tantl->first;
-    for(int i=0; i < position; i++, current = current->next);
+    for(int i=0; i < position - 1; i++, current = current->next);
 
     current->next->prev = node;
     node->next = current->next;
