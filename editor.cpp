@@ -687,6 +687,13 @@ void closeWindowEditor(TextArea *ta)
     }
 }
 
+void switchOrientation(Editor *e, Orientation orientation) {
+    TextAreaNodeTree *node = e->textArea->node;
+    if(node->parentList->length == 1) {
+        node->parentList->parent->orientation = orientation;
+    }
+}
+
 bool handleClick(Editor *e, int x, int y)
 {
     MenuArea *ma = e->menuArea;
@@ -762,6 +769,12 @@ bool handleClick(Editor *e, int x, int y)
                         e->textArea->numbersDisplayed = false;
                         e->textArea->changes = true;
                         e->textArea->bkChanges = true;
+                        break;
+                    case SWITCH_ORIENTATION_V:
+                        switchOrientation(e, VERTICAL);
+                        break;
+                    case SWITCH_ORIENTATION_H:
+                        switchOrientation(e, HORIZONTAL);
                         break;
                     }
 
