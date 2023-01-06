@@ -699,12 +699,15 @@ void switchOrientation(Editor *e, Orientation orientation)
         TextAreaNodeTree *newParentNode = initTextAreaNodeTree(e, orientation);
         newParentNode->next = node->next;
         newParentNode->prev = node->prev;
-        newParentNode->parentList = node->parentList;
         if(node->prev) node->prev->next = newParentNode;
         if(node->next) node->next->prev = newParentNode;
         if(node == node->parentList->last) node->parentList->last = newParentNode;
         if(node == node->parentList->first) node->parentList->first = newParentNode;
         addNodeToTANTL(newParentNode->tantl, 0, node);
+        node->next = NULL;
+        node->prev = NULL;
+
+        newParentNode->parentList = node->parentList;
     }
 }
 
@@ -1499,17 +1502,30 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
         root->topLeft = root->e->topLeftTextArea;
         root->bottomRight = root->e->bottomRightTextArea;
     }
+    /*
+    cout<<"address: "<<root<< " ";
+    cout<<"TYPE: "<<root->type<<" ";
+    if(root->e->root != root) {
+    cout<<"parent: "<<root->parentList<< " ";
+    cout<<"parent node: "<<root->parentList->parent<< " ";
+    cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<'\n';
+    }
+    */
+
     if(root->type == ORIENTATION)
     {
         Point topLeft = root->topLeft;
         Point bottomRight;
         int modifier;
+        cout<<"SIU "<<root<<"\n";
+        cout<<root->topLeft.x<<" "<<root->topLeft.y<<" "<<root->bottomRight.x<< " "<<root->bottomRight.y<<'\n';
 
         switch (root->orientation)
         {
         case HORIZONTAL:
             modifier = (root->bottomRight.x - root->topLeft.x) / (int)root->tantl->length;
             bottomRight = {root->topLeft.x, root->bottomRight.y};
+
 
             for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
             {
@@ -1521,6 +1537,8 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
                 topLeft.x = bottomRight.x;
 
                 calculateDimensionsForTextAreas(current);
+
+                cout<<current->topLeft.x<<" "<<current->topLeft.y<<" "<<current->bottomRight.x<< " "<<current->bottomRight.y<<" "<<current->parentList->parent<<'\n';
             }
             break;
         case VERTICAL:
@@ -1537,6 +1555,8 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
                 topLeft.y = bottomRight.y;
 
                 calculateDimensionsForTextAreas(current);
+
+                cout<<current->topLeft.x<<" "<<current->topLeft.y<<" "<<current->bottomRight.x<< " "<<current->bottomRight.y<<" "<<current->parentList->parent<<'\n';
             }
             break;
         }
@@ -1649,7 +1669,6 @@ void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree 
         tantl->length = 1;
         return;
     }
-
     if(position == 0)
     {
         node->next = tantl->first;
@@ -1667,9 +1686,8 @@ void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree 
         return;
     }
 
-
     TextAreaNodeTree *current = tantl->first;
-    for(int i=0; i < position; i++, current = current->next);
+    for(int i=0; i < position - 1; i++, current = current->next);
 
     current->next->prev = node;
     node->next = current->next;
