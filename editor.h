@@ -407,6 +407,7 @@ TextAreaNodeTree* initTextAreaNodeTree(Editor *e, Orientation orientation);
 TextAreaNodeTree* initTextAreaNodeTree(Editor *e, TextArea *ta);
 void drawTextAreaTree(TextAreaNodeTree *root);
 void moveTextArea(TextAreaNodeTree *tant, TextArea *ta, DirectionTextArea direction);
+void switchOrientation(Editor *e, Orientation orientation);
 // TODO
 void deleteTANT(TextAreaNodeTree *tant);
 
