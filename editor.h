@@ -9,7 +9,7 @@
 #define MAX_WIDTH getmaxwidth()
 #define MAX_HEIGHT getmaxheight()
 #define MAX_NAMES_LEN 50
-#define MAX_CHAR_MODAL2_INPUT 50
+#define MAX_CHAR_MODAL2_INPUT 128
 
 struct Buton;
 struct ButtonsList;

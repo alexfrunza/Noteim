@@ -2354,7 +2354,10 @@ void drawInputModal2(InputModal2 *input)
 
         setbkcolor(convertToBGIColor(INPUT_MODAL2_FOCUSED_BK));
         setcolor(convertToBGIColor(INPUT_MODAL2_FOCUSED_FONT));
-        outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
+        if(strlen(input->text)>=(input->bottomRight.x-input->topLeft.x-2*(INPUT_MODAL2_PADDING+INPUT_MODAL2_MARGIN_SIZE)-INPUT_MODAL2_MARGIN_SIZE/2)/CHAR_WIDTH)
+            outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text + strlen(input->text) - ((input->bottomRight.x-input->topLeft.x)/CHAR_WIDTH)+2);
+        else
+            outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
 
         drawCursorModal2(input->cursor);
     }
@@ -2372,9 +2375,11 @@ void drawInputModal2(InputModal2 *input)
 
         setbkcolor(convertToBGIColor(INPUT_MODAL2_NORMAL_BK));
         setcolor(convertToBGIColor(INPUT_MODAL2_NORMAL_FONT));
-        outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
-
-    }
+        if(strlen(input->text)>=(input->bottomRight.x-input->topLeft.x-2*(INPUT_MODAL2_PADDING+INPUT_MODAL2_MARGIN_SIZE)-INPUT_MODAL2_MARGIN_SIZE/2)/CHAR_WIDTH)
+            outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text + strlen(input->text) - ((input->bottomRight.x-input->topLeft.x)/CHAR_WIDTH)+2);
+        else
+            outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
+}
     input->changes = false;
 }
 
@@ -2390,7 +2395,8 @@ void addCharToModal2Input(InputModal2* input, char x)
 
     input->text[lg] = x;
     input->text[lg+1] = '\0';
-    input->cursor->position.x += CHAR_WIDTH;
+    if(strlen(input->text)<=(input->bottomRight.x-input->topLeft.x-2*(INPUT_MODAL2_PADDING+INPUT_MODAL2_MARGIN_SIZE)-INPUT_MODAL2_MARGIN_SIZE/2)/CHAR_WIDTH)
+        input->cursor->position.x += CHAR_WIDTH;
     input->cursor->state = true;
     input->cursor->lastUpdate = time(0);
     input->changes = true;
@@ -2403,7 +2409,8 @@ void deleteCharFromModal2Input(InputModal2* input)
     if(lg == 0) return;
 
     input->text[lg-1] = '\0';
-    input->cursor->position.x -= CHAR_WIDTH;
+    if(strlen(input->text)<(input->bottomRight.x-input->topLeft.x-2*(INPUT_MODAL2_PADDING+INPUT_MODAL2_MARGIN_SIZE)-INPUT_MODAL2_MARGIN_SIZE/2)/CHAR_WIDTH)
+        input->cursor->position.x -= CHAR_WIDTH;
     input->cursor->state = true;
     input->cursor->lastUpdate = time(0);
     input->changes = true;
