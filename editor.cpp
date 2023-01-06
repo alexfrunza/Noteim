@@ -91,7 +91,7 @@
 #define MODAL2_SHADOW_OFF 15
 #define MODAL2_PADDING 30
 #define MODAL2_HEIGHT 300
-#define MODAL2_WIDTH 800
+#define MODAL2_WIDTH 1599
 #define MODAL2_CHARS_BUTTON 10
 #define MODAL2_ERROR_MSG_COLOR {255, 45, 52}
 
@@ -1543,6 +1543,12 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
             }
             break;
         }
+
+        setcolor(convertToBGIColor(TEXTAREA_MARGINS_NORMAL));
+        line(root->topLeft.x, root->topLeft.y, root->bottomRight.x, root->topLeft.y);
+        line(root->topLeft.x, root->topLeft.y, root->topLeft.x, root->bottomRight.y);
+        line(root->bottomRight.x, root->bottomRight.y, root->bottomRight.x, root->topLeft.y);
+        line(root->bottomRight.x, root->bottomRight.y, root->topLeft.x, root->bottomRight.y);
     }
     else if(root->type == LEAF_NODE)
     {
@@ -1684,6 +1690,9 @@ void drawTextAreaTree(TextAreaNodeTree *root)
     if(root->changes == false) return;
 
     calculateDimensionsForTextAreas(root);
+
+    setcolor(convertToBGIColor(TEXTAREA_MARGINS_FOCUS));
+    drawBorderTextArea(root->e->textArea);
     root->changes = false;
 }
 
