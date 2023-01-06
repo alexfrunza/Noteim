@@ -1033,9 +1033,6 @@ void handleScroll(TextArea *ta)
         ta->cursor->position.y = ta->maxLines-1;
         ta->changes = true;
     }
-    ta->cursor->lastBlip = time(0);
-    ta->cursor->visibleState = true;
-    drawCursorLine(ta);
 }
 
 void getCursorPositionInPiecetable(TextArea *ta, Point dest)
@@ -1124,6 +1121,7 @@ void moveCursor(TextArea *ta, Point dest)
 
     drawCursorLine(ta,true);
     getCursorPositionInPiecetable(ta,dest);
+    drawCursorLine(ta);
 }
 
 void moveCursorByArrow(TextArea *ta, char a)
@@ -1963,10 +1961,10 @@ bool openFile(TextArea *ta, char *fileName)
     while(readSize == MAX_LENGTH_BUFFER);
 
     if(unixFile) ta->unixFile = true;
-    Buffer *newBuffer = initBuffer();
-    addBuffer(ta->pieceTable->buffersList, newBuffer);
-    PieceTableNode *newPtn = initPieceTableNode(newBuffer, 0, 0, 0);
-    addPieceTableNode(ta->pieceTable->nodesList, newPtn);
+    //Buffer *newBuffer = initBuffer();
+    //addBuffer(ta->pieceTable->buffersList, newBuffer);
+    //PieceTableNode *newPtn = initPieceTableNode(newBuffer, 0, 0, 0);
+    //addPieceTableNode(ta->pieceTable->nodesList, newPtn);
 
     ta->cursor->position = {0, 0};
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;

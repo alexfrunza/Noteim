@@ -41,6 +41,7 @@ void handleDelete(TextArea *ta)
         drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->bottomRight.y);
     else
         drawLines(ta,ta->topLeft.y+c->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->position.y+1)*CHAR_HEIGHT);
+    logPieceTableNodes(ta->pieceTable);
 }
 
 int main()
