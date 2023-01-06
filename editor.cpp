@@ -1198,7 +1198,6 @@ void moveCursorByArrow(TextArea *ta, char a)
         dest.x++;
     }
     moveCursor(ta,dest);
-    printf("%d %d\n",ta->firstColumn,ta->firstLine);
 }
 
 void updateCursorPosition(TextArea *ta)
@@ -1242,7 +1241,6 @@ void updateCursorPosition(TextArea *ta)
         dest.y += ptn->numberNewLines;
         ptn = ptn->prev;
     }
-
     ta->cursor->position = {dest.x - (int)ta->firstColumn, dest.y - (int)ta->firstLine};
     handleScroll(ta);
 }
