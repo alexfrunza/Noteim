@@ -21,7 +21,6 @@ int numberOfChar(int x) {
     return res;
 }
 
-// int to ascii with margins
 // please free memory after using the value returned by this function
 char* itoa(int x, int size_char) {
     char *res = (char*) malloc(sizeof(char) * size_char + 1);
