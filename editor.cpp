@@ -124,9 +124,6 @@
 #define PRESS_BK_MODAL2_NO_BUTTON {217, 61, 92}
 #define PRESS_FONT_MODAL2_NO_BUTTON {0, 0, 0}
 
-#include <iostream>
-using namespace std;
-
 Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style)
 {
     Button *b = new Button;
@@ -600,11 +597,11 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
 
 void showMoveSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column", "Go to end of line", "Go to start of line", "Move text area up", "Move text area down", "Move text area right", "Move test area left"};
-    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN, GO_TO_END_LINE, GO_TO_START_LINE, MOVE_TA_UP, MOVE_TA_DOWN, MOVE_TA_RIGHT, MOVE_TA_LEFT};
-    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
+    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column", "Go to end of line", "Go to start of line"};
+    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN, GO_TO_END_LINE, GO_TO_START_LINE};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 8, styles, SUBMENU1_BL);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
 }
 
 void showOptionsSubMenu(Button* b, MenuArea* ma)
@@ -635,33 +632,92 @@ void deleteTextArea(TextArea *ta)
 void closeWindowEditor(TextArea *ta)
 {
     TextAreaNodeTreeList *parentList = ta->node->parentList;
+    Editor *e = parentList->e;
     if(parentList->length == 1)
     {
         if(parentList->parent == ta->e->root)
         {
-            initModal1(ta->e, "Close editor", "This is the last window and editor\nwill be closed", STOP_EDITOR);
+            initModal1(ta->e, "Close editor", "This is the last window and the editor\nwill be closed. Are you sure\?", STOP_EDITOR);
+        }
+        else
+        {
+            TextAreaNodeTree *parentNode = parentList->parent;
+            TextAreaNodeTree *aux;
+            TextAreaNodeTreeList *parentList = parentNode->parentList;
+            if(getNodePositionInTANTL(parentList, parentNode) == 0)
+            {
+                TextAreaNodeTree *next = parentNode->next;
+                parentList->first = parentNode->next;
+
+                delete ta->node;
+                delete parentNode->tantl;
+                delete parentNode;
+
+                TextAreaNodeTree *nextNodeForArea = next;
+                while(nextNodeForArea->type != LEAF_NODE) nextNodeForArea = nextNodeForArea->tantl->first;
+
+                parentList->e->textArea = nextNodeForArea->ta;
+                parentList->length--;
+
+                deleteTextArea(ta);
+                next->e->root->changes = true;
+                aux = next;
+            }
+            else
+            {
+                TextAreaNodeTree *prev = parentNode->prev;
+                parentNode->prev->next = parentNode->next;
+                if(parentNode->next) parentNode->next->prev = parentNode->prev;
+
+                delete ta->node;
+                delete parentNode->tantl;
+                delete parentNode;
+
+                TextAreaNodeTree *nextNodeForArea = prev;
+                while(nextNodeForArea->type != LEAF_NODE) nextNodeForArea = nextNodeForArea->tantl->first;
+
+                parentList->e->textArea = nextNodeForArea->ta;
+                parentList->length--;
+
+                deleteTextArea(ta);
+                prev->e->root->changes = true;
+                aux = prev;
+            }
+
+            if(parentList->length == 1)
+            {
+                if(aux->type == ORIENTATION)
+                {
+                    aux->parentList->parent->orientation = aux->orientation;
+                    aux->parentList->parent->tantl = aux->tantl;
+                    aux->tantl->parent = aux->parentList->parent;
+                    delete aux;
+                }
+                else
+                {
+                    parentList->first = aux;
+                    parentList->last = aux;
+                }
+            }
         }
     }
     else
     {
+        TextAreaNodeTree *aux;
         if(getNodePositionInTANTL(parentList, ta->node) == 0)
         {
             TextAreaNodeTree *next = ta->node->next;
             parentList->first = parentList->first->next;
             delete ta->node;
-            if(next->type == LEAF_NODE) parentList->e->textArea = next->ta;
-            else
-            {
-                parentList->e->textArea = next->tantl->first->ta;
-            }
+
+            TextAreaNodeTree *nextNodeForArea = next;
+            while(nextNodeForArea->type != LEAF_NODE) nextNodeForArea = nextNodeForArea->tantl->first;
+            parentList->e->textArea = nextNodeForArea->ta;
+
             deleteTextArea(ta);
             parentList->length--;
             parentList->e->root->changes = true;
-
-            if(parentList->length == 1)
-            {
-                parentList->first = next;
-            }
+            aux = next;
         }
         else
         {
@@ -670,11 +726,10 @@ void closeWindowEditor(TextArea *ta)
             if(ta->node->next) ta->node->next->prev = ta->node->prev;
             delete ta->node;
 
-            if(prev->type == LEAF_NODE) parentList->e->textArea = prev->ta;
-            else
-            {
-                parentList->e->textArea = prev->tantl->first->ta;
-            }
+            TextAreaNodeTree *nextNodeForArea = prev;
+            while(nextNodeForArea->type != LEAF_NODE) nextNodeForArea = nextNodeForArea->tantl->first;
+            parentList->e->textArea = nextNodeForArea->ta;
+
             deleteTextArea(ta);
             parentList->length--;
             parentList->e->root->changes = true;
@@ -683,8 +738,34 @@ void closeWindowEditor(TextArea *ta)
             {
                 parentList->last = prev;
             }
+            aux = prev;
+        }
+
+        if(parentList->length == 1)
+        {
+            if(aux->type == ORIENTATION)
+            {
+                aux->parentList->parent->orientation = aux->orientation;
+                aux->parentList->parent->tantl = aux->tantl;
+                aux->tantl->parent = aux->parentList->parent;
+                delete aux;
+            }
+            else
+            {
+                parentList->first = aux;
+                parentList->last = aux;
+            }
         }
     }
+
+
+    e->menuArea->fileStateChanged = true;
+    for(Button *b=e->menuArea->buttonsList->first; b != NULL; b = b->next)
+    {
+        b->changes = true;
+    }
+    e->menuArea->bkChanges = true;
+    e->menuArea->changes = true;
 }
 
 void switchOrientation(Editor *e, Orientation orientation)
@@ -703,11 +784,10 @@ void switchOrientation(Editor *e, Orientation orientation)
         if(node->next) node->next->prev = newParentNode;
         if(node == node->parentList->last) node->parentList->last = newParentNode;
         if(node == node->parentList->first) node->parentList->first = newParentNode;
+        newParentNode->parentList = node->parentList;
         addNodeToTANTL(newParentNode->tantl, 0, node);
         node->next = NULL;
         node->prev = NULL;
-
-        newParentNode->parentList = node->parentList;
     }
 }
 
@@ -1499,6 +1579,7 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
         root->topLeft = root->e->topLeftTextArea;
         root->bottomRight = root->e->bottomRightTextArea;
     }
+
     if(root->type == ORIENTATION)
     {
         Point topLeft = root->topLeft;
@@ -2148,7 +2229,6 @@ void drawEditor(Editor *e)
     }
     else
         blipCursor(e->textArea);
-    //drawArea(e->scrollBarsArea);
 }
 
 void stopEditor(Editor *e)
@@ -2653,4 +2733,22 @@ void clearClick(Modal2 *m2, int x, int y)
         m2->iM->changes = true;
         m2->changes = true;
     }
+}
+
+bool verifyFilesAreSaved(TextAreaNodeTree *root)
+{
+    bool res = true;
+    if(root->type == ORIENTATION)
+    {
+        for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
+        {
+            res = res && verifyFilesAreSaved(current);
+        }
+    }
+    else if(root->type == LEAF_NODE)
+    {
+        return root->ta->savedChanges;
+    }
+
+    return res;
 }
