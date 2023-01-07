@@ -1970,15 +1970,25 @@ bool openFile(TextArea *ta, char *fileName)
             if(lastAddedChar == '\r')
             {
                 ta->pieceTable->numberOfLines += 1;
-                ta->pieceTable->buffersList->last->text[ta->pieceTable->buffersList->last->length-1] = '\n';
-                ta->pieceTable->nodesList->last->numberNewLines += 1;
+
+                if(newBuffer)
+                {
+                    ta->pieceTable->buffersList->last->prev->text[ta->pieceTable->buffersList->last->prev->length-1] = '\n';
+                    ta->pieceTable->nodesList->last->prev->numberNewLines += 1;
+                }
+                else
+                {
+                    ta->pieceTable->buffersList->last->text[ta->pieceTable->buffersList->last->length-1] = '\n';
+                    ta->pieceTable->nodesList->last->numberNewLines += 1;
+                }
             }
             else
             {
                 numberNewLines++;
                 unixFile = true;
-                newBuffer->length++;
+                if(newBuffer) newBuffer->length++;
             }
+
         }
         else if (last_x == '\t')
         {
@@ -2040,6 +2050,7 @@ bool openFile(TextArea *ta, char *fileName)
             ta->pieceTable->numberOfLines += numberNewLines;
 
             lastAddedChar = newBuffer->text[newBuffer->length-1];
+            newBuffer->text[newBuffer->length] = '\0';
             readSize = newBuffer->length;
 
             /*if(newBuffer->length == 1 && newBuffer->text[0] == '\0') {
@@ -2390,7 +2401,7 @@ void drawInputModal2(InputModal2 *input)
             outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text + strlen(input->text) - ((input->bottomRight.x-input->topLeft.x)/CHAR_WIDTH)+2);
         else
             outtextxy(input->topLeft.x + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->topLeft.y + INPUT_MODAL2_MARGIN_SIZE + INPUT_MODAL2_PADDING, input->text);
-}
+    }
     input->changes = false;
 }
 
