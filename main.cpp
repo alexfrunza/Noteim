@@ -135,7 +135,7 @@ void handleKeyPress(Editor *e)
             {
                 if(e->textArea->cursor->positionInNode<e->textArea->cursor->pieceTableNode->length)
                 {
-                e->textArea->cursor->positionInNode++;
+                    e->textArea->cursor->positionInNode++;
                     handleDelete(e->textArea);
                 }
                 else if(e->textArea->cursor->pieceTableNode->next!=NULL)
