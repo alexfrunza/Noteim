@@ -181,6 +181,11 @@ int main()
                     e->textArea->changes = e->textArea->bkChanges = true;
                     drawArea(e->textArea);
                 }
+                if(a==24)
+                {
+                    cutSelection(e->clipboard,e->textArea);
+                    drawArea(e->textArea);
+                }
                 if(a==127)
                 {
                     deleteSelection(e->clipboard,e->textArea);

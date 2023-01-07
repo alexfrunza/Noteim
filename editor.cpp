@@ -1753,7 +1753,7 @@ void pasteFromClipboard(Clipboard *c, TextArea *ta)
 void cutSelection(Clipboard *c, TextArea *ta)
 {
     copyToClipboard(c,ta);
-    deleteSelection(c,ta); //  ;)
+    deleteSelection(c,ta);
 }
 
 Editor* initEditor()
