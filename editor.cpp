@@ -124,9 +124,6 @@
 #define PRESS_BK_MODAL2_NO_BUTTON {217, 61, 92}
 #define PRESS_FONT_MODAL2_NO_BUTTON {0, 0, 0}
 
-#include <iostream>
-using namespace std;
-
 Button* initButton(char *name, Point topLeft, ButtonType type, ButtonStyle style)
 {
     Button *b = new Button;
@@ -600,11 +597,11 @@ void showFileActionsSubMenu(Button* b, MenuArea* ma)
 
 void showMoveSubMenu(Button* b, MenuArea* ma)
 {
-    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column", "Go to end of line", "Go to start of line", "Move text area up", "Move text area down", "Move text area right", "Move test area left"};
-    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN, GO_TO_END_LINE, GO_TO_START_LINE, MOVE_TA_UP, MOVE_TA_DOWN, MOVE_TA_RIGHT, MOVE_TA_LEFT};
-    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
+    char buttonsNames[][MAX_NAMES_LEN] = {"Go to line", "Go to column", "Go to end of line", "Go to start of line"};
+    ButtonType types[] = {GO_TO_LINE, GO_TO_COLUMN, GO_TO_END_LINE, GO_TO_START_LINE};
+    ButtonStyle styles[] = {SUBMENU1, SUBMENU1, SUBMENU1, SUBMENU1};
 
-    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 8, styles, SUBMENU1_BL);
+    b->subMenu = initButtonsList({b->topLeft.x, b->bottomRight.y + ma->separatorLength}, buttonsNames, types, 4, styles, SUBMENU1_BL);
 }
 
 void showOptionsSubMenu(Button* b, MenuArea* ma)
@@ -2232,7 +2229,6 @@ void drawEditor(Editor *e)
     }
     else
         blipCursor(e->textArea);
-    //drawArea(e->scrollBarsArea);
 }
 
 void stopEditor(Editor *e)
@@ -2259,7 +2255,6 @@ Modal1* initModal1(Editor *e, char *title, char *description, ButtonType buttonT
 
     m1->title = (char*) malloc(sizeof(char) * strlen(title));
     strcpy(m1->title, title);
-    cout<<strlen(description);
     m1->description = (char*) malloc(sizeof(char) * strlen(description));
     strcpy(m1->description, description);
 
@@ -2738,4 +2733,22 @@ void clearClick(Modal2 *m2, int x, int y)
         m2->iM->changes = true;
         m2->changes = true;
     }
+}
+
+bool verifyFilesAreSaved(TextAreaNodeTree *root)
+{
+    bool res = true;
+    if(root->type == ORIENTATION)
+    {
+        for(TextAreaNodeTree *current = root->tantl->first; current != NULL; current = current->next)
+        {
+            res = res && verifyFilesAreSaved(current);
+        }
+    }
+    else if(root->type == LEAF_NODE)
+    {
+        return root->ta->savedChanges;
+    }
+
+    return res;
 }

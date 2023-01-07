@@ -135,8 +135,8 @@ int main()
             a = getch();
             if(ESC_PRESSED)
             {
-                stopEditor(e);
-                // Maybe pop-up do you want to save the file, if the file isn't saved.
+                if(!verifyFilesAreSaved(e->root)) initModal1(e, "Close editor", "There are windows which are not saved.\nAre you sure\?", STOP_EDITOR);
+                else stopEditor(e);
                 continue;
             }
             if(e->modalOpen)
