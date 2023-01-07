@@ -1,8 +1,5 @@
 #include "piecetable.h"
 
-#include <iostream>
-using namespace std;
-
 bool bufferIsFull(Buffer *b)
 {
     if (b->length >= MAX_LENGTH_BUFFER) return true;

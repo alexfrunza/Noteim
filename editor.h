@@ -33,10 +33,6 @@ enum ButtonType
     GO_TO_COLUMN,
     GO_TO_END_LINE,
     GO_TO_START_LINE,
-    MOVE_TA_UP,
-    MOVE_TA_DOWN,
-    MOVE_TA_RIGHT,
-    MOVE_TA_LEFT,
     SWITCH_ORIENTATION_V,
     SWITCH_ORIENTATION_H,
     OPTIONS,
@@ -424,8 +420,7 @@ TextAreaNodeTree* initTextAreaNodeTree(Editor *e, TextArea *ta);
 void drawTextAreaTree(TextAreaNodeTree *root);
 void moveTextArea(TextAreaNodeTree *tant, TextArea *ta, DirectionTextArea direction);
 void switchOrientation(Editor *e, Orientation orientation);
-// TODO
-void deleteTANT(TextAreaNodeTree *tant);
+bool verifyFilesAreSaved(TextAreaNodeTree *root);
 
 struct TextAreaNodeTreeList
 {
@@ -440,7 +435,4 @@ struct TextAreaNodeTreeList
 TextAreaNodeTreeList* initTextAreaNodeTreeList(Editor *e);
 int getNodePositionInTANTL(TextAreaNodeTreeList *tantl, TextAreaNodeTree *node);
 void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree *node);
-// TODO
-void deleteTANTL(TextAreaNodeTreeList *tantl);
-
 #endif // NOTEIM_EDITOR_H
