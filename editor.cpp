@@ -1541,6 +1541,12 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
             }
             break;
         }
+
+        setcolor(convertToBGIColor(TEXTAREA_MARGINS_NORMAL));
+        line(root->topLeft.x, root->topLeft.y, root->bottomRight.x, root->topLeft.y);
+        line(root->topLeft.x, root->topLeft.y, root->topLeft.x, root->bottomRight.y);
+        line(root->bottomRight.x, root->bottomRight.y, root->bottomRight.x, root->topLeft.y);
+        line(root->bottomRight.x, root->bottomRight.y, root->topLeft.x, root->bottomRight.y);
     }
     else if(root->type == LEAF_NODE)
     {
@@ -1682,6 +1688,9 @@ void drawTextAreaTree(TextAreaNodeTree *root)
     if(root->changes == false) return;
 
     calculateDimensionsForTextAreas(root);
+
+    setcolor(convertToBGIColor(TEXTAREA_MARGINS_FOCUS));
+    drawBorderTextArea(root->e->textArea);
     root->changes = false;
 }
 
