@@ -171,18 +171,20 @@ int main()
             }
             else
             {
-                if(a==127)
-                {
-                    deleteSelection(e->clipboard,e->textArea);
-                    logPieceTableNodes(e->textArea->pieceTable);
-                    drawArea(e->textArea);
-                }
                 if(a==1)
                     selectAll(e->clipboard,e->textArea);
                 if(a==3)
-                {
                     copyToClipboard(e->clipboard,e->textArea);
-                    logPieceTableNodes(e->clipboard->pieceTable);
+                if(a==22)
+                {
+                    pasteFromClipboard(e->clipboard,e->textArea);
+                    e->textArea->changes = e->textArea->bkChanges = true;
+                    drawArea(e->textArea);
+                }
+                if(a==127)
+                {
+                    deleteSelection(e->clipboard,e->textArea);
+                    drawArea(e->textArea);
                 }
                 if(ARROW_PRESSED)
                 {

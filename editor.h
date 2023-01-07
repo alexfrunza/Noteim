@@ -261,7 +261,7 @@ void emptyClipboard(Clipboard *c); // Done
 void selectAll(Clipboard *c, TextArea *ta); // Done?
 void copyToClipboard(Clipboard *c, TextArea *ta); // Done?
 void deleteSelection(Clipboard *c, TextArea *ta); // Done?
-void cutSelection(Clipboard *c, TextArea *ta);
+void cutSelection(Clipboard *c, TextArea *ta); // Done?
 void pasteFromClipboard(Clipboard *c, TextArea *ta);
 void replaceSelection(Clipboard *c, TextArea *ta);
 
