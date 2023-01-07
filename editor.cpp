@@ -635,33 +635,92 @@ void deleteTextArea(TextArea *ta)
 void closeWindowEditor(TextArea *ta)
 {
     TextAreaNodeTreeList *parentList = ta->node->parentList;
+    Editor *e = parentList->e;
     if(parentList->length == 1)
     {
         if(parentList->parent == ta->e->root)
         {
-            initModal1(ta->e, "Close editor", "This is the last window and editor\nwill be closed", STOP_EDITOR);
+            initModal1(ta->e, "Close editor", "This is the last window and the editor\nwill be closed. Are you sure\?", STOP_EDITOR);
+        }
+        else
+        {
+            TextAreaNodeTree *parentNode = parentList->parent;
+            TextAreaNodeTree *aux;
+            TextAreaNodeTreeList *parentList = parentNode->parentList;
+            if(getNodePositionInTANTL(parentList, parentNode) == 0)
+            {
+                TextAreaNodeTree *next = parentNode->next;
+                parentList->first = parentNode->next;
+
+                delete ta->node;
+                delete parentNode->tantl;
+                delete parentNode;
+
+                TextAreaNodeTree *nextNodeForArea = next;
+                while(nextNodeForArea->type != LEAF_NODE) nextNodeForArea = nextNodeForArea->tantl->first;
+
+                parentList->e->textArea = nextNodeForArea->ta;
+                parentList->length--;
+
+                deleteTextArea(ta);
+                next->e->root->changes = true;
+                aux = next;
+            }
+            else
+            {
+                TextAreaNodeTree *prev = parentNode->prev;
+                parentNode->prev->next = parentNode->next;
+                if(parentNode->next) parentNode->next->prev = parentNode->prev;
+
+                delete ta->node;
+                delete parentNode->tantl;
+                delete parentNode;
+
+                TextAreaNodeTree *nextNodeForArea = prev;
+                while(nextNodeForArea->type != LEAF_NODE) nextNodeForArea = nextNodeForArea->tantl->first;
+
+                parentList->e->textArea = nextNodeForArea->ta;
+                parentList->length--;
+
+                deleteTextArea(ta);
+                prev->e->root->changes = true;
+                aux = prev;
+            }
+
+            if(parentList->length == 1)
+            {
+                if(aux->type == ORIENTATION)
+                {
+                    aux->parentList->parent->orientation = aux->orientation;
+                    aux->parentList->parent->tantl = aux->tantl;
+                    aux->tantl->parent = aux->parentList->parent;
+                    delete aux;
+                }
+                else
+                {
+                    parentList->first = aux;
+                    parentList->last = aux;
+                }
+            }
         }
     }
     else
     {
+        TextAreaNodeTree *aux;
         if(getNodePositionInTANTL(parentList, ta->node) == 0)
         {
             TextAreaNodeTree *next = ta->node->next;
             parentList->first = parentList->first->next;
             delete ta->node;
-            if(next->type == LEAF_NODE) parentList->e->textArea = next->ta;
-            else
-            {
-                parentList->e->textArea = next->tantl->first->ta;
-            }
+
+            TextAreaNodeTree *nextNodeForArea = next;
+            while(nextNodeForArea->type != LEAF_NODE) nextNodeForArea = nextNodeForArea->tantl->first;
+            parentList->e->textArea = nextNodeForArea->ta;
+
             deleteTextArea(ta);
             parentList->length--;
             parentList->e->root->changes = true;
-
-            if(parentList->length == 1)
-            {
-                parentList->first = next;
-            }
+            aux = next;
         }
         else
         {
@@ -670,11 +729,10 @@ void closeWindowEditor(TextArea *ta)
             if(ta->node->next) ta->node->next->prev = ta->node->prev;
             delete ta->node;
 
-            if(prev->type == LEAF_NODE) parentList->e->textArea = prev->ta;
-            else
-            {
-                parentList->e->textArea = prev->tantl->first->ta;
-            }
+            TextAreaNodeTree *nextNodeForArea = prev;
+            while(nextNodeForArea->type != LEAF_NODE) nextNodeForArea = nextNodeForArea->tantl->first;
+            parentList->e->textArea = nextNodeForArea->ta;
+
             deleteTextArea(ta);
             parentList->length--;
             parentList->e->root->changes = true;
@@ -683,8 +741,34 @@ void closeWindowEditor(TextArea *ta)
             {
                 parentList->last = prev;
             }
+            aux = prev;
+        }
+
+        if(parentList->length == 1)
+        {
+            if(aux->type == ORIENTATION)
+            {
+                aux->parentList->parent->orientation = aux->orientation;
+                aux->parentList->parent->tantl = aux->tantl;
+                aux->tantl->parent = aux->parentList->parent;
+                delete aux;
+            }
+            else
+            {
+                parentList->first = aux;
+                parentList->last = aux;
+            }
         }
     }
+
+
+    e->menuArea->fileStateChanged = true;
+    for(Button *b=e->menuArea->buttonsList->first; b != NULL; b = b->next)
+    {
+        b->changes = true;
+    }
+    e->menuArea->bkChanges = true;
+    e->menuArea->changes = true;
 }
 
 void switchOrientation(Editor *e, Orientation orientation)
@@ -703,11 +787,10 @@ void switchOrientation(Editor *e, Orientation orientation)
         if(node->next) node->next->prev = newParentNode;
         if(node == node->parentList->last) node->parentList->last = newParentNode;
         if(node == node->parentList->first) node->parentList->first = newParentNode;
+        newParentNode->parentList = node->parentList;
         addNodeToTANTL(newParentNode->tantl, 0, node);
         node->next = NULL;
         node->prev = NULL;
-
-        newParentNode->parentList = node->parentList;
     }
 }
 
@@ -1499,6 +1582,7 @@ void calculateDimensionsForTextAreas(TextAreaNodeTree *root)
         root->topLeft = root->e->topLeftTextArea;
         root->bottomRight = root->e->bottomRightTextArea;
     }
+
     if(root->type == ORIENTATION)
     {
         Point topLeft = root->topLeft;
@@ -2175,6 +2259,7 @@ Modal1* initModal1(Editor *e, char *title, char *description, ButtonType buttonT
 
     m1->title = (char*) malloc(sizeof(char) * strlen(title));
     strcpy(m1->title, title);
+    cout<<strlen(description);
     m1->description = (char*) malloc(sizeof(char) * strlen(description));
     strcpy(m1->description, description);
 
