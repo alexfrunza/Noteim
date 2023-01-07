@@ -1481,14 +1481,26 @@ void selectAll(Clipboard *c, TextArea *ta)
     c->finish->positionInNode = c->finish->pieceTableNode->length-1;
 
     Cursor* prevCursor = new Cursor;
+    prevCursor = ta->cursor;
     ta->cursor = c->finish;
     updateCursorPosition(ta);
     c->finish = ta->cursor;
     ta->cursor = prevCursor;
 }
 
+void emptyClipboard(Clipboard *c)
+{
+    while(c->pieceTable->nodesList->length!=0)
+        removeLastPieceTableNode(c->pieceTable->nodesList);
+}
+
 void copyToClipboard(Clipboard *c, TextArea *ta)
 {
+    if(c->start->pieceTableNode==NULL)
+        return;
+
+    emptyClipboard(c);
+
     PieceTableNode *sourcePTN = c->start->pieceTableNode;
     PieceTableNode *destPTN;
     unsigned int numberNewLines;
@@ -1506,30 +1518,127 @@ void copyToClipboard(Clipboard *c, TextArea *ta)
         return;
     }
 
-    numberNewLines = 0;
-    for(i=c->start->positionInNode; i<c->start->pieceTableNode->length; i++)
-        if(sourcePTN->buffer->text[sourcePTN->start+i]=='\n')
-            numberNewLines++;
-    destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start+c->start->positionInNode,sourcePTN->length-c->start->positionInNode,numberNewLines);
-    addPieceTableNode(c->pieceTable->nodesList,destPTN);
-    c->pieceTable->numberOfLines += numberNewLines;
-    sourcePTN = sourcePTN->next;
+    if(c->start->positionInNode!=0)
+    {
+        numberNewLines = 0;
+        for(i=c->start->positionInNode; i<c->start->pieceTableNode->length; i++)
+            if(sourcePTN->buffer->text[sourcePTN->start+i]=='\n')
+                numberNewLines++;
+        destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start+c->start->positionInNode,sourcePTN->length-c->start->positionInNode,numberNewLines);
+        addPieceTableNode(c->pieceTable->nodesList,destPTN);
+        c->pieceTable->numberOfLines += numberNewLines;
+        sourcePTN = sourcePTN->next;
+    }
 
     while(sourcePTN!=c->finish->pieceTableNode)
     {
         destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start,sourcePTN->length,sourcePTN->numberNewLines);
         addPieceTableNode(c->pieceTable->nodesList,destPTN);
         c->pieceTable->numberOfLines += destPTN->numberNewLines;
+        sourcePTN = sourcePTN->next;
     }
 
     numberNewLines = 0;
     for(i=0; i<=c->finish->positionInNode; i++)
         if(sourcePTN->buffer->text[sourcePTN->start+i]=='\n')
             numberNewLines++;
-    destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start,c->finish->positionInNode+1,numberNewLines);
+    destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start,c->finish->positionInNode,numberNewLines);
     addPieceTableNode(c->pieceTable->nodesList,destPTN);
     c->pieceTable->numberOfLines += numberNewLines;
     sourcePTN = sourcePTN->next;
+}
+
+void deleteSelection(Clipboard *c, TextArea *ta)
+{
+    if(c->start->pieceTableNode==NULL)
+        return;
+
+    unsigned int i;
+    PieceTableNode *currPTN = c->start->pieceTableNode, *aux;
+
+    if(currPTN->prev!=NULL)
+    {
+        ta->cursor->pieceTableNode = currPTN->prev;
+        ta->cursor->positionInNode = ta->cursor->pieceTableNode->length;
+    }
+
+    if(currPTN==c->finish->pieceTableNode || c->start->positionInNode!=0 || (c->start->pieceTableNode==ta->pieceTable->nodesList->first && c->start->positionInNode==0))
+    {
+        ta->cursor->pieceTableNode = currPTN;
+        ta->cursor->positionInNode = c->start->positionInNode;
+
+        PieceTableNode *rightSide = initPieceTableNode(currPTN->buffer,currPTN->start+c->start->positionInNode,currPTN->length-c->start->positionInNode,0);
+        for(i=0; i<rightSide->length; i++)
+            if(rightSide->buffer->text[rightSide->start+i]=='\n')
+                rightSide->numberNewLines++;
+        currPTN->numberNewLines -= rightSide->numberNewLines;
+        currPTN->length = c->start->positionInNode;
+
+        if(currPTN->next!=NULL)
+            currPTN->next->prev = rightSide;
+        else
+            ta->pieceTable->nodesList->last = rightSide;
+        rightSide->next = currPTN->next;
+        rightSide->prev = currPTN;
+        currPTN->next = rightSide;
+
+        if(c->start->pieceTableNode==c->finish->pieceTableNode)
+        {
+            c->finish->pieceTableNode = rightSide;
+            c->finish->positionInNode -= currPTN->length;
+        }
+        ta->pieceTable->nodesList->length++;
+        currPTN = rightSide;
+    }
+
+
+    while(currPTN!=c->finish->pieceTableNode)
+    {
+        if(currPTN->next!=NULL)
+            currPTN->next->prev = currPTN->prev;
+        currPTN->prev->next = currPTN->next;
+        aux = currPTN;
+        currPTN = currPTN->next;
+        ta->pieceTable->nodesList->length--;
+        ta->pieceTable->numberOfLines -= aux->numberNewLines;
+        delete aux;
+    }
+
+    if(currPTN==ta->pieceTable->nodesList->last && c->finish->positionInNode==c->finish->pieceTableNode->length-1)
+    {
+        ta->pieceTable->nodesList->length--;
+        ta->pieceTable->numberOfLines -= currPTN->numberNewLines;
+        ta->pieceTable->nodesList->last = currPTN->prev;
+        ta->pieceTable->nodesList->last->next = NULL;
+        delete currPTN;
+    }
+    else
+    {
+        for(i=0; i<c->finish->positionInNode; i++)
+            if(currPTN->buffer->text[currPTN->start+i]=='\n')
+            {
+                currPTN->numberNewLines--;
+                ta->pieceTable->numberOfLines--;
+            }
+        currPTN->length -= i;
+        currPTN->start = i;
+    }
+
+    updateCursorPosition(ta);
+    handleScroll(ta);
+
+    // Needs optimizing for display
+    ta->changes = true;
+    ta->bkChanges = true;
+
+    c->start->pieceTableNode = NULL;
+    c->finish->pieceTableNode = NULL;
+}
+
+void cutSelection(Clipboard *c, TextArea *ta)
+{
+    copyToClipboard(c,ta);
+    deleteSelection(c,ta); //  ;)
 }
 
 Editor* initEditor()

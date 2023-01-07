@@ -171,6 +171,12 @@ int main()
             }
             else
             {
+                if(a==127)
+                {
+                    deleteSelection(e->clipboard,e->textArea);
+                    logPieceTableNodes(e->textArea->pieceTable);
+                    drawArea(e->textArea);
+                }
                 if(a==1)
                     selectAll(e->clipboard,e->textArea);
                 if(a==3)
