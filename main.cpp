@@ -17,6 +17,8 @@
 
 using namespace std;
 
+bool buttonPressed = false;
+
 void logPieceTableNodes(PieceTable *pt)
 {
     PieceTableNodesList *ptnl = pt->nodesList;
@@ -241,21 +243,27 @@ void handleMouseClick(Editor *e)
         if(e->m1 != NULL)
         {
             handleClick(e->m1, x, y);
+            clearmouseclick(WM_LBUTTONUP);
         }
         if(e->m2 != NULL)
         {
             clearClick(e->m2, x, y);
             handleClick(e->m2, x, y);
+            clearmouseclick(WM_LBUTTONUP);
         }
     }
     else
     {
+        cout << ismouseclick(WM_LBUTTONUP);
         /// Verify a button is clicked or something from a submenu
         bool pressed = false;
         pressed = handleClick(e, x, y);
         pressed = clearClick(e, x, y) || pressed;
+        buttonPressed = pressed;
         ///
-        if(!pressed)
+        if(pressed)
+            clearmouseclick(WM_LBUTTONUP);
+        else
             handleClickChangeTextArea(e, x, y);
 
         if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x && y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
@@ -266,6 +274,7 @@ void handleMouseClick(Editor *e)
             if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
                 newCursorPosition.x++;
             moveCursor(e->textArea,newCursorPosition);
+            delay(100);
         }
 
         if(!ismouseclick(WM_LBUTTONUP) && !pressed)
@@ -300,12 +309,11 @@ void handleMouseClick(Editor *e)
                 x += e->textArea->topLeft.x;
                 y += e->textArea->topLeft.y;
 
-                delete e->clipboard->finish;
-                Cursor *dr = new Cursor;
                 dr->pieceTableNode = e->textArea->cursor->pieceTableNode;
                 dr->positionInNode = e->textArea->cursor->positionInNode;
                 dr->position = e->textArea->cursor->position;
-                dr->position.x--;
+                if(dr->position.x>0)
+                    dr->position.x--;
 
                 showSelection(e->clipboard,e->textArea);
                 delay(50);
@@ -351,6 +359,12 @@ int main()
     Editor* e = initEditor();
     while(e->running)
     {
+        if(buttonPressed && ismouseclick(WM_LBUTTONUP))
+        {
+            clearmouseclick(WM_LBUTTONUP);
+            buttonPressed = false;
+        }
+
         handleMouseHover(e);
 
         if(ismouseclick(WM_LBUTTONDOWN))

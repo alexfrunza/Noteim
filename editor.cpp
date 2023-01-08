@@ -891,6 +891,7 @@ bool handleClick(Editor *e, int x, int y)
                     currentButton->changes = true;
                     subMenuButton->changes = true;
                     ma->changes = true;
+                    clearmouseclick(WM_LBUTTONUP);
                     return true;
                 }
             }
@@ -913,6 +914,7 @@ bool handleClick(Editor *e, int x, int y)
 
             currentButton->changes = true;
             ma->changes = true;
+            clearmouseclick(WM_LBUTTONUP);
             return true;
         }
     }
@@ -1558,6 +1560,8 @@ void showSelection(Clipboard *c, TextArea *ta)
 {
     if(c->selectionMade==false)
         return;
+    if(c->start->position.y==c->finish->position.y && c->finish->position.x==c->start->position.x-1)
+        return;
 
     setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
     setcolor(convertToBGIColor(TEXTAREA_SELECT_BRACKET));
@@ -1574,8 +1578,11 @@ void showSelection(Clipboard *c, TextArea *ta)
         B.position = c->finish->position;
     }
 
-    if(A.position.y==B.position.y && A.position.x==B.position.y-1)
-        return;
+    if(c->start->position.y==c->finish->position.y &&  c->finish->position.x<c->start->position.x)
+    {
+        A.position.x++;
+        B.position.x--;
+    }
 
     if(A.position.x>0)
         outtextxy(ta->topLeft.x+(A.position.x-1)*CHAR_WIDTH,ta->topLeft.y+A.position.y*CHAR_HEIGHT,"{");
@@ -1638,6 +1645,13 @@ void copyToClipboard(Clipboard *c, TextArea *ta)
     if(c->selectionMade==false || c->start->pieceTableNode==NULL || c->finish->positionInNode==-1)
         return;
 
+    if(c->start->position.y>c->finish->position.y || (c->start->position.y==c->finish->position.y && c->start->position.x>c->finish->position.x))
+    {
+        Cursor *aux = c->start;
+        c->start = c->finish;
+        c->finish = aux;
+    }
+
     hideSelection(c,ta);
     c->selectionMade = false;
 
@@ -1656,6 +1670,9 @@ void copyToClipboard(Clipboard *c, TextArea *ta)
 
     if(c->start->pieceTableNode==c->finish->pieceTableNode)
     {
+        if(c->finish->pieceTableNode==ta->pieceTable->nodesList->last && c->finish->positionInNode==c->finish->pieceTableNode->length)
+            c->finish->positionInNode--;
+
         numberNewLines = 0;
         for(i=c->start->positionInNode; i<=c->finish->positionInNode; i++)
             if(sourcePTN->buffer->text[sourcePTN->start+i]=='\n')
