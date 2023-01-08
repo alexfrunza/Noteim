@@ -17,7 +17,10 @@
 
 using namespace std;
 
-void logPieceTableNodes(PieceTable *pt)
+bool buttonPressed = false;
+
+// De sters
+/*void logPieceTableNodes(PieceTable *pt)
 {
     PieceTableNodesList *ptnl = pt->nodesList;
 
@@ -34,7 +37,7 @@ void logPieceTableNodes(PieceTable *pt)
         ptn = ptn->next;
     }
 
-}
+}*/
 
 void handleDelete(TextArea *ta)
 {
@@ -191,6 +194,7 @@ void handleKeyPress(Editor *e)
         {
             if(e->clipboard->selectionMade==true)
                 deleteSelection(e->clipboard,e->textArea);
+            bool changedByDeletion = e->textArea->changes;
             addCharToTextArea(e->textArea,' ');
             addCharToTextArea(e->textArea,' ');
             addCharToTextArea(e->textArea,' ');
@@ -198,14 +202,20 @@ void handleKeyPress(Editor *e)
             e->textArea->savedChanges = false;
             e->menuArea->fileStateChanged = true;
             e->menuArea->changes = true;
-            drawLines(e->textArea,e->textArea->topLeft.y+(e->textArea->cursor->position.y)*CHAR_HEIGHT,e->textArea->topLeft.y+(e->textArea->cursor->position.y+1)*CHAR_HEIGHT);
+            e->textArea->changes = e->textArea->changes || changedByDeletion;
+            if(e->textArea->changes==true)
+                drawArea(e->textArea);
+            else
+                drawLines(e->textArea,e->textArea->topLeft.y+(e->textArea->cursor->position.y)*CHAR_HEIGHT,e->textArea->topLeft.y+(e->textArea->cursor->position.y+1)*CHAR_HEIGHT);
         }
 
         if(isDisplayedChar(a))
         {
             if(e->clipboard->selectionMade==true)
                 deleteSelection(e->clipboard,e->textArea);
+            bool changedByDeletion = e->textArea->changes;
             addCharToTextArea(e->textArea,a);
+            e->textArea->changes = e->textArea->changes || changedByDeletion;
             if(e->textArea->changes==true)
                 drawArea(e->textArea);
             else
@@ -220,6 +230,13 @@ void handleKeyPress(Editor *e)
 void handleMouseClick(Editor *e)
 {
     int x, y;
+
+    if(e->clipboard->selectionMade==true)
+    {
+        hideSelection(e->clipboard,e->textArea);
+        e->clipboard->selectionMade = false;
+    }
+
     getmouseclick(WM_LBUTTONDOWN,x,y);
 
     if(e->modalOpen)
@@ -227,11 +244,13 @@ void handleMouseClick(Editor *e)
         if(e->m1 != NULL)
         {
             handleClick(e->m1, x, y);
+            clearmouseclick(WM_LBUTTONUP);
         }
         if(e->m2 != NULL)
         {
             clearClick(e->m2, x, y);
             handleClick(e->m2, x, y);
+            clearmouseclick(WM_LBUTTONUP);
         }
     }
     else
@@ -240,8 +259,11 @@ void handleMouseClick(Editor *e)
         bool pressed = false;
         pressed = handleClick(e, x, y);
         pressed = clearClick(e, x, y) || pressed;
+        buttonPressed = pressed;
         ///
-        if(!pressed)
+        if(pressed)
+            clearmouseclick(WM_LBUTTONUP);
+        else
             handleClickChangeTextArea(e, x, y);
 
         if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x && y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
@@ -252,17 +274,54 @@ void handleMouseClick(Editor *e)
             if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
                 newCursorPosition.x++;
             moveCursor(e->textArea,newCursorPosition);
+            delay(100);
         }
 
-        /*while(!ismouseclick(WM_LBUTTONUP))// && x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x && y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
+        if(!ismouseclick(WM_LBUTTONUP) && !pressed)
         {
-            x = mousex();
-            y = mousey();
-            cout << "Mouse is being pressed";
-            delay(20);
+            delete e->clipboard->start;
+            delete e->clipboard->finish;
+            Cursor *st = new Cursor;
+            Cursor *dr = new Cursor;
+            st->pieceTableNode = dr->pieceTableNode = e->textArea->cursor->pieceTableNode;
+            st->positionInNode = dr->positionInNode = e->textArea->cursor->positionInNode;
+            st->position = dr->position = e->textArea->cursor->position;
+            dr->position.x--;
+            e->clipboard->start = st;
+            e->clipboard->finish = dr;
+            e->clipboard->selectionMade = true;
+
+            x += e->textArea->topLeft.x;
+            y += e->textArea->topLeft.y;
+
+            while(!ismouseclick(WM_LBUTTONUP) && x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x && y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y)
+            {
+                hideSelection(e->clipboard,e->textArea);
+
+                x = mousex();
+                y = mousey();
+                x -= e->textArea->topLeft.x;
+                y -= e->textArea->topLeft.y;
+                Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+                if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
+                    newCursorPosition.x++;
+                moveCursor(e->textArea,newCursorPosition);
+                x += e->textArea->topLeft.x;
+                y += e->textArea->topLeft.y;
+
+                dr->pieceTableNode = e->textArea->cursor->pieceTableNode;
+                dr->positionInNode = e->textArea->cursor->positionInNode;
+                dr->position = e->textArea->cursor->position;
+                if(dr->position.x>0)
+                    dr->position.x--;
+
+                showSelection(e->clipboard,e->textArea);
+                delay(50);
+            }
+            while(!ismouseclick(WM_LBUTTONUP))
+                delay(50);
         }
-        cout << ismouseclick(WM_LBUTTONUP);
-        clearmouseclick(WM_LBUTTONUP);*/
+        clearmouseclick(WM_LBUTTONUP);
     }
 }
 
@@ -300,15 +359,22 @@ int main()
     Editor* e = initEditor();
     while(e->running)
     {
+        if(buttonPressed && ismouseclick(WM_LBUTTONUP))
+        {
+            clearmouseclick(WM_LBUTTONUP);
+            buttonPressed = false;
+        }
+
         handleMouseHover(e);
 
         if(ismouseclick(WM_LBUTTONDOWN))
             handleMouseClick(e);
 
-        if(kbhit()){
-            handleKeyPress(e); logPieceTableNodes(e->textArea->pieceTable); }
+        if(kbhit())
+            handleKeyPress(e);
 
-        drawEditor(e);
+        if(e->running)
+            drawEditor(e);
         delay(10);
     }
     return 0;

@@ -153,26 +153,6 @@ bool cursorInArea(MenuArea *ma, int x, int y);
 void handleHover(MenuArea *ma, int x, int y);
 void clearHover(MenuArea *ma, int x, int y);
 
-struct VerticalScrollBarArea
-{
-    // Soon
-};
-
-struct HorizontalScrollBarArea
-{
-    // Soon
-};
-
-struct ScrollBarsArea
-{
-    bool changes;
-    VerticalScrollBarArea verticalScrollBar;
-    HorizontalScrollBarArea horizontalScrollBar;
-};
-
-ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight);
-void drawArea(ScrollBarsArea *sba);
-
 struct Cursor
 {
     Point position;
@@ -212,7 +192,6 @@ struct TextArea
     unsigned int firstColumn;
 
     PieceTable *pieceTable;
-    //ScrollBarsArea *scrollBarsArea;
     //Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 
     bool bkChanges;
@@ -253,14 +232,15 @@ struct Clipboard
     PieceTable *pieceTable;
 };
 
-Clipboard* initClipboard(); // Done
-void emptyClipboard(Clipboard *c); // Done
-void selectAll(Clipboard *c, TextArea *ta); // Done?
-void copyToClipboard(Clipboard *c, TextArea *ta); // Done?
-void deleteSelection(Clipboard *c, TextArea *ta); // Done?
-void cutSelection(Clipboard *c, TextArea *ta); // Done?
+Clipboard* initClipboard();
+void emptyClipboard(Clipboard *c);
+void showSelection(Clipboard *c, TextArea *ta);
+void hideSelection(Clipboard *c, TextArea *ta);
+void selectAll(Clipboard *c, TextArea *ta);
+void copyToClipboard(Clipboard *c, TextArea *ta);
+void deleteSelection(Clipboard *c, TextArea *ta);
+void cutSelection(Clipboard *c, TextArea *ta);
 void pasteFromClipboard(Clipboard *c, TextArea *ta);
-void replaceSelection(Clipboard *c, TextArea *ta);
 
 struct Editor
 {

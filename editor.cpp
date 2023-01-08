@@ -55,6 +55,7 @@
 #define TEXTAREA_NUMBERS_COLOR {0, 0, 0}
 #define TEXTAREA_MARGINS_NORMAL {0, 0, 0}
 #define TEXTAREA_MARGINS_FOCUS {240, 248, 255}
+#define TEXTAREA_SELECT_BRACKET {255,0,0}
 
 // Modal1 - confirmation modal
 #define MODAL1_BK_NORMAL {150, 150, 150}
@@ -890,6 +891,7 @@ bool handleClick(Editor *e, int x, int y)
                     currentButton->changes = true;
                     subMenuButton->changes = true;
                     ma->changes = true;
+                    clearmouseclick(WM_LBUTTONUP);
                     return true;
                 }
             }
@@ -912,6 +914,7 @@ bool handleClick(Editor *e, int x, int y)
 
             currentButton->changes = true;
             ma->changes = true;
+            clearmouseclick(WM_LBUTTONUP);
             return true;
         }
     }
@@ -922,6 +925,7 @@ void handleClickChangeTextArea(Editor *e, int x, int y)
 {
     if(cursorInTextSpace(e, x, y))
     {
+        e->clipboard->selectionMade = false;
         changeFocusedTextArea(e->root, x, y);
     }
 }
@@ -1009,14 +1013,6 @@ bool clearClick(Editor *e, int x, int y)
     return pressedSubMenu;
 }
 
-ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight)
-{
-}
-
-void drawArea(ScrollBarsArea *sba)
-{
-}
-
 Cursor *initCursor()
 {
     Cursor* c = new Cursor;
@@ -1086,7 +1082,6 @@ TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
     ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x) / CHAR_WIDTH;
 
-    // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     return ta;
 }
 
@@ -1119,7 +1114,6 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     openFile(ta, fileName);
 
-    // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     return ta;
 }
 
@@ -1322,7 +1316,6 @@ void updateCursorPosition(TextArea *ta)
         ptn = ptn->prev;
     }
     ta->cursor->position = {dest.x - (int)ta->firstColumn, dest.y - (int)ta->firstLine};
-    //handleScroll(ta);
 }
 
 void addCharToTextArea(TextArea *ta, char newLetter)
@@ -1552,8 +1545,60 @@ Clipboard* initClipboard()
     return newC;
 }
 
+void showSelection(Clipboard *c, TextArea *ta)
+{
+    if(c->selectionMade==false)
+        return;
+    if(c->start->position.y==c->finish->position.y && c->finish->position.x==c->start->position.x-1)
+        return;
+
+    setbkcolor(convertToBGIColor(TEXTAREA_BK_NORMAL));
+    setcolor(convertToBGIColor(TEXTAREA_SELECT_BRACKET));
+    Cursor A, B;
+
+    if(c->start->position.y>c->finish->position.y || (c->start->position.y==c->finish->position.y && c->start->position.x>c->finish->position.x))
+    {
+        A.position = c->finish->position;
+        B.position = c->start->position;
+    }
+    else
+    {
+        A.position = c->start->position;
+        B.position = c->finish->position;
+    }
+
+    if(c->start->position.y==c->finish->position.y &&  c->finish->position.x<c->start->position.x)
+    {
+        A.position.x++;
+        B.position.x--;
+    }
+
+    if(A.position.x>0)
+        outtextxy(ta->topLeft.x+(A.position.x-1)*CHAR_WIDTH,ta->topLeft.y+A.position.y*CHAR_HEIGHT,"{");
+    else
+        line(ta->topLeft.x+A.position.x*CHAR_WIDTH,ta->topLeft.y+A.position.y*CHAR_HEIGHT,ta->topLeft.x+A.position.x*CHAR_WIDTH,ta->topLeft.y+(A.position.y+1)*CHAR_HEIGHT-1);
+
+    if(B.position.x<ta->maxCharLine)
+        outtextxy(ta->topLeft.x+(B.position.x+1)*CHAR_WIDTH,ta->topLeft.y+B.position.y*CHAR_HEIGHT,"}");
+    else
+        line(ta->topLeft.x+B.position.x*CHAR_WIDTH,ta->topLeft.y+B.position.y*CHAR_HEIGHT,ta->topLeft.x+B.position.x*CHAR_WIDTH,ta->topLeft.y+(B.position.y+1)*CHAR_HEIGHT-1);
+}
+
+void hideSelection(Clipboard *c, TextArea *ta)
+{
+    if(c->selectionMade==false)
+        return;
+
+    drawLines(ta,ta->topLeft.y+c->start->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->start->position.y+1)*CHAR_HEIGHT);
+    if(c->start->position.y!=c->finish->position.y)
+        drawLines(ta,ta->topLeft.y+c->finish->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->finish->position.y+1)*CHAR_HEIGHT);
+}
+
 void selectAll(Clipboard *c, TextArea *ta)
 {
+    if(ta->pieceTable->nodesList->length==1 && ta->pieceTable->nodesList->first->length==0)
+        return;
+
     c->selectionMade = true;
     c->start->pieceTableNode = ta->pieceTable->nodesList->first;
     c->start->positionInNode = 0;
@@ -1568,6 +1613,8 @@ void selectAll(Clipboard *c, TextArea *ta)
     updateCursorPosition(ta);
     c->finish = ta->cursor;
     ta->cursor = prevCursor;
+
+    showSelection(c,ta);
 }
 
 void emptyClipboard(Clipboard *c)
@@ -1587,6 +1634,15 @@ void copyToClipboard(Clipboard *c, TextArea *ta)
     if(c->selectionMade==false || c->start->pieceTableNode==NULL || c->finish->positionInNode==-1)
         return;
 
+    if(c->start->position.y>c->finish->position.y || (c->start->position.y==c->finish->position.y && c->start->position.x>c->finish->position.x))
+    {
+        Cursor *aux = c->start;
+        c->start = c->finish;
+        c->finish = aux;
+    }
+
+    hideSelection(c,ta);
+    c->selectionMade = false;
 
     if(c->start->pieceTableNode==ta->pieceTable->nodesList->last && ta->pieceTable->nodesList->first->length==0)
     {
@@ -1603,6 +1659,8 @@ void copyToClipboard(Clipboard *c, TextArea *ta)
 
     if(c->start->pieceTableNode==c->finish->pieceTableNode)
     {
+        c->finish->positionInNode--;
+
         numberNewLines = 0;
         for(i=c->start->positionInNode; i<=c->finish->positionInNode; i++)
             if(sourcePTN->buffer->text[sourcePTN->start+i]=='\n')
@@ -1656,6 +1714,7 @@ void deleteSelection(Clipboard *c, TextArea *ta)
     if(c->selectionMade==false || c->start->pieceTableNode==NULL)
         return;
 
+    hideSelection(c,ta);
     c->selectionMade = false;
     unsigned int i;
     PieceTableNode *currPTN = c->start->pieceTableNode, *aux;
@@ -1731,7 +1790,6 @@ void deleteSelection(Clipboard *c, TextArea *ta)
     updateCursorPosition(ta);
     handleScroll(ta);
 
-    // Needs optimizing for display
     ta->changes = true;
     ta->bkChanges = true;
 
@@ -1743,6 +1801,7 @@ void pasteFromClipboard(Clipboard *c, TextArea *ta)
 {
     if(c->pieceTable->nodesList->length==0)
         return;
+    hideSelection(c,ta);
     c->selectionMade = false;
 
     while(ta->pieceTable->nodesList->first->length==0 && ta->pieceTable->nodesList->first->next!=NULL)
