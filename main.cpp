@@ -191,6 +191,7 @@ void handleKeyPress(Editor *e)
         {
             if(e->clipboard->selectionMade==true)
                 deleteSelection(e->clipboard,e->textArea);
+            bool changedByDeletion = e->textArea->changes;
             addCharToTextArea(e->textArea,' ');
             addCharToTextArea(e->textArea,' ');
             addCharToTextArea(e->textArea,' ');
@@ -198,14 +199,20 @@ void handleKeyPress(Editor *e)
             e->textArea->savedChanges = false;
             e->menuArea->fileStateChanged = true;
             e->menuArea->changes = true;
-            drawLines(e->textArea,e->textArea->topLeft.y+(e->textArea->cursor->position.y)*CHAR_HEIGHT,e->textArea->topLeft.y+(e->textArea->cursor->position.y+1)*CHAR_HEIGHT);
+            e->textArea->changes = e->textArea->changes || changedByDeletion;
+            if(e->textArea->changes==true)
+                drawArea(e->textArea);
+            else
+                drawLines(e->textArea,e->textArea->topLeft.y+(e->textArea->cursor->position.y)*CHAR_HEIGHT,e->textArea->topLeft.y+(e->textArea->cursor->position.y+1)*CHAR_HEIGHT);
         }
 
         if(isDisplayedChar(a))
         {
             if(e->clipboard->selectionMade==true)
                 deleteSelection(e->clipboard,e->textArea);
+            bool changedByDeletion = e->textArea->changes;
             addCharToTextArea(e->textArea,a);
+            e->textArea->changes = e->textArea->changes || changedByDeletion;
             if(e->textArea->changes==true)
                 drawArea(e->textArea);
             else
@@ -220,6 +227,13 @@ void handleKeyPress(Editor *e)
 void handleMouseClick(Editor *e)
 {
     int x, y;
+
+    if(e->clipboard->selectionMade==true)
+    {
+        hideSelection(e->clipboard,e->textArea);
+        e->clipboard->selectionMade = false;
+    }
+
     getmouseclick(WM_LBUTTONDOWN,x,y);
 
     if(e->modalOpen)
@@ -306,7 +320,8 @@ int main()
             handleMouseClick(e);
 
         if(kbhit()){
-            handleKeyPress(e); logPieceTableNodes(e->textArea->pieceTable); }
+            handleKeyPress(e);
+             logPieceTableNodes(e->textArea->pieceTable); }
 
         drawEditor(e);
         delay(10);

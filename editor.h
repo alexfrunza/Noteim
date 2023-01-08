@@ -253,14 +253,15 @@ struct Clipboard
     PieceTable *pieceTable;
 };
 
-Clipboard* initClipboard(); // Done
-void emptyClipboard(Clipboard *c); // Done
-void selectAll(Clipboard *c, TextArea *ta); // Done?
-void copyToClipboard(Clipboard *c, TextArea *ta); // Done?
-void deleteSelection(Clipboard *c, TextArea *ta); // Done?
-void cutSelection(Clipboard *c, TextArea *ta); // Done?
+Clipboard* initClipboard();
+void emptyClipboard(Clipboard *c);
+void showSelection(Clipboard *c, TextArea *ta);
+void hideSelection(Clipboard *c, TextArea *ta);
+void selectAll(Clipboard *c, TextArea *ta);
+void copyToClipboard(Clipboard *c, TextArea *ta);
+void deleteSelection(Clipboard *c, TextArea *ta);
+void cutSelection(Clipboard *c, TextArea *ta);
 void pasteFromClipboard(Clipboard *c, TextArea *ta);
-void replaceSelection(Clipboard *c, TextArea *ta);
 
 struct Editor
 {
