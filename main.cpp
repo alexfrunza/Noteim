@@ -369,10 +369,7 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
             handleMouseClick(e);
 
-        if(kbhit()) {
-            handleKeyPress(e);
-            logPieceTableNodes(e->textArea->pieceTable);
-        }
+        if(kbhit()) handleKeyPress(e);
 
         if(e->running)
             drawEditor(e);
