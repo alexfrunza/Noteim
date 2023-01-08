@@ -1542,6 +1542,7 @@ Clipboard* initClipboard()
 {
     Clipboard *newC = new Clipboard;
 
+    newC->selectionMade = false;
     newC->start = new Cursor;
     newC->start->pieceTableNode = NULL;
     newC->finish = new Cursor;
@@ -1553,6 +1554,7 @@ Clipboard* initClipboard()
 
 void selectAll(Clipboard *c, TextArea *ta)
 {
+    c->selectionMade = true;
     c->start->pieceTableNode = ta->pieceTable->nodesList->first;
     c->start->positionInNode = 0;
     c->start->position = {0,0};
@@ -1576,8 +1578,15 @@ void emptyClipboard(Clipboard *c)
 
 void copyToClipboard(Clipboard *c, TextArea *ta)
 {
-    if(c->start->pieceTableNode==NULL || c->finish->positionInNode==-1)
+    if(c->start->pieceTableNode==ta->pieceTable->nodesList->first && c->start->pieceTableNode->length==0)
+    {
+        c->start->pieceTableNode = c->start->pieceTableNode->next;
+        c->start->positionInNode = 0;
+    }
+
+    if(c->selectionMade==false || c->start->pieceTableNode==NULL || c->finish->positionInNode==-1)
         return;
+
 
     if(c->start->pieceTableNode==ta->pieceTable->nodesList->last && ta->pieceTable->nodesList->first->length==0)
     {
@@ -1644,9 +1653,10 @@ void copyToClipboard(Clipboard *c, TextArea *ta)
 
 void deleteSelection(Clipboard *c, TextArea *ta)
 {
-    if(c->start->pieceTableNode==NULL)
+    if(c->selectionMade==false || c->start->pieceTableNode==NULL)
         return;
 
+    c->selectionMade = false;
     unsigned int i;
     PieceTableNode *currPTN = c->start->pieceTableNode, *aux;
 
@@ -1733,6 +1743,13 @@ void pasteFromClipboard(Clipboard *c, TextArea *ta)
 {
     if(c->pieceTable->nodesList->length==0)
         return;
+    c->selectionMade = false;
+
+    while(ta->pieceTable->nodesList->first->length==0 && ta->pieceTable->nodesList->first->next!=NULL)
+    {
+        ta->pieceTable->nodesList->first = ta->pieceTable->nodesList->first->next;
+        ta->pieceTable->nodesList->length--;
+    }
 
     if(ta->cursor->positionInNode==ta->cursor->pieceTableNode->length && ta->cursor->pieceTableNode->next!=NULL)
     {
@@ -1745,6 +1762,8 @@ void pasteFromClipboard(Clipboard *c, TextArea *ta)
 
     while(sourcePTN!=NULL)
     {
+        if(sourcePTN->length==0)
+            continue;
         destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start,sourcePTN->length,sourcePTN->numberNewLines);
         addPieceTableNode(pastedText,destPTN);
         ta->pieceTable->numberOfLines += destPTN->numberNewLines;
@@ -1756,7 +1775,6 @@ void pasteFromClipboard(Clipboard *c, TextArea *ta)
         ta->pieceTable->nodesList = pastedText;
         ta->cursor->pieceTableNode = pastedText->last;
         ta->cursor->positionInNode = pastedText->last->length;
-        ta->pieceTable->nodesList->length += pastedText->length;
 
         updateCursorPosition(ta);
         handleScroll(ta);
@@ -1832,6 +1850,8 @@ void pasteFromClipboard(Clipboard *c, TextArea *ta)
 
 void cutSelection(Clipboard *c, TextArea *ta)
 {
+    if(c->selectionMade==false)
+        return;
     copyToClipboard(c,ta);
     deleteSelection(c,ta);
 }

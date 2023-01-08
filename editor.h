@@ -246,6 +246,7 @@ bool cursorInArea(TextArea *ta, int x, int y);
 
 struct Clipboard
 {
+    bool selectionMade;
     Cursor *start;
     Cursor *finish;
 

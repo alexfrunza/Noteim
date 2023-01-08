@@ -12,7 +12,6 @@
 #define CTRL_X_PRESSED a==24
 #define ESC_PRESSED a==27
 #define DELETE_PRESSED a==83
-#define CTRL_BACKSPACE_PRESSED a==127
 #define ENTER_PRESSED a=='\r'
 #define TAB_PRESSED a=='\t'
 
@@ -111,6 +110,8 @@ void handleKeyPress(Editor *e)
 
         if(CTRL_V_PRESSED)
         {
+            if(e->clipboard->selectionMade==true)
+                deleteSelection(e->clipboard,e->textArea);
             pasteFromClipboard(e->clipboard,e->textArea);
             e->textArea->changes = e->textArea->bkChanges = true;
             drawArea(e->textArea);
@@ -122,17 +123,12 @@ void handleKeyPress(Editor *e)
             drawArea(e->textArea);
         }
 
-        if(CTRL_BACKSPACE_PRESSED)
-        {
-            deleteSelection(e->clipboard,e->textArea);
-            drawArea(e->textArea);
-        }
-
         if(ARROW_PRESSED)
         {
             a = getch();
-            if(DELETE_PRESSED)
+            if(DELETE_PRESSED) // Both Delete and ArrowKeys send ASCII: 0 then some value
             {
+                e->clipboard->selectionMade = false;
                 if(e->textArea->cursor->positionInNode<e->textArea->cursor->pieceTableNode->length)
                 {
                     e->textArea->cursor->positionInNode++;
@@ -146,7 +142,11 @@ void handleKeyPress(Editor *e)
                 }
             }
             else
+            {
+                if(e->clipboard->selectionMade==true)
+                    e->clipboard->selectionMade = false;
                 moveCursorByArrow(e->textArea,a);
+            }
             return;
         }
 
@@ -154,6 +154,8 @@ void handleKeyPress(Editor *e)
 
         if(BACKSPACE_PRESSED)
         {
+            if(e->clipboard->selectionMade==true)
+                deleteSelection(e->clipboard,e->textArea);
             handleDelete(e->textArea);
             e->textArea->savedChanges = false;
             e->menuArea->fileStateChanged = true;
@@ -162,6 +164,8 @@ void handleKeyPress(Editor *e)
 
         if(ENTER_PRESSED)
         {
+            if(e->clipboard->selectionMade==true)
+                deleteSelection(e->clipboard,e->textArea);
             addCharToTextArea(e->textArea,'\n');
             if(e->textArea->changes==true)
                 drawArea(e->textArea);
@@ -185,6 +189,8 @@ void handleKeyPress(Editor *e)
 
         if(TAB_PRESSED)
         {
+            if(e->clipboard->selectionMade==true)
+                deleteSelection(e->clipboard,e->textArea);
             addCharToTextArea(e->textArea,' ');
             addCharToTextArea(e->textArea,' ');
             addCharToTextArea(e->textArea,' ');
@@ -197,6 +203,8 @@ void handleKeyPress(Editor *e)
 
         if(isDisplayedChar(a))
         {
+            if(e->clipboard->selectionMade==true)
+                deleteSelection(e->clipboard,e->textArea);
             addCharToTextArea(e->textArea,a);
             if(e->textArea->changes==true)
                 drawArea(e->textArea);
@@ -213,6 +221,7 @@ void handleMouseClick(Editor *e)
 {
     int x, y;
     getmouseclick(WM_LBUTTONDOWN,x,y);
+
     if(e->modalOpen)
     {
         if(e->m1 != NULL)
@@ -232,11 +241,10 @@ void handleMouseClick(Editor *e)
         pressed = handleClick(e, x, y);
         pressed = clearClick(e, x, y) || pressed;
         ///
-        if(!pressed) {
+        if(!pressed)
             handleClickChangeTextArea(e, x, y);
-        }
-        if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x &&
-                y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
+
+        if(x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x && y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
         {
             x -= e->textArea->topLeft.x;
             y -= e->textArea->topLeft.y;
@@ -244,8 +252,17 @@ void handleMouseClick(Editor *e)
             if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
                 newCursorPosition.x++;
             moveCursor(e->textArea,newCursorPosition);
-            return;
         }
+
+        /*while(!ismouseclick(WM_LBUTTONUP))// && x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x && y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
+        {
+            x = mousex();
+            y = mousey();
+            cout << "Mouse is being pressed";
+            delay(20);
+        }
+        cout << ismouseclick(WM_LBUTTONUP);
+        clearmouseclick(WM_LBUTTONUP);*/
     }
 }
 
@@ -288,8 +305,8 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
             handleMouseClick(e);
 
-        if(kbhit())
-            handleKeyPress(e);
+        if(kbhit()){
+            handleKeyPress(e); logPieceTableNodes(e->textArea->pieceTable); }
 
         drawEditor(e);
         delay(10);
