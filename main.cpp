@@ -19,8 +19,7 @@ using namespace std;
 
 bool buttonPressed = false;
 
-// De sters
-/*void logPieceTableNodes(PieceTable *pt)
+void logPieceTableNodes(PieceTable *pt)
 {
     PieceTableNodesList *ptnl = pt->nodesList;
 
@@ -37,7 +36,7 @@ bool buttonPressed = false;
         ptn = ptn->next;
     }
 
-}*/
+}
 
 void handleDelete(TextArea *ta)
 {
@@ -370,8 +369,7 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
             handleMouseClick(e);
 
-        if(kbhit())
-            handleKeyPress(e);
+        if(kbhit()) handleKeyPress(e);
 
         if(e->running)
             drawEditor(e);
