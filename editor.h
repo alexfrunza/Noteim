@@ -1,7 +1,9 @@
 #include <graphics.h>
+#include <ctime>
+
 #include "piecetable.h"
 #include "color.h"
-#include <ctime>
+#include "settings.h"
 
 #ifndef NOTEIM_EDITOR_H
 #define NOTEIM_EDITOR_H
@@ -416,4 +418,5 @@ struct TextAreaNodeTreeList
 TextAreaNodeTreeList* initTextAreaNodeTreeList(Editor *e);
 int getNodePositionInTANTL(TextAreaNodeTreeList *tantl, TextAreaNodeTree *node);
 void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree *node);
+
 #endif // NOTEIM_EDITOR_H
