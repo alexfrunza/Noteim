@@ -1574,6 +1574,9 @@ void showSelection(Clipboard *c, TextArea *ta)
         B.position = c->finish->position;
     }
 
+    if(A.position.y==B.position.y && A.position.x==B.position.y-1)
+        return;
+
     if(A.position.x>0)
         outtextxy(ta->topLeft.x+(A.position.x-1)*CHAR_WIDTH,ta->topLeft.y+A.position.y*CHAR_HEIGHT,"{");
     else
@@ -1591,7 +1594,8 @@ void hideSelection(Clipboard *c, TextArea *ta)
         return;
 
     drawLines(ta,ta->topLeft.y+c->start->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->start->position.y+1)*CHAR_HEIGHT);
-    drawLines(ta,ta->topLeft.y+c->finish->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->finish->position.y+1)*CHAR_HEIGHT);
+    if(c->start->position.y!=c->finish->position.y)
+        drawLines(ta,ta->topLeft.y+c->finish->position.y*CHAR_HEIGHT,ta->topLeft.y+(c->finish->position.y+1)*CHAR_HEIGHT);
 }
 
 void selectAll(Clipboard *c, TextArea *ta)

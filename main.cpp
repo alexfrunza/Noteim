@@ -268,15 +268,52 @@ void handleMouseClick(Editor *e)
             moveCursor(e->textArea,newCursorPosition);
         }
 
-        /*while(!ismouseclick(WM_LBUTTONUP))// && x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x && y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y && !pressed)
+        if(!ismouseclick(WM_LBUTTONUP) && !pressed)
         {
-            x = mousex();
-            y = mousey();
-            cout << "Mouse is being pressed";
-            delay(20);
+            delete e->clipboard->start;
+            delete e->clipboard->finish;
+            Cursor *st = new Cursor;
+            Cursor *dr = new Cursor;
+            st->pieceTableNode = dr->pieceTableNode = e->textArea->cursor->pieceTableNode;
+            st->positionInNode = dr->positionInNode = e->textArea->cursor->positionInNode;
+            st->position = dr->position = e->textArea->cursor->position;
+            dr->position.x--;
+            e->clipboard->start = st;
+            e->clipboard->finish = dr;
+            e->clipboard->selectionMade = true;
+
+            x += e->textArea->topLeft.x;
+            y += e->textArea->topLeft.y;
+
+            while(!ismouseclick(WM_LBUTTONUP) && x>=e->textArea->topLeft.x && x<=e->textArea->bottomRight.x && y>=e->textArea->topLeft.y && y<=e->textArea->bottomRight.y)
+            {
+                hideSelection(e->clipboard,e->textArea);
+
+                x = mousex();
+                y = mousey();
+                x -= e->textArea->topLeft.x;
+                y -= e->textArea->topLeft.y;
+                Point newCursorPosition = {x/CHAR_WIDTH,y/CHAR_HEIGHT};
+                if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
+                    newCursorPosition.x++;
+                moveCursor(e->textArea,newCursorPosition);
+                x += e->textArea->topLeft.x;
+                y += e->textArea->topLeft.y;
+
+                delete e->clipboard->finish;
+                Cursor *dr = new Cursor;
+                dr->pieceTableNode = e->textArea->cursor->pieceTableNode;
+                dr->positionInNode = e->textArea->cursor->positionInNode;
+                dr->position = e->textArea->cursor->position;
+                dr->position.x--;
+
+                showSelection(e->clipboard,e->textArea);
+                delay(50);
+            }
+            while(!ismouseclick(WM_LBUTTONUP))
+                delay(50);
         }
-        cout << ismouseclick(WM_LBUTTONUP);
-        clearmouseclick(WM_LBUTTONUP);*/
+        clearmouseclick(WM_LBUTTONUP);
     }
 }
 
