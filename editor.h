@@ -179,8 +179,6 @@ struct Cursor
     unsigned int lastBlip;
     bool visibleState;
 
-    unsigned int positionInPieceTable;
-
     PieceTableNode* pieceTableNode;
     unsigned int positionInNode;
 };
@@ -246,12 +244,31 @@ void changeFocusedTextArea(TextAreaNodeTree *root, int x, int y);
 void deleteTextArea(TextArea *ta);
 bool cursorInArea(TextArea *ta, int x, int y);
 
+struct Clipboard
+{
+    bool selectionMade;
+    Cursor *start;
+    Cursor *finish;
+
+    PieceTable *pieceTable;
+};
+
+Clipboard* initClipboard(); // Done
+void emptyClipboard(Clipboard *c); // Done
+void selectAll(Clipboard *c, TextArea *ta); // Done?
+void copyToClipboard(Clipboard *c, TextArea *ta); // Done?
+void deleteSelection(Clipboard *c, TextArea *ta); // Done?
+void cutSelection(Clipboard *c, TextArea *ta); // Done?
+void pasteFromClipboard(Clipboard *c, TextArea *ta);
+void replaceSelection(Clipboard *c, TextArea *ta);
+
 struct Editor
 {
     bool running;
     bool modalOpen;
     Modal1 *m1;
     Modal2 *m2;
+    Clipboard *clipboard;
     MenuArea *menuArea;
     TextArea *textArea;
     TextAreaNodeTree *root;
