@@ -19,7 +19,8 @@ using namespace std;
 
 bool buttonPressed = false;
 
-void logPieceTableNodes(PieceTable *pt)
+// De sters
+/*void logPieceTableNodes(PieceTable *pt)
 {
     PieceTableNodesList *ptnl = pt->nodesList;
 
@@ -36,7 +37,7 @@ void logPieceTableNodes(PieceTable *pt)
         ptn = ptn->next;
     }
 
-}
+}*/
 
 void handleDelete(TextArea *ta)
 {
@@ -254,7 +255,6 @@ void handleMouseClick(Editor *e)
     }
     else
     {
-        cout << ismouseclick(WM_LBUTTONUP);
         /// Verify a button is clicked or something from a submenu
         bool pressed = false;
         pressed = handleClick(e, x, y);
@@ -370,11 +370,11 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
             handleMouseClick(e);
 
-        if(kbhit()){
+        if(kbhit())
             handleKeyPress(e);
-             logPieceTableNodes(e->textArea->pieceTable); }
 
-        drawEditor(e);
+        if(e->running)
+            drawEditor(e);
         delay(10);
     }
     return 0;

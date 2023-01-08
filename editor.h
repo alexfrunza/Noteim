@@ -153,26 +153,6 @@ bool cursorInArea(MenuArea *ma, int x, int y);
 void handleHover(MenuArea *ma, int x, int y);
 void clearHover(MenuArea *ma, int x, int y);
 
-struct VerticalScrollBarArea
-{
-    // Soon
-};
-
-struct HorizontalScrollBarArea
-{
-    // Soon
-};
-
-struct ScrollBarsArea
-{
-    bool changes;
-    VerticalScrollBarArea verticalScrollBar;
-    HorizontalScrollBarArea horizontalScrollBar;
-};
-
-ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight);
-void drawArea(ScrollBarsArea *sba);
-
 struct Cursor
 {
     Point position;
@@ -212,7 +192,6 @@ struct TextArea
     unsigned int firstColumn;
 
     PieceTable *pieceTable;
-    //ScrollBarsArea *scrollBarsArea;
     //Memorez fila in care lucrez curent, daca e deschisa, sa stiu sa salvez tot in ea.
 
     bool bkChanges;

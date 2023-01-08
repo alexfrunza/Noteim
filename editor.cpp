@@ -1013,14 +1013,6 @@ bool clearClick(Editor *e, int x, int y)
     return pressedSubMenu;
 }
 
-ScrollBarsArea* initScrollBarsArea(Point topLeft, Point bottomRight)
-{
-}
-
-void drawArea(ScrollBarsArea *sba)
-{
-}
-
 Cursor *initCursor()
 {
     Cursor* c = new Cursor;
@@ -1090,7 +1082,6 @@ TextArea* initTextArea(Editor *e, Point topLeft, Point bottomRight)
     ta->maxLines = abs(ta->bottomRight.y - ta->topLeft.y) / CHAR_HEIGHT;
     ta->maxCharLine = abs(ta->bottomRight.x - ta->topLeft.x) / CHAR_WIDTH;
 
-    // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     return ta;
 }
 
@@ -1123,7 +1114,6 @@ TextArea* initTextArea(Editor* e, Point topLeft, Point bottomRight, char *fileNa
     ta->cursor->pieceTableNode = ta->pieceTable->nodesList->first;
     openFile(ta, fileName);
 
-    // e->scrollBarsArea = initScrollBarsArea(topLeft, bottomRight);
     return ta;
 }
 
@@ -1326,7 +1316,6 @@ void updateCursorPosition(TextArea *ta)
         ptn = ptn->prev;
     }
     ta->cursor->position = {dest.x - (int)ta->firstColumn, dest.y - (int)ta->firstLine};
-    //handleScroll(ta);
 }
 
 void addCharToTextArea(TextArea *ta, char newLetter)
@@ -1670,8 +1659,7 @@ void copyToClipboard(Clipboard *c, TextArea *ta)
 
     if(c->start->pieceTableNode==c->finish->pieceTableNode)
     {
-        if(c->finish->pieceTableNode==ta->pieceTable->nodesList->last && c->finish->positionInNode==c->finish->pieceTableNode->length)
-            c->finish->positionInNode--;
+        c->finish->positionInNode--;
 
         numberNewLines = 0;
         for(i=c->start->positionInNode; i<=c->finish->positionInNode; i++)
@@ -1802,7 +1790,6 @@ void deleteSelection(Clipboard *c, TextArea *ta)
     updateCursorPosition(ta);
     handleScroll(ta);
 
-    // Needs optimizing for display
     ta->changes = true;
     ta->bkChanges = true;
 
