@@ -1717,7 +1717,10 @@ void pasteFromClipboard(Clipboard *c, TextArea *ta)
     while(sourcePTN!=NULL)
     {
         if(sourcePTN->length==0)
+        {
+            sourcePTN = sourcePTN->next;
             continue;
+        }
         destPTN = initPieceTableNode(sourcePTN->buffer,sourcePTN->start,sourcePTN->length,sourcePTN->numberNewLines);
         addPieceTableNode(pastedText,destPTN);
         ta->pieceTable->numberOfLines += destPTN->numberNewLines;

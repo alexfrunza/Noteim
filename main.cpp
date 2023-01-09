@@ -293,7 +293,8 @@ void handleMouseClick(Editor *e)
                 if(dr->position.x>0)
                     dr->position.x--;
 
-                showSelection(e->clipboard,e->textArea);
+                if(e->clipboard->start->position.x!=e->clipboard->finish->position.x || e->clipboard->start->position.y!=e->clipboard->finish->position.y)
+                    showSelection(e->clipboard,e->textArea);
                 delay(50);
             }
             while(!ismouseclick(WM_LBUTTONUP))
