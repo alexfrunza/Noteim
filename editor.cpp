@@ -802,6 +802,7 @@ bool handleClick(Editor *e, int x, int y)
             return true;
         }
     }
+    clearmouseclick(WM_LBUTTONUP);
     return false;
 }
 
