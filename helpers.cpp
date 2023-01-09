@@ -1,4 +1,5 @@
 #include <stdlib.h>
+
 #include "helpers.h"
 
 bool isDisplayedChar(char x)

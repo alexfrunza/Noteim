@@ -1,6 +1,6 @@
-//#include <graphics.h>
-#include "helpers.h"
 #include <cstddef>
+
+#include "helpers.h"
 
 #ifndef NOTEIM_PIECETABLE_H
 #define NOTEIM_PIECETABLE_H

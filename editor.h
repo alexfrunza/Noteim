@@ -1,7 +1,9 @@
 #include <graphics.h>
+#include <ctime>
+
 #include "piecetable.h"
 #include "color.h"
-#include <ctime>
+#include "settings.h"
 
 #ifndef NOTEIM_EDITOR_H
 #define NOTEIM_EDITOR_H
@@ -236,6 +238,7 @@ Clipboard* initClipboard();
 void emptyClipboard(Clipboard *c);
 void showSelection(Clipboard *c, TextArea *ta);
 void hideSelection(Clipboard *c, TextArea *ta);
+void validateSelection(Clipboard *c);
 void selectAll(Clipboard *c, TextArea *ta);
 void copyToClipboard(Clipboard *c, TextArea *ta);
 void deleteSelection(Clipboard *c, TextArea *ta);
@@ -416,4 +419,5 @@ struct TextAreaNodeTreeList
 TextAreaNodeTreeList* initTextAreaNodeTreeList(Editor *e);
 int getNodePositionInTANTL(TextAreaNodeTreeList *tantl, TextAreaNodeTree *node);
 void addNodeToTANTL(TextAreaNodeTreeList *tantl, int position, TextAreaNodeTree *node);
+
 #endif // NOTEIM_EDITOR_H
