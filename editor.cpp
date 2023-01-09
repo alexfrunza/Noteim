@@ -1524,30 +1524,18 @@ void emptyClipboard(Clipboard *c)
 
 void copyToClipboard(Clipboard *c, TextArea *ta)
 {
+    if(c->selectionMade==false || c->finish->positionInNode==-1)
+        return;
+
     if(c->start->pieceTableNode==ta->pieceTable->nodesList->first && c->start->pieceTableNode->length==0)
     {
         c->start->pieceTableNode = c->start->pieceTableNode->next;
         c->start->positionInNode = 0;
     }
 
-    if(c->selectionMade==false || c->start->pieceTableNode==NULL || c->finish->positionInNode==-1)
-        return;
-
-    if(c->start->position.y>c->finish->position.y || (c->start->position.y==c->finish->position.y && c->start->position.x>c->finish->position.x))
-    {
-        Cursor *aux = c->start;
-        c->start = c->finish;
-        c->finish = aux;
-    }
 
     hideSelection(c,ta);
     c->selectionMade = false;
-
-    if(c->start->pieceTableNode==ta->pieceTable->nodesList->last && ta->pieceTable->nodesList->first->length==0)
-    {
-        c->start->pieceTableNode = ta->pieceTable->nodesList->first->next;
-        c->start->positionInNode = 0;
-    }
 
     emptyClipboard(c);
 
@@ -1558,7 +1546,8 @@ void copyToClipboard(Clipboard *c, TextArea *ta)
 
     if(c->start->pieceTableNode==c->finish->pieceTableNode)
     {
-        c->finish->positionInNode--;
+        if(c->finish->positionInNode!=c->finish->pieceTableNode->length-1)
+            c->finish->positionInNode--;
 
         numberNewLines = 0;
         for(i=c->start->positionInNode; i<=c->finish->positionInNode; i++)
@@ -1680,14 +1669,14 @@ void deleteSelection(Clipboard *c, TextArea *ta)
     }
     else
     {
-        for(i=0; i<c->finish->positionInNode; i++)
+        for(i=0; i<=c->finish->positionInNode; i++)
             if(currPTN->buffer->text[currPTN->start+i]=='\n')
             {
                 currPTN->numberNewLines--;
                 ta->pieceTable->numberOfLines--;
             }
         currPTN->length -= i;
-        currPTN->start = i;
+        currPTN->start += i;
     }
 
     updateCursorPosition(ta);
@@ -1695,9 +1684,6 @@ void deleteSelection(Clipboard *c, TextArea *ta)
 
     ta->changes = true;
     ta->bkChanges = true;
-
-    c->start->pieceTableNode = NULL;
-    c->finish->pieceTableNode = NULL;
 }
 
 void pasteFromClipboard(Clipboard *c, TextArea *ta)
@@ -1820,6 +1806,7 @@ void cutSelection(Clipboard *c, TextArea *ta)
     if(c->selectionMade==false)
         return;
     copyToClipboard(c,ta);
+    c->selectionMade = true;
     deleteSelection(c,ta);
 }
 

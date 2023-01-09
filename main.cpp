@@ -15,8 +15,6 @@
 #define ENTER_PRESSED a=='\r'
 #define TAB_PRESSED a=='\t'
 
-using namespace std;
-
 bool buttonPressed = false;
 
 void handleDelete(TextArea *ta)
@@ -352,7 +350,8 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
             handleMouseClick(e);
 
-        if(kbhit()) handleKeyPress(e);
+        if(kbhit())
+            handleKeyPress(e);
 
         if(e->running)
             drawEditor(e);
