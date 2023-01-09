@@ -15,28 +15,7 @@
 #define ENTER_PRESSED a=='\r'
 #define TAB_PRESSED a=='\t'
 
-using namespace std;
-
 bool buttonPressed = false;
-
-void logPieceTableNodes(PieceTable *pt)
-{
-    PieceTableNodesList *ptnl = pt->nodesList;
-
-
-    int i;
-    printf("\n\n");
-    PieceTableNode *ptn = pt->nodesList->first;
-    cout<<"NODES LIST: " << pt->nodesList->length << " nodes\n";
-    while(ptn!=NULL)
-    {
-        cout<<"START: "<<ptn->start<<" LENGTH: "<<ptn->length<< " NUMBERNEWLINES: " << ptn->numberNewLines << " ADDRESS: "<<ptn <<'\n';
-        for(i=0; i<ptn->length; i++)
-            cout << ptn->buffer->text[ptn->start+i];
-        ptn = ptn->next;
-    }
-
-}
 
 void handleDelete(TextArea *ta)
 {
@@ -319,6 +298,8 @@ void handleMouseClick(Editor *e)
             }
             while(!ismouseclick(WM_LBUTTONUP))
                 delay(50);
+
+            validateSelection(e->clipboard);
         }
         clearmouseclick(WM_LBUTTONUP);
     }
@@ -369,7 +350,8 @@ int main()
         if(ismouseclick(WM_LBUTTONDOWN))
             handleMouseClick(e);
 
-        if(kbhit()) handleKeyPress(e);
+        if(kbhit())
+            handleKeyPress(e);
 
         if(e->running)
             drawEditor(e);

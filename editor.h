@@ -238,6 +238,7 @@ Clipboard* initClipboard();
 void emptyClipboard(Clipboard *c);
 void showSelection(Clipboard *c, TextArea *ta);
 void hideSelection(Clipboard *c, TextArea *ta);
+void validateSelection(Clipboard *c);
 void selectAll(Clipboard *c, TextArea *ta);
 void copyToClipboard(Clipboard *c, TextArea *ta);
 void deleteSelection(Clipboard *c, TextArea *ta);
