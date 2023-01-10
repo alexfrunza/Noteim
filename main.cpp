@@ -252,7 +252,7 @@ void handleMouseClick(Editor *e)
             if(x%CHAR_WIDTH>=CHAR_WIDTH/2)
                 newCursorPosition.x++;
             moveCursor(e->textArea,newCursorPosition);
-            delay(100);
+            delay(250);
         }
 
         if(!ismouseclick(WM_LBUTTONUP) && !pressed)
