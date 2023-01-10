@@ -1,5 +1,6 @@
-#include "color.h"
 #include <graphics.h>
+
+#include "color.h"
 
 int convertToBGIColor(Color c) {
     return COLOR(c.r, c.g, c.b);
